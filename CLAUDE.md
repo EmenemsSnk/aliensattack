@@ -1,71 +1,110 @@
-# Aliens Attack - AI Assistant Guidelines
+# CLAUDE.md
 
-## Build & Run Commands
-* Build: `mvn clean compile`
-* Run: `mvn exec:java -Dexec.mainClass="com.emenems.games.aliens.Main"`
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Code Style
-* Java 8+ standards
-* Use explicit variable names
-* Follow Object-Oriented best practices
-* Decouple game logic (Controller) from presentation (View/Panel)
+## What this is
 
-## Project Architecture
-* `com.emenems.games.aliens.gamemachines`: Domain objects (Spaceship, Alien, Missile)
-* `com.emenems.games.aliens.controller`: Game loop and input handling
-* `com.emenems.games.aliens.gui`: Swing UI components
+Aliens Attack is a single-process 2D desktop arcade game (Space Invaders–like) on Java + Maven + Java Swing (`javax.swing`). It has **no external dependencies** — JDK standard library only. Active work is defined in `context/foundation/prd.md` (a brownfield PRD turning the current prototype into a playable game); `context/foundation/stack-assessment.md` and `context/foundation/health-check.md` hold the agent-readiness analysis.
+
+## Build, run, verify
+
+```bash
+mvn clean compile                                                # build — MUST pass at every stage (the project's only hard guardrail)
+mvn exec:java -Dexec.mainClass="com.emenems.games.aliens.Main"   # run the game
+```
+
+There is no test suite. The verification loop is **compile + run + observe behavior by hand** — there is no automated way to confirm a change. Do **not** add JUnit, TestNG, or any other dependency on your own: the PRD bars new external libraries without an explicit decision. If automated tests are wanted, raise it and get sign-off before editing `pom.xml`.
+
+The Java compiler level is **not pinned** in `pom.xml` (no `maven-compiler-plugin`, no `maven.compiler.*` properties), so the build silently targets whatever local JDK is installed. Write **Java 8** syntax — avoid `var`, records, and switch expressions — until the level is pinned. Pinning it (`maven.compiler.source`/`target` = `1.8`) is a recommended fix.
+
+## Architecture
+
+Three packages under `com.emenems.games.aliens`:
+- `gamemachines` — domain objects implementing the `GameObject` interface (`getX`/`getY`): `Spaceship`, `Alien`, `Missile`. Plain mutable state plus movement methods; pixel coordinates, `25px` component size.
+- `controller` — `GameController` holds the game loop, input handling, and collision logic. Per the PRD this stays the central node; a View/Controller refactor is explicitly out of scope.
+- `gui` — Swing presentation: `WindowFrame` (the `JFrame`) and `GamePanel` (the `JPanel`; all `paintComponent` rendering, plus image loading from `src/main/resources/images/`).
+
+**The load-bearing wiring (read `Main.java` first):** `Main` constructs the `Spaceship` and the `List<Missile>` / `List<Alien>` collections once, then passes the **same references** to both `GamePanel` (which reads them to render) and `GameController` (which mutates them each tick). There is no separate model object — the shared mutable lists *are* the game state, and rendering stays in sync because both sides point at the same instances. UI construction is correctly wrapped in `EventQueue.invokeLater`.
+
+**Swing threading rule (critical):** all rendering and timer-driven game logic must run on the Event Dispatch Thread (EDT). Drive the loop with `javax.swing.Timer` (its `ActionListener` callbacks fire on the EDT) — not a background thread. Never do blocking or long-running work inside an EDT callback.
+
+## Current state / known issues
+
+The code is a prototype; `context/foundation/prd.md` defines the work to make it playable. A change will likely touch:
+- `GameController` declares **two** competing update mechanisms: a background `Thread` running `while(true){ Thread.sleep(1000); ... }` (started in `initialize()`, ~1 FPS, and it mutates lists + repaints **off the EDT**), plus an unused `javax.swing.Timer` field and an `actionPerformed` body that is never wired up. The Timer-on-EDT path is the intended replacement for the thread.
+- Missiles/aliens leaving the screen are never removed (`checkOutOfBoarder` is a commented-out TODO) → unbounded list growth.
+- `checkCollisionsWithSpaceShip()` detects the hit but is a no-op (bare `return`) — no life loss / game over.
+- `checkCollisionsWithMissile()` removes missiles both via a filter side-effect and again in a follow-up loop — collisions can be counted twice.
+- `keyTyped` and `keyPressed` both call `makeAction`, so one keypress can trigger an action twice.
+- `Spaceship` carries an unused `health`/`decreaseHealth`; `GameState` is an empty commented-out file. No state machine (start / playing / game-over) exists yet.
 
 <!-- BEGIN @przeprogramowani/10x-cli -->
 
-## 10xDevs AI Toolkit — Moduł 1, Lekcja 1
+## 10xDevs AI Toolkit — Moduł 1, Lekcja 3
 
-Uruchom projekt greenfield od początku do końca za pomocą **łańcucha kształtowania**:
+Szkielet projektu dla stosu wybranego w Lekcji 2, z **łańcuchem bootstrap**:
 
 ```
-/10x-init → /10x-shape → /10x-prd → (10x-tech-stack-selector) → (bootstrapper)
+(/10x-init  →  /10x-shape  →  /10x-prd)  →  /10x-tech-stack-selector  →  /10x-bootstrapper
 ```
 
-Pierwsze trzy umiejętności są dostarczane w tej lekcji; ostatnie dwie to kolejne ogniwa w łańcuchu.
+Łańcuch PRD pochodzi z Lekcji 1, a tech-stack-selector z Lekcji 2 — oba są ponownie uwzględnione w tej lekcji, abyś mógł poprawić PRD lub zmienić stos w trakcie pracy. `/10x-bootstrapper` to główny temat lekcji. Łańcuch kończy się tutaj w v1; przyszła Lekcja 4 skonfiguruje kontekst agenta (`CLAUDE.md`, `AGENTS.md`).
 
 ### Router zadań — Od czego zacząć
 
-| Umiejętność | Użyj, gdy |
+| Umiejętność | Kiedy jej użyć |
 | --- | --- |
-| **Konfiguracja projektu** | |
-| `/10x-init` | Katalog projektu jest świeży. Tworzy szkielet `context/foundation/lessons.md` i `docs/reference/contract-surfaces.md`, aby reszta przepływu pracy miała gdzie pisać. Uruchom to raz na projekt. |
-| **Odkrywanie** | |
-| `/10x-shape` | Masz pomysł i musisz przekształcić go w ustrukturyzowane notatki kształtujące ZANIM napiszesz PRD. Tylko greenfield. Przechodzi przez wizję → persona/dostęp → MVP → FR (z sokratycznym wyzwaniem) → logika biznesowa i dane → szkic otwartości stosu. Wykrywa antywzorce empty-CRUD i MVP-too-big po nazwie. Wynik: `context/foundation/shape-notes.md` z blokiem `checkpoint:` umożliwiającym wznowienie. |
-| **Generowanie dokumentów** | |
-| `/10x-prd` | Masz notatki kształtujące (lub surowe notatki) i chcesz uzyskać zgodny ze schematem `context/foundation/prd.md`. Generuje zgodnie z zablokowanym schematem, kieruje każdą lukę dosłownie do `## Open Questions` i odmawia wymyślania decyzji domenowych. W przypadku kolizji, monituje o nadpisanie vs. zapis wersji (`prd-vN.md`). |
+| **Bootstrap (główny temat lekcji)** | |
+| `/10x-bootstrapper` | Masz przekazanie w `context/foundation/tech-stack.md` (napisane przez `/10x-tech-stack-selector`) i jesteś gotowy do utworzenia szkieletu projektu w bieżącym katalogu. Umiejętność odczytuje przekazanie, wyszukuje wybraną kartę w rejestrze starterów, uruchamia jej CLI za pomocą jednej z trzech strategii cwd (szkielet do katalogu tymczasowego, a następnie przenosi pliki w górę; szkielet bezpośrednio do bieżącego katalogu; klonuje repozytorium startera bez zachowywania jego historii git), zawsze zachowuje `context/`, odsuwa inne konflikty jako rodzeństwo `.scaffold`, uruchamia lekkie sprawdzenie aktualności przed szkieletowaniem i głębszy audyt po szkieletowaniu, a także zapisuje dziennik weryfikacji do `context/changes/bootstrap-verification/verification.md`. Użyj PO `/10x-tech-stack-selector`. |
+| **Ponowne uruchomienie upstream w razie potrzeby** | |
+| `/10x-init` / `/10x-shape` / `/10x-prd` / `/10x-tech-stack-selector` | Zestawione, abyś mógł poprawić PRD lub zmienić stos w trakcie pracy. Jeśli `/10x-bootstrapper` zgłosi odmowę z powodu dryfu rejestru lub zmienisz zdanie co do startera, uruchom ponownie `/10x-tech-stack-selector`, aby ponownie wygenerować `tech-stack.md` i ponownie wywołać. |
 
 ### Jak łańcuch przekazuje dane
 
-- `/10x-init` tworzy szkielet przepływu pracy v2 (`context/foundation/`, `lessons.md`, `contract-surfaces.md`). `/10x-shape` wymaga tego i zaoferuje delegowanie do `/10x-init`, jeśli brakuje.
-- `/10x-shape` zapisuje `context/foundation/shape-notes.md` z frontmatterem `checkpoint:` (current_phase, phases_completed, frs_drafted, quality_check_status). Po ponownym wejściu wznawia od następnej niedokończonej fazy.
-- `/10x-prd` odczytuje `shape-notes.md` (domyślnie) lub dowolną ścieżkę, którą podasz, ocenia dane wejściowe za pomocą heurystyki 4 sygnałów, ostrzega o zbyt małej ilości danych wejściowych i zapisuje `context/foundation/prd.md` zgodnie ze schematem w `skills/10x-shape/references/prd-schema.md` (frontmatter wyrównany 1:1 z Q1–Q7 10x-tech-stack-selector).
+- `/10x-tech-stack-selector` (Lekcja 2) zapisuje `context/foundation/tech-stack.md` z 4-kluczowym frontmatterem (`starter_id`, `package_manager`, `project_name`, `hints`) plus jednoakapitowy tekst `## Why this stack`.
+- `/10x-bootstrapper` odczytuje ten plik W CAŁOŚCI (bez powrotu do historii rozmów). Jeśli go brakuje, umiejętność odmawia z jednosentencyjnym przekierowaniem do `/10x-tech-stack-selector` i zatrzymuje się — brak wbudowanego mini-przekazania, brak trybu samodzielnego w v1.
+- Wybrany `starter_id` jest wyszukiwany w `/skills/10x-tech-stack-selector/references/starter-registry.yaml`. Umiejętność konsumuje ten rejestr; nie jest jego właścicielem. Walidator CI (`scripts/validate-starter-registry-sync.mjs`) zapobiega odwoływaniu się bootstrapper'a do `starter_id` nieobecnego w rejestrze.
+- Umiejętność zapisuje `context/changes/bootstrap-verification/verification.md` jako dziennik audytu dla uruchomienia. Schemat w `/skills/10x-bootstrapper/references/verification-log-schema.md`.
 
-### Co PRD zawiera (a czego NIE)
+### Co bootstrapper przechwytuje (a czego NIE)
 
-- **Zawiera**: wizję, personę, kryteria sukcesu, historie użytkowników (Given/When/Then), FR (FR-NNN), NFR, logikę biznesową (najpierw zasada jednego zdania), model danych, kontrolę dostępu, trwałe decyzje implementacyjne, strategię testowania, strategię wdrożenia i CI/CD, cele nieobjęte, otwarte pytania.
-- **NIE zawiera (celowo)**: wybory frameworków, wybory baz danych, ścieżki plików, platforma wdrożeniowa. Otwartość stosu jest wiążąca — tylko `product_type` i `tech_preferences.language_family` odzwierciedlają intencje dotyczące kształtu stosu. Frameworki to zadanie 10x-tech-stack-selector.
+- **Przechwycone (v1)**: szkieletowanie za pomocą `cmd_template` wybranej karty (delegacja CLI, a nie generowanie plików wbudowanych), trzy strategie cwd wysyłane z `bootstrapper-config.yaml` (`subdir-then-move`, `native-cwd`, `git-clone`), ścisła polityka konfliktów tworząca rodzeństwo `.scaffold` + zawsze zachowująca `context/`, dwa miejsca na weryfikację (lekkie sprawdzenie aktualności przed szkieletowaniem + głęboki audyt po szkieletowaniu z uwzględnieniem języka), podsumowanie audytu z podziałem na poziomy ważności, pełny dziennik weryfikacji na dysku.
+- **NIE przechwycone w v1 (celowo)**: generowanie `AGENTS.md` / `CLAUDE.md` (odłożone na przyszłą Lekcję 4 — "Architektura Pamięci"); nakładki umieszczania elementów certyfikatów dla każdego startera (będą dostępne z przyszłą umiejętnością kontekstu agenta, nie tutaj); pliki workflow CI; fallback AI-as-bridge dla stosów spoza rejestru (odłożone na v2 — w trybie łańcucha v1 tech-stack-selector już bramkuje na rejestrze, więc ten przypadek nie może wystąpić); tryb samodzielny, w którym użytkownik podaje stos wbudowany bez przekazania (odłożone na v2); działania kompensacyjne dla `bootstrapper_confidence: best-effort` lub `quality_override: true` (wyświetlane w rozmowie, ale bez automatycznego śledzenia — to również zadanie przyszłej umiejętności architektury pamięci).
 
-### Antywzorce wykryte podczas kształtowania
+### Polityka konfliktów
 
-- **Empty-CRUD**: logika biznesowa, która sprowadza się do „użytkownicy dodają i usuwają rekordy” bez reguły domenowej. `/10x-shape` nazywa to wyraźnie i monituje o prawdziwy kształt reguły (rekomendacja, priorytetyzacja, klasyfikacja, walidacja, punktacja, przepływ pracy, obliczenia).
-- **MVP-too-big**: szacowany czas pierwszego przepływu przekracza ~1 tydzień pracy po godzinach, lub > 4 odrębne akcje użytkownika przed widoczną wartością dla użytkownika, lub wymaga wielu integracji przed uzyskaniem korzyści. Umiejętność nazywa kosztowne elementy i oferuje konkretne ruchy w celu zmniejszenia zakresu.
+Gdy umiejętność przenosi pliki z tymczasowego katalogu szkieletu do bieżącego katalogu roboczego, stosuje ścisłą macierz:
 
-Oba są **miękkimi bramkami**: ostrzegają, ale pozwalają na nadpisanie. Nadpisania są rejestrowane w punkcie kontrolnym i wyświetlane w `## Open Questions` w PRD.
+- **`context/**`** — wszystko, co szkielet próbował zapisać w `context/`, jest **odrzucane**. Twój `context/` jest źródłem prawdy dla łańcucha bootstrap (PRD, przekazanie tech-stack, plany, ramki) i nigdy nie jest nadpisywany.
+- **`.gitignore`** — scalane przez dołączenie: twoje istniejące linie pozostają w kolejności, a następnie linie szkieletu są deduplikowane względem twojego zestawu i dołączane z komentarzem separatora. Semantyka ignorowania Gita jest addytywna, więc łączenie jest bezpieczne.
+- **`package.json`, `README.md`, `CLAUDE.md`, `AGENTS.md`, pliki `*.md` na poziomie głównym** — twój istniejący plik wygrywa; kopia szkieletu ląduje jako rodzeństwo `<filename>.scaffold`. Możesz `diff README.md README.md.scaffold`, aby zobaczyć, co dostarczył starter, a co miałeś.
+- **Cokolwiek innego** — przenosi się cicho, jeśli nie ma konfliktu, odsuwane jako `<filename>.scaffold`, jeśli taki istnieje. Macierz nigdy nie usuwa plików użytkownika.
+
+Dla strategii `git-clone` (10x-astro-starter i podobne): sklonowany `.git/` jest usuwany przed przeniesieniem w górę, więc historia startera upstream nie wycieka do twojego repozytorium. Własną historię inicjujesz później (`git init`).
+
+### Dziennik weryfikacji
+
+Każde uruchomienie zapisuje `context/changes/bootstrap-verification/verification.md`. Sekcje:
+
+- **`## Hand-off`** — dosłowna kopia frontmattera tech-stack.md i treści `## Why this stack`.
+- **`## Pre-scaffold verification`** — tabela wyników aktualności (wersja pakietu npm + `time.modified` dla starterów JS; GitHub `pushed_at` dla każdego startera z GitHub `docs_url`).
+- **`## Scaffold log`** — wywołanie CLI, kod wyjścia, przeniesione pliki, konflikty wyświetlone jako rodzeństwo `.scaffold`, obsługa `.gitignore`.
+- **`## Post-scaffold audit`** — pełny wynik audytu dla każdego języka (`npm audit --json` dla JS, `pip-audit` dla Pythona, `cargo audit` dla Rust itp.). Podzielony na poziomy ważności: CRITICAL i HIGH wyświetlane w czacie, MODERATE i LOW tylko w dzienniku. Podział na bezpośrednie i przechodnie, jeśli narzędzie to obsługuje.
+- **`## Hints recorded but not acted on`** — każda wskazówka z przekazania, którą bootstrapper odczytał, ale nie zastosował w v1. Pełność ścieżki audytu dla przyszłej umiejętności architektury pamięci.
+- **`## Next steps`** — tekst wskazujący. v1 nazywa "twój projekt jest szkieletowany i zweryfikowany — miłego kodowania" i oznacza przyszłą umiejętność Lekcji 4 jako następne ogniwo łańcucha.
+
+Folder (`context/changes/bootstrap-verification/`) celowo nie zawiera `change.md`. Uruchomienia bootstrap to jednorazowe artefakty, nie śledzone zmiany workflow — folder zawiera dziennik i nic więcej. Ponowne uruchomienia stosują ostrzeżenie i potwierdzenie przed nadpisaniem; wyjściem awaryjnym jest `verification-v2.md` (i tak dalej).
 
 ### Ścieżki podstawowe używane w tej lekcji
 
-- `context/foundation/shape-notes.md` — wynik `/10x-shape`
-- `context/foundation/prd.md` (lub `prd-vN.md`) — wynik `/10x-prd`
-- `context/foundation/lessons.md` — powtarzające się zasady i pułapki (szkielet tworzony przez `/10x-init`)
-- `docs/reference/contract-surfaces.md` — rejestr nazw nośnych (szkielet tworzony przez `/10x-init`)
+- `context/foundation/tech-stack.md` — wejście (z Lekcji 2)
+- `context/changes/bootstrap-verification/verification.md` — wyjście (dziennik audytu)
+- `context/foundation/lessons.md` — powtarzające się zasady i pułapki
+- `docs/reference/contract-surfaces.md` — rejestr nazw nośnych
 
 ### Uniwersalny język
 
-Dostarczone umiejętności nie zawierają odniesień do 10xDevs / kohorty / certyfikacji. Mechanizmy (sokratyczne wyzwanie, odkrywanie szarych stref, łagodzenie zmęczenia zalecanymi odpowiedziami, miękka brama jakości) są uniwersalnymi wskaźnikami dobrze zdefiniowanego projektu greenfield.
+Dostarczona umiejętność nie zawiera odniesień do 10xDevs / kohorty / certyfikacji. Audyt po szkieletowaniu jest wysyłany według `language_family` na podstawie małej tabeli wyszukiwania; kohorty, których stos ląduje w `java`, `php`, `dart` lub kombinacji wielu języków, widzą w dzienniku linię "brak wbudowanego narzędzia audytowego dla tego ekosystemu" i zalecane narzędzie zewnętrzne, a nie fałszywy rekord "0 findings".
 
 Umiejętności nie mogą zapisywać do `context/archive/`. Zarchiwizowane zmiany są niezmienne; jeśli rozwiązana ścieżka docelowa zaczyna się od `context/archive/`, przerwij z komunikatem: "Ta zmiana jest zarchiwizowana. Zamiast tego otwórz nową zmianę za pomocą `/10x-new`."
 
