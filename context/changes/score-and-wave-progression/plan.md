@@ -215,34 +215,34 @@ No persistent data or saved game state exists, so there is nothing to migrate.
 
 #### Automated
 
-- [x] 1.1 Project compiles: `./mvnw clean compile`
-- [x] 1.2 Existing tests pass: `./mvnw test`
+- [x] 1.1 Project compiles: `./mvnw clean compile` — f064cb0
+- [x] 1.2 Existing tests pass: `./mvnw test` — f064cb0
 
 #### Manual
 
-- [x] 1.3 Launching the game still shows the initial row of 10 aliens
-- [x] 1.4 Aliens still move downward with no rendering regression
+- [x] 1.3 Launching the game still shows the initial row of 10 aliens — f064cb0
+- [x] 1.4 Aliens still move downward with no rendering regression — f064cb0
 
 ### Phase 2: Score, HUD, and Next-Wave Progression
 
 #### Automated
 
-- [x] 2.1 Project compiles: `./mvnw clean compile`
-- [x] 2.2 Existing tests pass: `./mvnw test`
+- [x] 2.1 Project compiles: `./mvnw clean compile` — f064cb0
+- [x] 2.2 Existing tests pass: `./mvnw test` — f064cb0
 
 #### Manual
 
-- [x] 2.3 HUD shows `Score: 0` and `Wave: 1` when the game starts
-- [x] 2.4 Destroying an alien increases score by 10 on wave 1
-- [x] 2.5 Clearing all aliens advances HUD to wave 2 and spawns a new row
+- [x] 2.3 HUD shows `Score: 0` and `Wave: 1` when the game starts — f064cb0
+- [x] 2.4 Destroying an alien increases score by 10 on wave 1 — f064cb0
+- [x] 2.5 Clearing all aliens advances HUD to wave 2 and spawns a new row — f064cb0
 
 ### Phase 3: Formula Tests and Final Verification
 
 #### Automated
 
-- [x] 3.1 Project compiles: `./mvnw clean compile`
-- [x] 3.2 Full test suite passes with non-zero test count: `./mvnw test`
+- [x] 3.1 Project compiles: `./mvnw clean compile` — f064cb0
+- [x] 3.2 Full test suite passes with non-zero test count: `./mvnw test` — f064cb0
 
 #### Manual
 
-- [x] 3.3 No visible regression in movement, firing, alien rendering, missile rendering, or HUD readability
+- [x] 3.3 No visible regression in movement, firing, alien rendering, missile rendering, or HUD readability — f064cb0
