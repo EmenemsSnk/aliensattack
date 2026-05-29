@@ -1,10 +1,10 @@
 ---
 change_id: smooth-playable-loop
 title: Smooth playable loop
-status: implemented
+status: archived
 created: 2026-05-29
 updated: 2026-05-29
-archived_at: null
+archived_at: 2026-05-29T14:09:00Z
 ---
 
 ## Notes
