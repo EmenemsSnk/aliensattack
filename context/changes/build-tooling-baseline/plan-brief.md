@@ -2,7 +2,7 @@
 
 > Full plan: `context/changes/build-tooling-baseline/plan.md`
 > Decisions: `context/foundation/prd.md` (*Constraints & Compatibility*)
-> Preliminary execution detail: `context/foundation/build-tooling-plan.md`
+> Preliminary execution detail: `context/changes/build-tooling-baseline/build-tooling-plan.md`
 
 ## What & why
 
