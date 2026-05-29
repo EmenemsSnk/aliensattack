@@ -1,10 +1,10 @@
 ---
 change_id: score-and-wave-progression
 title: Score and wave progression
-status: implemented
+status: archived
 created: 2026-05-29
 updated: 2026-05-29
-archived_at: null
+archived_at: 2026-05-29T18:33:27Z
 ---
 
 ## Notes
