@@ -4,18 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-Aliens Attack is a single-process 2D desktop arcade game (Space Invaders–like) on Java + Maven + Java Swing (`javax.swing`). It has **no external dependencies** — JDK standard library only. Active work is defined in `context/foundation/prd.md` (a brownfield PRD turning the current prototype into a playable game); `context/foundation/stack-assessment.md` and `context/foundation/health-check.md` hold the agent-readiness analysis.
+Aliens Attack is a single-process 2D desktop arcade game (Space Invaders–like) on Java + Maven + Java Swing (`javax.swing`). The shipped game has **no external runtime dependencies** — JDK standard library only (JUnit 5 is a `test`-scope dependency, so it is not part of the runtime artifact). Active work is defined in `context/foundation/prd.md` (a brownfield PRD turning the current prototype into a playable game); `context/foundation/stack-assessment.md` and `context/foundation/health-check.md` hold the agent-readiness analysis.
 
 ## Build, run, verify
 
 ```bash
-mvn clean compile                                                # build — MUST pass at every stage (the project's only hard guardrail)
-mvn exec:java -Dexec.mainClass="com.emenems.games.aliens.Main"   # run the game
+./mvnw clean compile                                              # build — MUST pass at every stage (the project's only hard guardrail)
+./mvnw test                                                       # run the JUnit 5 test suite
+./mvnw exec:java -Dexec.mainClass="com.emenems.games.aliens.Main" # run the game
 ```
 
-There is no test suite. The verification loop is **compile + run + observe behavior by hand** — there is no automated way to confirm a change. Do **not** add JUnit, TestNG, or any other dependency on your own: the PRD bars new external libraries without an explicit decision. If automated tests are wanted, raise it and get sign-off before editing `pom.xml`.
+A committed Maven wrapper (`mvnw`) pins the Maven version, so the build is reproducible; bare `mvn` still works under the active JDK. The verification loop is **compile + test + run + observe behavior by hand**. The automated harness is **JUnit 5** (`test` scope only) — add tests under `src/test/java/`. JUnit 5 is the one deliberately approved test dependency; do **not** add any other external library (game engine, audio, JSON parser, Mockito/Spock, etc.) on your own — the PRD bars new libraries without an explicit decision. The shipped runtime stays zero-dependency.
 
-The Java compiler level is **not pinned** in `pom.xml` (no `maven-compiler-plugin`, no `maven.compiler.*` properties), so the build silently targets whatever local JDK is installed. Write **Java 8** syntax — avoid `var`, records, and switch expressions — until the level is pinned. Pinning it (`maven.compiler.source`/`target` = `1.8`) is a recommended fix.
+The Java compiler level is **pinned** to `maven.compiler.release=21` in `pom.xml` (with `project.build.sourceEncoding=UTF-8`). Java 21 is LTS and is the active local toolchain. Modern syntax is allowed — `var`, records, switch expressions, pattern matching, and text blocks are all available.
 
 ## Architecture
 
