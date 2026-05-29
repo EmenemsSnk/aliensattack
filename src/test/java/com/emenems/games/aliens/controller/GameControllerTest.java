@@ -1,16 +1,22 @@
 package com.emenems.games.aliens.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import com.emenems.games.aliens.gui.GamePanel;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class GameControllerTest {
@@ -117,6 +123,21 @@ class GameControllerTest {
     }
 
     @Test
+    void heldArrowMovementCannotMoveSpaceshipOutsidePanel() {
+        Spaceship spaceship = new Spaceship(0, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE);
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = new GameController(spaceship, missiles, aliens, null);
+
+        controller.handleKeyPressed(KeyEvent.VK_LEFT);
+        controller.handleKeyPressed(KeyEvent.VK_DOWN);
+        controller.tick();
+
+        assertEquals(0, spaceship.getX());
+        assertEquals(GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE, spaceship.getY());
+    }
+
+    @Test
     void tickAdvancesWaveAndSpawnsAliensWhenWaveIsCleared() {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
@@ -126,6 +147,49 @@ class GameControllerTest {
 
         assertEquals(2, controller.getWave());
         assertEquals(10, aliens.size());
+    }
+
+    @Test
+    void generatedWaveUsesVariedNonOverlappingTopFifthSpawnPoints() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens, new Random(1));
+
+        controller.tick();
+
+        Set<Integer> yValues = new HashSet<>();
+        int topFifthLimit = GamePanel.PANEL_HEIGHT / 5;
+        for (Alien alien : aliens) {
+            assertTrue(alien.getY() <= topFifthLimit);
+            yValues.add(alien.getY());
+        }
+        assertTrue(yValues.size() > 1);
+
+        for (int first = 0; first < aliens.size(); first++) {
+            Rectangle firstArea = alienArea(aliens.get(first));
+            for (int second = first + 1; second < aliens.size(); second++) {
+                assertFalse(firstArea.intersects(alienArea(aliens.get(second))));
+            }
+        }
+    }
+
+    @Test
+    void generatedWavePositionsChangeBetweenWaves() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens, new Random(1));
+
+        controller.tick();
+        List<String> firstWavePositions = aliens.stream()
+            .map(alien -> alien.getX() + "," + alien.getY())
+            .toList();
+        aliens.clear();
+        controller.tick();
+        List<String> secondWavePositions = aliens.stream()
+            .map(alien -> alien.getX() + "," + alien.getY())
+            .toList();
+
+        assertFalse(firstWavePositions.equals(secondWavePositions));
     }
 
     @Test
@@ -161,6 +225,38 @@ class GameControllerTest {
 
         assertEquals(0, controller.getLives());
         assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals("GAME OVER", controller.getGameOverTitle());
+    }
+
+    @Test
+    void alienReachingBottomEntersGameOverWithAliensWinTitle() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        aliens.add(new Alien(100, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE));
+        GameController controller = newController(missiles, aliens);
+
+        controller.tick();
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals("ALIENS WIN", controller.getGameOverTitle());
+    }
+
+    @Test
+    void spaceshipAlienCollisionActivatesHitFeedbackTemporarily() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        aliens.add(new Alien(500, 680));
+        GameController controller = newController(missiles, aliens);
+
+        controller.checkCollisionsWithSpaceShip();
+
+        assertTrue(controller.isHitFeedbackActive());
+
+        for (int tick = 0; tick < 18; tick++) {
+            controller.tick();
+        }
+
+        assertFalse(controller.isHitFeedbackActive());
     }
 
     @Test
@@ -241,6 +337,24 @@ class GameControllerTest {
     }
 
     @Test
+    void restartClearsHitFeedbackAndRestoresDefaultGameOverTitle() {
+        Spaceship spaceship = new Spaceship(500, 680);
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = new GameController(spaceship, missiles, aliens, null);
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(100, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE));
+        controller.tick();
+
+        controller.handleKeyPressed(KeyEvent.VK_SPACE);
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
+        assertFalse(controller.isHitFeedbackActive());
+        assertEquals("GAME OVER", controller.getGameOverTitle());
+    }
+
+    @Test
     void calculateAlienScoreScalesWithWave() {
         assertEquals(10, GameController.calculateAlienScore(1));
         assertEquals(30, GameController.calculateAlienScore(3));
@@ -248,20 +362,34 @@ class GameControllerTest {
 
     @Test
     void calculateAlienSpeedStartsAtBaseSpeed() {
-        assertEquals(5, GameController.calculateAlienSpeed(1, 5, 10));
+        assertEquals(1.4, GameController.calculateAlienSpeed(1, 1.4, 4.5), 0.001);
     }
 
     @Test
     void calculateAlienSpeedIncreasesWithWave() {
-        assertEquals(6, GameController.calculateAlienSpeed(2, 5, 10));
+        assertTrue(GameController.calculateAlienSpeed(2, 1.4, 4.5) > 1.4);
+        assertTrue(GameController.calculateAlienSpeed(5, 1.4, 4.5) > 2.4);
     }
 
     @Test
     void calculateAlienSpeedNeverExceedsCap() {
-        assertEquals(10, GameController.calculateAlienSpeed(20, 5, 10));
+        assertEquals(4.5, GameController.calculateAlienSpeed(20, 1.4, 4.5), 0.001);
     }
 
     private GameController newController(List<Missile> missiles, List<Alien> aliens) {
         return new GameController(new Spaceship(500, 680), missiles, aliens, null);
+    }
+
+    private GameController newController(List<Missile> missiles, List<Alien> aliens, Random random) {
+        return new GameController(new Spaceship(500, 680), missiles, aliens, null, random);
+    }
+
+    private static Rectangle alienArea(Alien alien) {
+        return new Rectangle(
+            alien.getX(),
+            alien.getY(),
+            GamePanel.DEFAULT_COMPONENT_SIZE,
+            GamePanel.DEFAULT_COMPONENT_SIZE
+        );
     }
 }

@@ -12,33 +12,47 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import javax.swing.Timer;
 
 public class GameController implements ActionListener {
     private static final int TIMER_DELAY_MS = 16;
-    private static final int BASE_ALIEN_SPEED = 1;
-    private static final int MAX_ALIEN_SPEED = BASE_ALIEN_SPEED * 2;
-    private static final int ALIEN_START_Y = 30;
-    private static final int[] ALIEN_START_X_VALUES = {10, 100, 200, 300, 400, 500, 600, 700, 800, 900};
+    private static final double BASE_ALIEN_SPEED = 1.4;
+    private static final double MAX_ALIEN_SPEED = 4.5;
+    private static final int ALIEN_COUNT = 10;
+    private static final int ALIEN_START_MIN_Y = 30;
+    private static final int ALIEN_START_X_JITTER = 20;
+    private static final int ALIEN_START_Y_JITTER = 90;
     private static final int DEFAULT_LIVES = 3;
+    private static final int HIT_FEEDBACK_TICKS = 18;
+    private static final String DEFAULT_GAME_OVER_TITLE = "GAME OVER";
+    private static final String ALIENS_WIN_TITLE = "ALIENS WIN";
 
     private final Spaceship spaceship;
     private final List<Missile> missiles;
     private final List<Alien> aliens;
     private final GamePanel gamePanel;
+    private final Random random;
     private final Set<Integer> pressedMovementKeys = new HashSet<>();
     private Timer timer;
     private int score;
     private int wave = 1;
     private int lives = DEFAULT_LIVES;
     private GameState gameState = GameState.PLAYING;
+    private int hitFeedbackTicks;
+    private String gameOverTitle = DEFAULT_GAME_OVER_TITLE;
 
     public GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel) {
+        this(spaceship, missiles, aliens, gamePanel, new Random());
+    }
+
+    GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel, Random random) {
         this.spaceship = spaceship;
         this.missiles =  missiles;
         this.aliens =  aliens;
         this.gamePanel = gamePanel;
+        this.random = random;
     }
 
     public void initialize(){
@@ -63,9 +77,13 @@ public class GameController implements ActionListener {
 
     private void generateSpaceObjects() {
         aliens.clear();
-        int alienSpeed = calculateAlienSpeed(wave, BASE_ALIEN_SPEED, MAX_ALIEN_SPEED);
-        for (int x : ALIEN_START_X_VALUES) {
-            aliens.add(new Alien(x, ALIEN_START_Y, alienSpeed));
+        double alienSpeed = calculateAlienSpeed(wave, BASE_ALIEN_SPEED, MAX_ALIEN_SPEED);
+        int laneSpacing = (GamePanel.PANEL_WIDTH - GamePanel.DEFAULT_COMPONENT_SIZE) / ALIEN_COUNT;
+        for (int index = 0; index < ALIEN_COUNT; index++) {
+            int laneX = index * laneSpacing + (laneSpacing - GamePanel.DEFAULT_COMPONENT_SIZE) / 2;
+            int x = laneX + random.nextInt(ALIEN_START_X_JITTER * 2 + 1) - ALIEN_START_X_JITTER;
+            int y = ALIEN_START_MIN_Y + random.nextInt(ALIEN_START_Y_JITTER + 1);
+            aliens.add(new Alien(x, y, alienSpeed));
         }
     }
 
@@ -111,6 +129,12 @@ public class GameController implements ActionListener {
         if (pressedMovementKeys.contains(KeyEvent.VK_DOWN)) {
             spaceship.moveDown();
         }
+        spaceship.clampToBounds(
+            0,
+            0,
+            GamePanel.PANEL_WIDTH - GamePanel.DEFAULT_COMPONENT_SIZE,
+            GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE
+        );
     }
 
     @Override
@@ -125,10 +149,16 @@ public class GameController implements ActionListener {
             return;
         }
 
+        updateHitFeedback();
         moveSpaceshipFromPressedKeys();
         aliens.forEach(Alien::move);
         missiles.forEach(Missile::move);
         checkCollisions();
+        if (gameState == GameState.GAME_OVER) {
+            updatePanelState();
+            return;
+        }
+        checkAlienInvasion();
         if (gameState == GameState.GAME_OVER) {
             updatePanelState();
             return;
@@ -161,11 +191,11 @@ public class GameController implements ActionListener {
         }
 
         aliens.remove(collidingAlien);
+        hitFeedbackTicks = HIT_FEEDBACK_TICKS;
         lives--;
         if (lives <= 0) {
             lives = 0;
-            gameState = GameState.GAME_OVER;
-            pressedMovementKeys.clear();
+            enterGameOver(DEFAULT_GAME_OVER_TITLE);
         }
     }
 
@@ -218,6 +248,14 @@ public class GameController implements ActionListener {
         return gameState;
     }
 
+    boolean isHitFeedbackActive() {
+        return hitFeedbackTicks > 0;
+    }
+
+    String getGameOverTitle() {
+        return gameOverTitle;
+    }
+
     private Rectangle objectArea(int x, int y) {
         return new Rectangle(x, y, GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
     }
@@ -233,7 +271,7 @@ public class GameController implements ActionListener {
 
     private void updatePanelState() {
         if (gamePanel != null) {
-            gamePanel.updateGameState(score, wave, lives, gameState);
+            gamePanel.updateGameState(score, wave, lives, gameState, isHitFeedbackActive(), gameOverTitle);
         }
     }
 
@@ -241,8 +279,8 @@ public class GameController implements ActionListener {
         return wave * 10;
     }
 
-    static int calculateAlienSpeed(int wave, int baseSpeed, int maxSpeed) {
-        int speed = (int) Math.round(baseSpeed * Math.pow(1.1, wave - 1));
+    static double calculateAlienSpeed(int wave, double baseSpeed, double maxSpeed) {
+        double speed = baseSpeed * Math.pow(1.15, wave - 1);
         return Math.min(speed, maxSpeed);
     }
 
@@ -257,10 +295,32 @@ public class GameController implements ActionListener {
         wave = 1;
         lives = DEFAULT_LIVES;
         gameState = GameState.PLAYING;
+        hitFeedbackTicks = 0;
+        gameOverTitle = DEFAULT_GAME_OVER_TITLE;
         missiles.clear();
         pressedMovementKeys.clear();
         generateSpaceObjects();
         updatePanelState();
         repaintGamePanel();
+    }
+
+    private void checkAlienInvasion() {
+        boolean alienReachedBottom = aliens.stream()
+            .anyMatch(alien -> alien.getY() + GamePanel.DEFAULT_COMPONENT_SIZE >= GamePanel.PANEL_HEIGHT);
+        if (alienReachedBottom) {
+            enterGameOver(ALIENS_WIN_TITLE);
+        }
+    }
+
+    private void enterGameOver(String title) {
+        gameState = GameState.GAME_OVER;
+        gameOverTitle = title;
+        pressedMovementKeys.clear();
+    }
+
+    private void updateHitFeedback() {
+        if (hitFeedbackTicks > 0) {
+            hitFeedbackTicks--;
+        }
     }
 }

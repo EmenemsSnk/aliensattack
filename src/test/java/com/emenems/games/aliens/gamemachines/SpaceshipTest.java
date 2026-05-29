@@ -49,4 +49,24 @@ class SpaceshipTest {
         assertEquals(205, ship.getY());
         assertEquals(100, ship.getX());
     }
+
+    @Test
+    void clampToBoundsMovesShipInsideLowerBounds() {
+        Spaceship ship = new Spaceship(-10, -20);
+
+        ship.clampToBounds(0, 0, 100, 200);
+
+        assertEquals(0, ship.getX());
+        assertEquals(0, ship.getY());
+    }
+
+    @Test
+    void clampToBoundsMovesShipInsideUpperBounds() {
+        Spaceship ship = new Spaceship(150, 250);
+
+        ship.clampToBounds(0, 0, 100, 200);
+
+        assertEquals(100, ship.getX());
+        assertEquals(200, ship.getY());
+    }
 }
