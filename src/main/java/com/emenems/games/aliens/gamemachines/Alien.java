@@ -6,12 +6,17 @@ public class Alien implements GameObject {
     private int speed;
 
     public Alien(int x, int y) {
+        this(x, y, 5);
+    }
+
+    public Alien(int x, int y, int speed) {
         this.x = x;
         this.y = y;
+        this.speed = speed;
     }
 
     public void move() {
-        y+=5;
+        y += speed;
     }
 
     @Override

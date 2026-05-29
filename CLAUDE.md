@@ -11,6 +11,7 @@ Aliens Attack is a single-process 2D desktop arcade game (Space Invaders–like)
 ```bash
 ./mvnw clean compile                                              # build — MUST pass at every stage (the project's only hard guardrail)
 ./mvnw test                                                       # run the JUnit 5 test suite
+./mvnw test -Dtest=GameControllerTest                             # run one test class (-Dtest=GameControllerTest#missileAlienCollisionRemovesBothObjects for one method)
 ./mvnw exec:java -Dexec.mainClass="com.emenems.games.aliens.Main" # run the game
 ```
 
@@ -27,14 +28,22 @@ Three packages under `com.emenems.games.aliens`:
 
 **The load-bearing wiring (read `Main.java` first):** `Main` constructs the `Spaceship` and the `List<Missile>` / `List<Alien>` collections once, then passes the **same references** to both `GamePanel` (which reads them to render) and `GameController` (which mutates them each tick). There is no separate model object — the shared mutable lists *are* the game state, and rendering stays in sync because both sides point at the same instances. UI construction is correctly wrapped in `EventQueue.invokeLater`.
 
+**Scalar HUD state is *not* shared by reference.** `score` and `wave` are owned by `GameController`; the panel has its own copies and the controller pushes them each tick via `gamePanel.updateHud(score, wave)` (drawn by `drawHud`). So the rule is: collections flow by shared reference, scalars flow by an explicit push call. Keep new per-tick scalars on this same push channel rather than reaching into the panel's fields.
+
+**The loop (`GameController`):** a single `javax.swing.Timer` at `TIMER_DELAY_MS = 16` (~60 FPS) drives `actionPerformed → tick() + repaint`. `tick()` is the ordered pipeline: move ship (from the held-key set) → move aliens/missiles → `checkCollisions` → `cleanupOffscreenObjects` → `advanceWaveIfCleared` → `updateHud`. Input uses `keyPressed`/`keyReleased` feeding a `pressedMovementKeys` set (held keys move every tick); `SPACE` fires a missile on press. Difficulty scales per wave: `calculateAlienScore` (= `wave * 10`) and `calculateAlienSpeed` (`1.1^(wave-1)`, capped at `MAX_ALIEN_SPEED`) — both `static` and unit-tested, so keep tuning logic in pure static methods.
+
 **Swing threading rule (critical):** all rendering and timer-driven game logic must run on the Event Dispatch Thread (EDT). Drive the loop with `javax.swing.Timer` (its `ActionListener` callbacks fire on the EDT) — not a background thread. Never do blocking or long-running work inside an EDT callback.
 
 ## Current state / known issues
 
-The code is a prototype; `context/foundation/prd.md` defines the work to make it playable. A change will likely touch:
-- `GameController` declares **two** competing update mechanisms: a background `Thread` running `while(true){ Thread.sleep(1000); ... }` (started in `initialize()`, ~1 FPS, and it mutates lists + repaints **off the EDT**), plus an unused `javax.swing.Timer` field and an `actionPerformed` body that is never wired up. The Timer-on-EDT path is the intended replacement for the thread.
-- Missiles/aliens leaving the screen are never removed (`checkOutOfBoarder` is a commented-out TODO) → unbounded list growth.
-- `checkCollisionsWithSpaceShip()` detects the hit but is a no-op (bare `return`) — no life loss / game over.
-- `checkCollisionsWithMissile()` removes missiles both via a filter side-effect and again in a follow-up loop — collisions can be counted twice.
-- `keyTyped` and `keyPressed` both call `makeAction`, so one keypress can trigger an action twice.
-- `Spaceship` carries an unused `health`/`decreaseHealth`; `GameState` is an empty commented-out file. No state machine (start / playing / game-over) exists yet.
+The code is becoming a playable game but is not finished; `context/foundation/prd.md` and `context/foundation/roadmap.md` define remaining work. Already done (don't "fix" these — they were the old known issues, now resolved):
+- The loop is a single EDT `javax.swing.Timer` (~60 FPS). The old background `Thread`/`while(true){ sleep }` and the unwired `actionPerformed` are gone.
+- Offscreen cleanup exists (`cleanupOffscreenObjects`); lists no longer grow unbounded.
+- `checkCollisionsWithMissile()` uses dedup `Set`s + single `removeAll`, so a hit is counted once and one missile can't clear multiple aliens in a tick.
+- Input is `keyPressed`/`keyReleased` only (no `keyTyped`), so a keypress fires one action.
+- Scoring and wave progression work end-to-end (HUD shows them).
+
+Still open — a change will likely touch:
+- **`checkCollisionsWithSpaceShip()` is still a no-op:** it detects the ship↔alien overlap but the hit branch is a bare `return`. No life loss, no game over.
+- **No state machine.** There is no start / playing / game-over flow; the game just runs. `GameState.java` and `Point.java` are empty commented-out placeholders.
+- **`Spaceship` carries unused `health`/`decreaseHealth`/`speed`** (health is never read; movement uses hardcoded `±5`). Wire health into the spaceship-collision branch when adding lives/game-over.

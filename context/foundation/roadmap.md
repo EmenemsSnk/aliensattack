@@ -31,7 +31,7 @@ Aliens Attack to lokalna, jednoosobowa gra arcade 2D (typu Space Invaders) na Ja
 | ---- | -------------------------- | ----------------------------------------------------------------------------------- | ----------------- | ----------------------------------- | -------- |
 | F-01 | build-tooling-baseline     | (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone | —                 | Constraints & Compatibility, Guardrail | done    |
 | S-01 | smooth-playable-loop       | grać płynnie w ~60 FPS — ruch, strzał, trafienia raz, brak wycieku obiektów          | —                 | US-01, FR-001, FR-002, FR-004       | done     |
-| S-02 | score-and-wave-progression | zdobywać 10×fala pkt, widzieć wynik i falę w HUD, dostać szybszą falę po wyczyszczeniu | S-01              | US-01, FR-007, FR-008, FR-009, FR-010 | proposed |
+| S-02 | score-and-wave-progression | zdobywać 10×fala pkt, widzieć wynik i falę w HUD, dostać szybszą falę po wyczyszczeniu | S-01              | US-01, FR-007, FR-008, FR-009, FR-010 | done     |
 | S-03 | lives-gameover-restart     | tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją      | S-02, S-01        | US-01, FR-003, FR-006               | proposed |
 
 ## Strumienie
@@ -96,7 +96,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
   - Dokładny cap prędkości kosmitów (~2× bazowej) — Właściciel: developer. Blokuje: nie (gra działa z dowolną wartością graniczną; kalibracja gameplay-feel przy implementacji).
   - Wartość bazowej prędkości kosmitów (do odczytania z kodu) — Właściciel: developer. Blokuje: nie.
 - **Ryzyko:** dwie niewiadome to strojenie odczuwalności (gameplay feel), nie luki planistyczne — żadna nie blokuje. Ryzyko: formuła scoringu/prędkości wpleciona w `GameController` (centralny węzeł, refaktor poza zakresem) — czyste metody do wyjęcia tylko jeśli nie wymusza separacji View/Controller.
-- **Status:** proposed
+- **Status:** done
 
 ### S-03: Życia, Game Over i restart
 
@@ -139,3 +139,4 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 
 - **F-01: (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-build-tooling-baseline/`. Lekcja: —.
 - **S-01: gracz może płynnie grać w ~60 FPS — porusza statkiem strzałkami i strzela spacją bez odczuwalnego lagu, pociski trafiają kosmitów dokładnie raz, a pociski/kosmici opuszczający ekran są usuwani (brak rosnącej listy obiektów).** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-smooth-playable-loop/`. Lekcja: —.
+- **S-02: gracz zdobywa 10×numer_fali punktów za każdego zniszczonego kosmitę, widzi w HUD bieżący wynik i numer fali w czasie rzeczywistym, a po wyczyszczeniu wszystkich kosmitów pojawia się nowa fala szybsza o 10% (×1.1^(fala−1), z capem ~2× prędkości bazowej).** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-score-and-wave-progression/`. Lekcja: —.
