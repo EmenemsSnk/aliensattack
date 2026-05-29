@@ -240,46 +240,46 @@ No data migration. This is a local desktop game with no persisted state.
 
 #### Automated
 
-- [x] 1.1 Project compiles
-- [x] 1.2 Existing tests pass
-- [x] 1.3 No background Thread loop remains
+- [x] 1.1 Project compiles — 0f7c5ef
+- [x] 1.2 Existing tests pass — 0f7c5ef
+- [x] 1.3 No background Thread loop remains — 0f7c5ef
 
 #### Manual
 
-- [x] 1.4 Game launches
-- [x] 1.5 Aliens and missiles move smoothly
-- [x] 1.6 One Space press creates one visible missile
-- [x] 1.7 Arrow-key movement remains responsive
+- [x] 1.4 Game launches — 0f7c5ef
+- [x] 1.5 Aliens and missiles move smoothly — 0f7c5ef
+- [x] 1.6 One Space press creates one visible missile — 0f7c5ef
+- [x] 1.7 Arrow-key movement remains responsive — 0f7c5ef
 
 ### Phase 2: Object Cleanup and Collision Semantics
 
 #### Automated
 
-- [x] 2.1 Unit tests cover off-screen missile removal
-- [x] 2.2 Unit tests cover off-screen alien removal
-- [x] 2.3 Unit tests cover one missile hitting one alien
-- [x] 2.4 Unit tests cover one missile cannot remove multiple aliens
-- [x] 2.5 Full suite passes
-- [x] 2.6 Compile passes
+- [x] 2.1 Unit tests cover off-screen missile removal — 0f7c5ef
+- [x] 2.2 Unit tests cover off-screen alien removal — 0f7c5ef
+- [x] 2.3 Unit tests cover one missile hitting one alien — 0f7c5ef
+- [x] 2.4 Unit tests cover one missile cannot remove multiple aliens — 0f7c5ef
+- [x] 2.5 Full suite passes — 0f7c5ef
+- [x] 2.6 Compile passes — 0f7c5ef
 
 #### Manual
 
-- [x] 2.7 Sustained firing does not visibly slow the game
-- [x] 2.8 Shooting aliens removes the hit alien and missile
-- [x] 2.9 Existing ship rendering and movement still work
+- [x] 2.7 Sustained firing does not visibly slow the game — 0f7c5ef
+- [x] 2.8 Shooting aliens removes the hit alien and missile — 0f7c5ef
+- [x] 2.9 Existing ship rendering and movement still work — 0f7c5ef
 
 ### Phase 3: Rendering Cleanup and Final Verification
 
 #### Automated
 
-- [x] 3.1 Full test suite passes
-- [x] 3.2 Clean compile passes
-- [x] 3.3 No non-test runtime dependencies are added
+- [x] 3.1 Full test suite passes — 0f7c5ef
+- [x] 3.2 Clean compile passes — 0f7c5ef
+- [x] 3.3 No non-test runtime dependencies are added — 0f7c5ef
 
 #### Manual
 
-- [x] 3.4 Game launches from the documented command
-- [x] 3.5 Gameplay is subjectively smooth at about 60 FPS
-- [x] 3.6 Controls remain responsive with arrows and Space
-- [x] 3.7 Off-screen objects do not accumulate visibly
-- [x] 3.8 Scope remains limited to S-01
+- [x] 3.4 Game launches from the documented command — 0f7c5ef
+- [x] 3.5 Gameplay is subjectively smooth at about 60 FPS — 0f7c5ef
+- [x] 3.6 Controls remain responsive with arrows and Space — 0f7c5ef
+- [x] 3.7 Off-screen objects do not accumulate visibly — 0f7c5ef
+- [x] 3.8 Scope remains limited to S-01 — 0f7c5ef
