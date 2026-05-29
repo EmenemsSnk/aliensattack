@@ -283,20 +283,20 @@ None — no persistent state, no external contracts. Existing developers gain `.
 
 #### Automated
 
-- [x] 1.1 Build compiles: `mvn clean compile`
-- [x] 1.2 Dependencies/plugins resolve: `mvn -q dependency:resolve`
+- [x] 1.1 Build compiles: `mvn clean compile` — 3dd53ed
+- [x] 1.2 Dependencies/plugins resolve: `mvn -q dependency:resolve` — 3dd53ed
 
 #### Manual
 
-- [x] 1.3 Game still launches via `mvn exec:java`
-- [x] 1.4 No behavior change versus before
+- [x] 1.3 Game still launches via `mvn exec:java` — 3dd53ed
+- [x] 1.4 No behavior change versus before — 3dd53ed
 
 ### Phase 2: First test (harness proof)
 
 #### Automated
 
-- [ ] 2.1 Tests run and pass with non-zero count: `mvn test`
-- [ ] 2.2 Surefire executed Jupiter ("Tests run: N", N>0)
+- [x] 2.1 Tests run and pass with non-zero count: `mvn test`
+- [x] 2.2 Surefire executed Jupiter ("Tests run: N", N>0)
 
 ### Phase 3: Maven wrapper + .editorconfig
 
