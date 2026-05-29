@@ -310,20 +310,20 @@ None — no persistent state, no external contracts. Existing developers gain `.
 
 #### Automated
 
-- [x] 4.1 `.github/workflows/build.yml` present and valid YAML
+- [x] 4.1 `.github/workflows/build.yml` present and valid YAML — af822f7
 
 #### Manual
 
-- [ ] 4.2 GitHub Actions run goes green on temurin 21
+- [x] 4.2 GitHub Actions run goes green on temurin 21 — af822f7
 
 ### Phase 5: Doc-consistency cascade
 
 #### Automated
 
-- [ ] 5.1 No stale Java-8 / 1.8 compiler assertions: `grep -rn "Java 8\|1\.8" CLAUDE.md context/foundation/`
-- [ ] 5.2 No stale release=25 / Java 25 claims: `grep -rn "release=25\|release 25\|Java 25\|java-version: 25" CLAUDE.md context/foundation/`
-- [ ] 5.3 Full build green after doc edits: `./mvnw clean compile && ./mvnw test`
+- [x] 5.1 No stale Java-8 / 1.8 compiler assertions: `grep -rn "Java 8\|1\.8" CLAUDE.md context/foundation/`
+- [x] 5.2 No stale release=25 / Java 25 claims: `grep -rn "release=25\|release 25\|Java 25\|java-version: 25" CLAUDE.md context/foundation/`
+- [x] 5.3 Full build green after doc edits: `./mvnw clean compile && ./mvnw test`
 
 #### Manual
 
-- [ ] 5.4 Read-through confirms no doc contradicts another
+- [x] 5.4 Read-through confirms no doc contradicts another

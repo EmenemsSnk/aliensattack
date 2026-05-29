@@ -1,7 +1,7 @@
 ---
 project: "Aliens Attack"
 checked_at: 2026-05-28T20:55:00Z
-health_status: needs-attention
+health_status: healthy
 context_type: brownfield
 language_family: java
 stack_assessment_available: true
@@ -17,10 +17,12 @@ audit_findings:
   high: 0
   moderate: 0
   low: 0
-test_runner_detected: false
-ci_provider: null
-recommended_fixes: 4
+test_runner_detected: true
+ci_provider: GitHub Actions
+recommended_fixes: 0
 ---
+
+> **Resolution (2026-05-29, via `build-tooling-baseline`)**: all four recommended fixes are applied — compiler level pinned to `maven.compiler.release=21`, JUnit 5 (`test` scope) harness added, Maven wrapper committed, `.editorconfig` added — plus a GitHub Actions CI pipeline (`./mvnw clean compile` + `./mvnw test` on push/PR). The original 2026-05-28 findings are retained below for provenance with resolution notes inlined.
 
 ## Dependency Health
 
@@ -57,46 +59,44 @@ Not applicable.
 ## Test Suite
 
 ```
-Test runner: not detected
-Tests found: not applicable (no src/test/ directory, no test dependency)
-Test execution: not attempted
-Build verification: mvn clean compile → BUILD SUCCESS (exit 0, 9 classes compiled on JDK 25)
+Test runner: JUnit 5 (org.junit.jupiter:junit-jupiter, test scope; maven-surefire-plugin)
+Tests found: src/test/java/.../SpaceshipTest.java
+Test execution: ./mvnw test → Tests run: 5, Failures: 0, Errors: 0
+Build verification: ./mvnw clean compile → BUILD SUCCESS (release 21)
 ```
 
-⚠ No test runner detected. The agent cannot verify its own changes programmatically — the only feedback loop is "does it compile" plus manual play-testing.
-
-Note the PRD context: the PRD's only verification guardrail is "`mvn clean compile` must pass at every stage," and it bars new external dependencies (JUnit included) "without an explicit decision." So the recommendation is staged: rely on the compile-plus-manual-run loop now, and treat adding JUnit as an explicit opt-in (see Recommended Fixes). The build itself is healthy — it compiles clean.
+✅ **Resolved.** JUnit 5 was adopted as an explicit, signed-off decision, so the agent can now verify changes programmatically (`./mvnw test`). *Original finding (2026-05-28): no test runner detected; only feedback loop was compile + manual play-testing.* The shipped runtime stays zero-dependency (the test dependency is `test` scope). Any *other* new external library still requires an explicit decision per the PRD.
 
 ## CI/CD
 
 ```
-Provider: not detected
-Configuration: not found
+Provider: GitHub Actions
+Configuration: .github/workflows/build.yml (triggers on push + pull_request)
 ```
 
 | Stage      | Status | Notes            |
 |------------|--------|------------------|
-| Lint       | ✗      | not configured   |
-| Test       | ✗      | not configured   |
-| Build      | ✗      | not configured   |
-| Type check | ✗      | not configured (Java is compile-time type-checked locally) |
-| Security   | ✗      | not configured   |
+| Lint       | ✗      | not configured (no analyzer in scope) |
+| Test       | ✓      | `./mvnw test` (JUnit 5) |
+| Build      | ✓      | `./mvnw clean compile` |
+| Type check | ✓      | covered by compile (Java is compile-time type-checked) |
+| Security   | ✗      | not configured (zero runtime deps — no supply chain to scan) |
 
-ℹ No CI/CD configuration detected. You'll set this up in the infrastructure and deployment lesson. For now, the local `mvn clean compile` loop is sufficient for agent collaboration.
+✅ **Resolved.** A GitHub Actions workflow (`.github/workflows/build.yml`) runs `./mvnw clean compile` + `./mvnw test` on push and pull_request, enforcing the PRD compile guardrail automatically. *Original finding (2026-05-28): no CI/CD configuration detected.*
 
 ## Configuration
 
-### High severity
+### High severity — ✅ resolved
 
-- **`pom.xml` — Java compiler level is unpinned.** No `maven-compiler-plugin` config and no `maven.compiler.source`/`target`/`release` properties. The build currently succeeds because the locally installed JDK (25) supplies a default, but the *target language level is undefined in the build*. An agent doesn't know which language features are legal, and the build is non-reproducible across machines with different JDKs. Fix: pin the compiler level (see Recommended Fixes #2).
+- **`pom.xml` — Java compiler level pinned.** Now declares `maven.compiler.release=21` + `project.build.sourceEncoding=UTF-8`, so the target language level is encoded in the build and reproducible across machines. *Original finding (2026-05-28): unpinned — no compiler config, build relied on the active JDK's default.*
 
-### Medium severity
+### Medium severity — ✅ resolved
 
-- **Maven wrapper (`mvnw`, `mvnw.cmd`) — missing.** The build depends on whatever Maven the developer has installed locally (here 3.9.10). A committed wrapper pins the Maven version so the build is reproducible and the agent can run a known build command. Fix: `mvn wrapper:wrapper`.
+- **Maven wrapper (`mvnw`, `mvnw.cmd`, `.mvn/`) — committed.** Pins the Maven version so the agent and CI run an identical build. *Original finding: missing.*
 
-### Low severity
+### Low severity — ✅ resolved
 
-- **`.editorconfig` — missing.** Without it, formatting (indentation, line endings, charset) can drift between the developer's editor and agent-generated code. Fix: add a minimal `.editorconfig` for Java.
+- **`.editorconfig` — added.** UTF-8, LF, final newline, trim trailing whitespace; `[*.java]` 4-space indent. *Original finding: missing.*
 
 ### Present and correct
 
@@ -112,100 +112,47 @@ Agent readiness (from stack-assess): ready-with-compensation
 
 | Quality Gate Gap                          | Health-Check Finding                                                                 | Status      |
 |-------------------------------------------|-------------------------------------------------------------------------------------|-------------|
-| Unpinned Java language level              | Confirmed: zero compiler config in `pom.xml`; build relies on JDK 25 default         | Reinforced  |
-| No automated test harness                 | Confirmed: no `src/test/`, no test dependency; only compile + manual verification    | Reinforced  |
-| EDT threading convention not in CLAUDE.md | Not an operational finding — instruction-file content gap; carried forward as-is     | Carried     |
+| Unpinned Java language level              | Pinned `maven.compiler.release=21` in `pom.xml`                                       | ✅ Resolved |
+| No automated test harness                 | JUnit 5 (`test` scope) + surefire; `SpaceshipTest` runs via `./mvnw test`            | ✅ Resolved |
+| EDT threading convention not in CLAUDE.md | Documented in `CLAUDE.md` (Swing threading section)                                   | ✅ Resolved |
 
-Both operational gaps confirm the stack assessment's top two compensation items. The unpinned compiler level is now doubly important: it is both an agent-friendliness gap (stack-assess) and a build-reproducibility gap (health-check), and there is no CI type-check or build stage to catch a regression. Fixing it in `pom.xml` closes both at once.
+Both operational gaps from the stack assessment are now closed by `build-tooling-baseline`, and a GitHub Actions CI build/test stage was added to catch regressions automatically.
 
-## Recommended Fixes
+## Recommended Fixes — ✅ all applied (2026-05-29, `build-tooling-baseline`)
 
-### Fix before agent work (Category A)
+### 1. Automated test harness — done
 
-### 1. No automated test harness
+JUnit 5 (`org.junit.jupiter:junit-jupiter`, `test` scope) + `maven-surefire-plugin` were added as an explicit, signed-off decision; `SpaceshipTest` is the first test. Verification loop in `CLAUDE.md` is now `./mvnw clean compile` → `./mvnw test` → `./mvnw exec:java …`. The shipped runtime stays zero-dependency; any *other* new library still needs an explicit decision.
 
-**Impact**: The agent cannot programmatically verify that a change preserves behavior; verification is limited to compilation and manual play-testing.
-**Severity**: medium (elevated for agent workflows, but the PRD explicitly defers automated tests and the build compiles clean)
-**Effort**: quick (document the loop) / significant (if JUnit is later approved)
-**Fix**:
+### 2. Pin the Java compiler level — done
 
-Document the zero-dependency verification loop in `CLAUDE.md` as the expected path (per the stack-assessment's paste-ready block):
-
-```
-mvn clean compile   # must pass at every stage (PRD guardrail)
-mvn exec:java -Dexec.mainClass="com.emenems.games.aliens.Main"   # then verify behavior by hand
-```
-
-Do **not** add JUnit unilaterally — the PRD bars new dependencies without an explicit decision. If you want automated tests, decide explicitly first, then add `org.junit.jupiter:junit-jupiter` and the `maven-surefire-plugin` to `pom.xml` and create `src/test/java/`.
-
-### 2. Pin the Java compiler level in pom.xml
-
-**Impact**: Removes the highest-impact ambiguity for the agent (which language features are legal) and makes the build reproducible across JDKs — directly protecting the PRD's "`mvn clean compile` must always pass" guardrail.
-**Severity**: high
-**Effort**: quick (< 5 min)
-**Fix**:
-
-Add to `pom.xml` (tie to the PRD's "Java 8+"):
+`pom.xml` now declares (corrected from the originally-recommended `1.8` to the active LTS toolchain):
 
 ```xml
 <properties>
-  <maven.compiler.source>1.8</maven.compiler.source>
-  <maven.compiler.target>1.8</maven.compiler.target>
+  <maven.compiler.release>21</maven.compiler.release>
   <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 </properties>
 ```
 
-Then restate the level in `CLAUDE.md` so the constraint is visible to the agent, not just the build.
+The level is restated in `CLAUDE.md`. *(The original recommendation suggested `source`/`target` = `1.8`; the build-tooling-baseline change pinned `release=21` instead, matching the active JDK 21 toolchain and the PRD decision.)*
 
-### 3. Add a Maven wrapper
+### 3. Maven wrapper — done
 
-**Impact**: Pins the Maven version so the agent and any machine run an identical, known build — reproducibility insurance for a project with no CI.
-**Severity**: medium
-**Effort**: quick (< 5 min)
-**Fix**:
+`mvn wrapper:wrapper` was run; `mvnw`, `mvnw.cmd`, and `.mvn/` are committed.
 
-```
-mvn wrapper:wrapper
-```
+### 4. .editorconfig — done
 
-Commit the generated `mvnw`, `mvnw.cmd`, and `.mvn/` directory.
+Added with UTF-8, LF, final newline, trim trailing whitespace, and `[*.java]` 4-space indent.
 
-### 4. Add a minimal .editorconfig
+### CI/CD pipeline — ✅ done
 
-**Impact**: Keeps agent-generated code formatting consistent with the existing source (indentation, charset, line endings).
-**Severity**: low
-**Effort**: quick (< 5 min)
-**Fix**:
-
-Create `.editorconfig`:
-
-```ini
-root = true
-
-[*]
-charset = utf-8
-end_of_line = lf
-insert_final_newline = true
-trim_trailing_whitespace = true
-
-[*.java]
-indent_style = space
-indent_size = 4
-```
-
-### Addressed in upcoming lessons (Category B)
-
-### No CI/CD pipeline
-
-**Lesson**: [Sprint Zero z Agentem: infrastruktura, walking skeleton i pierwszy deploy (M1L5)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l5)
-**What you'll do there**: Stand up a pipeline (build + the compile check, and optionally a lint/test stage) so changes are verified automatically rather than only locally.
+A GitHub Actions workflow (`.github/workflows/build.yml`) now runs `./mvnw clean compile` + `./mvnw test` on push and pull_request. *(Related lesson: [Sprint Zero z Agentem: infrastruktura, walking skeleton i pierwszy deploy (M1L5)](https://platforma.przeprogramowani.pl/external/10xdevs-3/m1-l5).)*
 
 ## Summary
 
 ```
-Health status: needs-attention
+Health status: healthy
 ```
 
-This is an unusually clean brownfield project: zero external dependencies (so no security or supply-chain risk), a passing `mvn clean compile`, a correct `.gitignore`, and an existing `CLAUDE.md`. The gaps are about agent *enablement*, not breakage — chiefly the unpinned Java compiler level (a quick, high-value `pom.xml` fix that also closes a stack-assessment gap) and the absence of a test harness (real for agent workflows, but explicitly deferred by the PRD, so handled as a documented compile-plus-manual loop with JUnit as an opt-in). The Maven wrapper and `.editorconfig` are quick reproducibility/consistency wins.
-
-Next step: apply Category A fixes #2–#4 (all quick) and document the verification loop from #1, then proceed to agent onboarding. CI is the only Category B item and is expected at this stage.
+This is an unusually clean brownfield project: zero runtime dependencies (so no security or supply-chain risk), a passing `./mvnw clean compile`, a correct `.gitignore`, and an existing `CLAUDE.md`. As of 2026-05-29 (`build-tooling-baseline`) all four recommended fixes are applied — the compiler level is pinned (`maven.compiler.release=21`), a JUnit 5 (`test` scope) harness is in place, the Maven wrapper is committed, and `.editorconfig` is added — plus a GitHub Actions CI pipeline enforcing the compile + test guardrail. The project is ready for agent onboarding.

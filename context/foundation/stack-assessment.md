@@ -7,9 +7,9 @@ stack_components:
   language: Java
   framework: Java Swing (javax.swing)
   build_tool: Maven
-  test_runner: null
+  test_runner: JUnit 5
   package_manager: Maven Central
-  ci_provider: null
+  ci_provider: GitHub Actions
   deployment_target: null
 gates_passed: 8
 gates_failed: 1
@@ -17,10 +17,12 @@ gates_failed: 1
 
 ## Stack Components
 
-- **Language — Java.** Statically typed by the language; the compiler enforces input/output shapes at build time, so an agent can reason about types from source without running the program. The exact language level is **not pinned** — `pom.xml` declares no `maven-compiler-plugin` and no `maven.compiler.source`/`target` (or `release`) properties. The PRD targets "Java 8+", but nothing in the build encodes that.
+> **Resolution (2026-05-29, via `build-tooling-baseline`)**: the two gaps below are now closed. The compiler level is pinned to `maven.compiler.release=21` and a JUnit 5 (`test`-scope) harness plus GitHub Actions CI are in place. The original assessment text is retained below for provenance; resolution notes are inlined.
+
+- **Language — Java.** Statically typed by the language; the compiler enforces input/output shapes at build time, so an agent can reason about types from source without running the program. The language level is now pinned to `maven.compiler.release=21` (Java 21 LTS). *At assessment time it was unpinned — `pom.xml` declared no `maven-compiler-plugin` and no `maven.compiler.source`/`target`/`release`.*
 - **Framework — Java Swing (`javax.swing`).** JDK standard-library GUI toolkit, no version of its own (ships with the JDK). Confirmed by `javax.swing` usage in `src/main/java/com/emenems/games/aliens/gui/GamePanel.java` and `WindowFrame.java`. Swing is a UI toolkit, not an application framework — it imposes a component/container/event model and the Event Dispatch Thread (EDT) threading rule, but no opinion on application architecture, packaging, or file layout.
 - **Build tool — Maven.** `pom.xml` present (`com.emenems.games.aliens:aliens-attack:1.0-SNAPSHOT`). The POM is minimal: groupId/artifactId/version only, no `<build>`, no plugin management, no `<properties>`. No Maven wrapper (`mvnw`) is committed, so the build relies on the developer's locally installed Maven version.
-- **Test runner — not detected.** No `src/test/` directory, no JUnit/TestNG dependency in `pom.xml`. There is no automated verification harness in the repo today.
+- **Test runner — JUnit 5.** A `test`-scope `org.junit.jupiter:junit-jupiter` dependency and `src/test/java/` harness are now in place (`maven-surefire-plugin` runs them). *At assessment time none existed.*
 - **Package manager — Maven Central** (Maven's default dependency resolution; no third-party repos declared).
 - **CI/CD — not detected.** No `.github/workflows/`, `.gitlab-ci.yml`, `Jenkinsfile`, or `.circleci/`.
 - **Deployment — not detected.** No `Dockerfile`/`docker-compose.yml`; this is a local desktop app launched via `mvn exec:java` (which resolves through Maven's default plugin groups and works without a POM declaration).
@@ -40,7 +42,7 @@ Legend: ✓ = pass, ✗ = fail, ~ = partial, — = not applicable
 ### Gate Details
 
 **Language — type safety: ✓**
-Java is statically typed at the language level; every `.java` file under `src/main/java/` is compile-time type-checked. This holds regardless of language level. *Caveat (not a type-safety failure):* the language level is unpinned in `pom.xml`, so an agent doesn't know from the build whether `var`, lambdas, switch expressions, or records are available — see Gaps below.
+Java is statically typed at the language level; every `.java` file under `src/main/java/` is compile-time type-checked. This holds regardless of language level. *Resolved:* the level is now pinned to `maven.compiler.release=21`, so the build encodes which features (`var`, switch expressions, records, pattern matching, text blocks) are available — see Gaps below (now closed).
 
 **Framework (Swing) — convention: ~ (partial)**
 Swing itself is unopinionated about application structure — it dictates no folder layout, routing, or config conventions, only the component/EDT model. On its own this would fail the convention gate. It is scored **partial → pass** because the project documents its own conventions in `CLAUDE.md` ("Project Architecture": `gamemachines` = domain objects, `controller` = game loop/input, `gui` = Swing components). The one convention Swing *does* impose and that is load-bearing here — all rendering and timer-driven logic must run on the EDT — is named in the PRD but not yet in `CLAUDE.md`. See compensation.
@@ -59,13 +61,13 @@ No test component exists to score, so no ✓/✗ is marked against the gates. Th
 
 ## Gaps & Compensation
 
-### Gap 1 — Java language level is unpinned (highest-impact)
+### Gap 1 — Java language level was unpinned (highest-impact) — ✅ RESOLVED
 
-**What:** `pom.xml` declares no compiler configuration, so the target Java level is undefined in the build. **Why it matters for an agent:** when generating or modifying code, the agent can't tell which language features are legal — it may emit `record`, `var`, or newer switch syntax that won't compile under the developer's actual JDK, or it may stay needlessly conservative. The PRD's guardrail ("`mvn clean compile` must pass at every stage") makes this directly relevant: an unpinned level invites compile breaks. **Compensation:** pin the compiler level in `pom.xml` and restate it in `CLAUDE.md` so the constraint is visible both to the build and to the agent. Tie it to the PRD's "Java 8+".
+**Status:** Resolved by `build-tooling-baseline` — `pom.xml` now pins `maven.compiler.release=21` (with `project.build.sourceEncoding=UTF-8`), and `CLAUDE.md` restates the Java 21 level. **Original finding (at assessment time):** `pom.xml` declared no compiler configuration, so the target Java level was undefined in the build; the agent couldn't tell which language features were legal and the PRD guardrail ("`mvn clean compile` must pass at every stage") was at risk. The compensation — pin the level in `pom.xml` and restate it in `CLAUDE.md` — has been applied.
 
-### Gap 2 — No automated test harness
+### Gap 2 — No automated test harness — ✅ RESOLVED
 
-**What:** no `src/test/`, no test dependency. **Why it matters for an agent:** the agent has no programmatic way to verify a change preserves behavior; the only feedback loop is "does it compile" plus manual play-testing. **Compensation, constraint-aware:** the PRD bars new external dependencies "without an explicit decision," and JUnit *is* a new dependency — so the primary compensation is the **zero-dependency verification loop** (compile + manual run), documented in `CLAUDE.md` so the agent knows that is the expected verification path. Adding JUnit is offered only as an **optional** step that requires the developer's explicit sign-off, not as a default recommendation.
+**Status:** Resolved by `build-tooling-baseline` — JUnit 5 was adopted as an explicit, signed-off decision (`org.junit.jupiter:junit-jupiter`, `test` scope; `maven-surefire-plugin` runs it; `SpaceshipTest` is the first test). The shipped runtime stays zero-dependency because the test dependency is not part of the artifact. **Original finding (at assessment time):** no `src/test/`, no test dependency; the only feedback loop was "does it compile" plus manual play-testing. The verification loop in `CLAUDE.md` is now **compile + test + run**; any *other* new external library still requires an explicit decision per the PRD.
 
 ### Gap 3 — Swing EDT convention not in the instruction file
 
@@ -75,28 +77,29 @@ No test component exists to score, so no ✓/✗ is marked against the gates. Th
 
 The following are paste-ready blocks for `CLAUDE.md`.
 
+> *These blocks have been applied (in updated form) to `CLAUDE.md` by `build-tooling-baseline`. They are kept here as a record of the recommendation, reflecting the implemented `release=21` + JUnit 5 decision.*
+
 ```markdown
 ## Java Language Level
-* Target Java 8+ (per PRD). The build must pin this so generated code stays within the supported feature set.
-* `pom.xml` must declare the compiler level explicitly:
+* Java 21 LTS, pinned via `maven.compiler.release=21` (the active local toolchain).
+* `pom.xml` declares the level explicitly:
   ```xml
   <properties>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   ```
-* Do not use language features newer than the pinned level (e.g. no `record`, no `var`, no switch expressions if pinned to 1.8). When in doubt, prefer Java 8 syntax.
+* Modern syntax is allowed — `var`, records, switch expressions, pattern matching, and text blocks are all available.
 ```
 
 ```markdown
-## Verification Loop (no new test dependency without sign-off)
-* The verification path for any change is: `mvn clean compile` must pass, then run the game with
-  `mvn exec:java -Dexec.mainClass="com.emenems.games.aliens.Main"` and confirm the affected behavior by hand.
-* `mvn clean compile` must pass at every stage of a change (PRD guardrail). Never leave the tree non-compiling.
-* Do NOT add JUnit, TestNG, or any new dependency on your own — the PRD forbids new external libraries
-  without an explicit decision. If automated tests are wanted, raise it first and get sign-off before
-  editing `pom.xml`.
+## Verification Loop
+* The verification path for any change is: `./mvnw clean compile` must pass, then `./mvnw test`, then run the
+  game with `./mvnw exec:java -Dexec.mainClass="com.emenems.games.aliens.Main"` and confirm behavior by hand.
+* `./mvnw clean compile` must pass at every stage of a change (PRD guardrail). Never leave the tree non-compiling.
+* JUnit 5 (`test` scope) is the approved test harness — add tests under `src/test/java/`. Do NOT add any *other*
+  new external library on your own — the PRD forbids new libraries (game engine, audio, JSON, Mockito/Spock, etc.)
+  without an explicit decision. The shipped runtime stays zero-dependency.
 ```
 
 ```markdown
@@ -115,9 +118,9 @@ The following are paste-ready blocks for `CLAUDE.md`.
 
 **Key strengths:** compile-time type safety; standard Maven layout already in place; high training-data coverage for both Swing and Maven; a `CLAUDE.md` already exists and documents the package architecture.
 
-**Key gaps, all compensable via instruction-file edits (no stack change needed):**
-1. The Java language level is unpinned — pin it in `pom.xml` and `CLAUDE.md` (highest impact for keeping `mvn clean compile` green).
-2. No automated test harness — document the compile-plus-manual-run verification loop; treat JUnit as an opt-in needing sign-off, per the PRD's no-new-dependencies rule.
-3. The EDT threading rule isn't in `CLAUDE.md` — add it so the agent doesn't reintroduce a blocking game loop.
+**Key gaps identified at assessment time — status after `build-tooling-baseline` (2026-05-29):**
+1. ✅ The Java language level is now pinned via `maven.compiler.release=21` in `pom.xml`, restated in `CLAUDE.md`.
+2. ✅ Automated test harness adopted — JUnit 5 (`test` scope) + `maven-surefire-plugin`; verification loop in `CLAUDE.md` is now compile + test + run.
+3. The EDT threading rule is documented in `CLAUDE.md` (Swing threading section) — guards against reintroducing a blocking game loop.
 
-**Recommended next step:** run `/10x-health-check` to dig into code-level health (the unpinned config, the EDT loop, and the missing-cleanup memory issue called out in the PRD are natural focus areas).
+A GitHub Actions CI pipeline (`./mvnw clean compile` + `./mvnw test` on push/PR) now enforces the compile guardrail automatically.
