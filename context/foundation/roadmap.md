@@ -33,7 +33,7 @@ Aliens Attack to lokalna, jednoosobowa gra arcade 2D (typu Space Invaders) na Ja
 | S-01 | smooth-playable-loop       | grać płynnie w ~60 FPS — ruch, strzał, trafienia raz, brak wycieku obiektów          | —                 | US-01, FR-001, FR-002, FR-004       | done     |
 | S-02 | score-and-wave-progression | zdobywać 10×fala pkt, widzieć wynik i falę w HUD, dostać szybszą falę po wyczyszczeniu | S-01              | US-01, FR-007, FR-008, FR-009, FR-010 | done     |
 | S-03 | lives-gameover-restart     | tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją      | S-02, S-01        | US-01, FR-003, FR-006               | done     |
-| S-04 | wave-boundaries-and-hit-feedback | grać z poprawnymi granicami planszy, falami bez nakładania obcych, efektem utraty życia i porażką, gdy obcy nie zostaną wybici | S-03              | US-01, FR-002, FR-003, FR-010       | planned  |
+| S-04 | wave-boundaries-and-hit-feedback | grać z poprawnymi granicami planszy, falami bez nakładania obcych, efektem utraty życia i porażką, gdy obcy nie zostaną wybici | S-03              | US-01, FR-002, FR-003, FR-010       | done     |
 | S-05 | post-mvp-arcade-feel       | uruchamiać grę z menu startowego, słyszeć retro feedback i mierzyć się ze strzelającymi obcymi | S-04              | FR-005, Secondary goals, Non-Goals  | planned  |
 
 ## Strumienie
@@ -125,7 +125,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
   - Dokładny warunek „obcy wygrali" — Właściciel: developer. Propozycja domyślna: Game Over, gdy którykolwiek obcy dotrze do dolnej granicy planszy albo strefy statku. Blokuje: nie (do doprecyzowania w planie/implementacji).
   - Minimalny odstęp między obcymi przy generowaniu fali — Właściciel: developer. Propozycja domyślna: co najmniej rozmiar sprite'a + margines bezpieczeństwa, walidowany prostokątem kolizji. Blokuje: nie.
 - **Ryzyko:** dotyka reguł ruchu, generowania fal, kolizji i stanu Game Over, więc ryzykiem jest niejawne sprzężenie w `GameController`. Warto utrzymać logikę granic i generowania jako małe, testowalne metody bez zmiany architektury View/Controller. Efekt wizualny utraty życia powinien być krótkim stanem renderowania wypychanym do `GamePanel` przez istniejący kanał HUD/state, bez blokowania EDT.
-- **Status:** planned
+- **Status:** done
 
 ### S-05: Post-MVP arcade feel
 
@@ -171,6 +171,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 
 ## Zrobione
 
+- **S-04: gracz nie może wyprowadzić statku poza planszę; obcy w każdej fali startują w zróżnicowanych odstępach i wysokościach, nie nachodzą na siebie, a ich startowa pozycja Y nie przekracza 1/5 wysokości planszy od góry; po kolizji statku z obcym widać krótką reakcję wizualną utraty życia; jeśli obcy z danej fali nie zostaną zabici i przejdą przez warunek porażki fali, gra kończy się komunikatem, że obcy wygrali.** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-wave-boundaries-and-hit-feedback/`. Lekcja: —.
 - **S-03: tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-lives-gameover-restart/`. Lekcja: —.
 - **F-01: (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-build-tooling-baseline/`. Lekcja: —.
 - **S-01: gracz może płynnie grać w ~60 FPS — porusza statkiem strzałkami i strzela spacją bez odczuwalnego lagu, pociski trafiają kosmitów dokładnie raz, a pociski/kosmici opuszczający ekran są usuwani (brak rosnącej listy obiektów).** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-smooth-playable-loop/`. Lekcja: —.
