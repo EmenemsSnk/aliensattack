@@ -3,7 +3,9 @@ package com.emenems.games.aliens.gui;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -24,12 +26,19 @@ public class GamePanel extends JPanel {
     private Spaceship spaceship;
     private List<Missile> missiles;
     private List<Alien> aliens;
+    private int score;
+    private int wave = 1;
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens) {
         this.spaceship = spaceship;
         this.missiles =  missiles;
         this.aliens =  aliens;
         initBoard();
+    }
+
+    public void updateHud(int score, int wave) {
+        this.score = score;
+        this.wave = wave;
     }
 
     private void initBoard() {
@@ -52,7 +61,15 @@ public class GamePanel extends JPanel {
         drawSpaceship(g);
         drawAliens(g);
         drawMissiles(g);
+        drawHud(g);
         Toolkit.getDefaultToolkit().sync();
+    }
+
+    private void drawHud(Graphics graphics) {
+        graphics.setColor(Color.WHITE);
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        graphics.drawString("Score: " + score, 20, 30);
+        graphics.drawString("Wave: " + wave, 20, 55);
     }
 
     private void drawMissiles(Graphics graphics) {

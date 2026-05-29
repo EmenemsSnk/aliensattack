@@ -16,6 +16,10 @@ import javax.swing.Timer;
 
 public class GameController implements ActionListener {
     private static final int TIMER_DELAY_MS = 16;
+    private static final int BASE_ALIEN_SPEED = 1;
+    private static final int MAX_ALIEN_SPEED = BASE_ALIEN_SPEED * 2;
+    private static final int ALIEN_START_Y = 30;
+    private static final int[] ALIEN_START_X_VALUES = {10, 100, 200, 300, 400, 500, 600, 700, 800, 900};
 
     private final Spaceship spaceship;
     private final List<Missile> missiles;
@@ -23,6 +27,8 @@ public class GameController implements ActionListener {
     private final GamePanel gamePanel;
     private final Set<Integer> pressedMovementKeys = new HashSet<>();
     private Timer timer;
+    private int score;
+    private int wave = 1;
 
     public GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel) {
         this.spaceship = spaceship;
@@ -33,6 +39,7 @@ public class GameController implements ActionListener {
 
     public void initialize(){
         generateSpaceObjects();
+        updateHud();
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -51,16 +58,11 @@ public class GameController implements ActionListener {
     }
 
     private void generateSpaceObjects() {
-        aliens.add(new Alien(10, 30));
-        aliens.add(new Alien(100, 30));
-        aliens.add(new Alien(200, 30));
-        aliens.add(new Alien(300, 30));
-        aliens.add(new Alien(400, 30));
-        aliens.add(new Alien(500, 30));
-        aliens.add(new Alien(600, 30));
-        aliens.add(new Alien(700, 30));
-        aliens.add(new Alien(800, 30));
-        aliens.add(new Alien(900, 30));
+        aliens.clear();
+        int alienSpeed = calculateAlienSpeed(wave, BASE_ALIEN_SPEED, MAX_ALIEN_SPEED);
+        for (int x : ALIEN_START_X_VALUES) {
+            aliens.add(new Alien(x, ALIEN_START_Y, alienSpeed));
+        }
     }
 
     void handleKeyPressed(int keyCode) {
@@ -112,6 +114,8 @@ public class GameController implements ActionListener {
         missiles.forEach(Missile::move);
         checkCollisions();
         cleanupOffscreenObjects();
+        advanceWaveIfCleared();
+        updateHud();
     }
 
     private void checkCollisions() {
@@ -153,6 +157,7 @@ public class GameController implements ActionListener {
 
         missiles.removeAll(missilesToRemove);
         aliens.removeAll(aliensToRemove);
+        score += aliensToRemove.size() * calculateAlienScore(wave);
     }
 
     void cleanupOffscreenObjects() {
@@ -163,8 +168,40 @@ public class GameController implements ActionListener {
                 || alien.getX() > GamePanel.PANEL_WIDTH);
     }
 
+    int getScore() {
+        return score;
+    }
+
+    int getWave() {
+        return wave;
+    }
+
     private Rectangle objectArea(int x, int y) {
         return new Rectangle(x, y, GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
+    }
+
+    private void advanceWaveIfCleared() {
+        if (!aliens.isEmpty()) {
+            return;
+        }
+
+        wave++;
+        generateSpaceObjects();
+    }
+
+    private void updateHud() {
+        if (gamePanel != null) {
+            gamePanel.updateHud(score, wave);
+        }
+    }
+
+    static int calculateAlienScore(int wave) {
+        return wave * 10;
+    }
+
+    static int calculateAlienSpeed(int wave, int baseSpeed, int maxSpeed) {
+        int speed = (int) Math.round(baseSpeed * Math.pow(1.1, wave - 1));
+        return Math.min(speed, maxSpeed);
     }
 
     private void repaintGamePanel() {

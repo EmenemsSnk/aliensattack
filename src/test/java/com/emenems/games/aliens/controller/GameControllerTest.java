@@ -67,6 +67,19 @@ class GameControllerTest {
     }
 
     @Test
+    void missileAlienCollisionAddsCurrentWaveScore() {
+        List<Missile> missiles = new ArrayList<>();
+        missiles.add(new Missile(100, 100));
+        List<Alien> aliens = new ArrayList<>();
+        aliens.add(new Alien(100, 100));
+        GameController controller = newController(missiles, aliens);
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(10, controller.getScore());
+    }
+
+    @Test
     void oneMissileCannotRemoveMultipleAliensInOneTick() {
         List<Missile> missiles = new ArrayList<>();
         Missile missile = new Missile(100, 100);
@@ -100,6 +113,39 @@ class GameControllerTest {
 
         assertEquals(510, spaceship.getX());
         assertEquals(680, spaceship.getY());
+    }
+
+    @Test
+    void tickAdvancesWaveAndSpawnsAliensWhenWaveIsCleared() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+
+        controller.tick();
+
+        assertEquals(2, controller.getWave());
+        assertEquals(10, aliens.size());
+    }
+
+    @Test
+    void calculateAlienScoreScalesWithWave() {
+        assertEquals(10, GameController.calculateAlienScore(1));
+        assertEquals(30, GameController.calculateAlienScore(3));
+    }
+
+    @Test
+    void calculateAlienSpeedStartsAtBaseSpeed() {
+        assertEquals(5, GameController.calculateAlienSpeed(1, 5, 10));
+    }
+
+    @Test
+    void calculateAlienSpeedIncreasesWithWave() {
+        assertEquals(6, GameController.calculateAlienSpeed(2, 5, 10));
+    }
+
+    @Test
+    void calculateAlienSpeedNeverExceedsCap() {
+        assertEquals(10, GameController.calculateAlienSpeed(20, 5, 10));
     }
 
     private GameController newController(List<Missile> missiles, List<Alien> aliens) {
