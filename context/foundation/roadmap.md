@@ -29,7 +29,7 @@ Aliens Attack to lokalna, jednoosobowa gra arcade 2D (typu Space Invaders) na Ja
 
 | ID   | Change ID                  | Wynik (gracz może…)                                                                 | Wymagania wstępne | Odnośniki PRD                       | Status   |
 | ---- | -------------------------- | ----------------------------------------------------------------------------------- | ----------------- | ----------------------------------- | -------- |
-| F-01 | build-tooling-baseline     | (fundament) build zapięty (release=25), harness JUnit 5, Maven wrapper i CI zielone | —                 | Constraints & Compatibility, Guardrail | ready    |
+| F-01 | build-tooling-baseline     | (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone | —                 | Constraints & Compatibility, Guardrail | done    |
 | S-01 | smooth-playable-loop       | grać płynnie w ~60 FPS — ruch, strzał, trafienia raz, brak wycieku obiektów          | —                 | US-01, FR-001, FR-002, FR-004       | ready    |
 | S-02 | score-and-wave-progression | zdobywać 10×fala pkt, widzieć wynik i falę w HUD, dostać szybszą falę po wyczyszczeniu | S-01              | US-01, FR-007, FR-008, FR-009, FR-010 | proposed |
 | S-03 | lives-gameover-restart     | tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją      | S-02, S-01        | US-01, FR-003, FR-006               | proposed |
@@ -59,10 +59,10 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 
 ### F-01: Utwardzenie buildu i tooling
 
-- **Wynik:** (fundament) `pom.xml` zapięty na `maven.compiler.release=25` + UTF-8 + jawne pluginy (surefire, exec); JUnit 5 w zakresie `test`; Maven wrapper (`mvnw`) i `.editorconfig` w repo; GitHub Actions zielone na push/PR (`./mvnw clean compile` + `./mvnw test`); kaskada spójności dokumentów wykonana (znika „Java 8 / no deps").
+- **Wynik:** (fundament) `pom.xml` zapięty na `maven.compiler.release=21` + UTF-8 + jawne pluginy (surefire, exec); JUnit 5 w zakresie `test`; Maven wrapper (`mvnw`) i `.editorconfig` w repo; GitHub Actions zielone na push/PR (`./mvnw clean compile` + `./mvnw test`); kaskada spójności dokumentów wykonana (znika „Java 8 / no deps").
 - **Change ID:** build-tooling-baseline
-- **Odnośniki PRD:** Constraints & Compatibility (Java 25 LTS; JUnit 5 w `test`; GitHub Actions), Success Criteria → Guardrails (`mvn clean compile` musi przejść na każdym etapie)
-- **Odblokowuje:** automatyczną ścieżkę weryfikacji (CI uruchamia guardrail kompilacji + harness JUnit 5 dla czystych metod, które „jadą razem" z S-01/S-02/S-03 — np. formuła scoringu FR-007, progresja fal FR-010, kolizja FR-004); nowoczesną składnię Java 25; kaskadę spójności dokumentów (CLAUDE.md / stack-assessment / health-check)
+- **Odnośniki PRD:** Constraints & Compatibility (Java 21 LTS; JUnit 5 w `test`; GitHub Actions), Success Criteria → Guardrails (`mvn clean compile` musi przejść na każdym etapie)
+- **Odblokowuje:** automatyczną ścieżkę weryfikacji (CI uruchamia guardrail kompilacji + harness JUnit 5 dla czystych metod, które „jadą razem" z S-01/S-02/S-03 — np. formuła scoringu FR-007, progresja fal FR-010, kolizja FR-004); nowoczesną składnię Java 21; kaskadę spójności dokumentów (CLAUDE.md / stack-assessment / health-check)
 - **Wymagania wstępne:** —
 - **Równolegle z:** S-01, S-02, S-03
 - **Blokady:** —
@@ -114,7 +114,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 
 | ID mapy drogowej | Change ID                  | Sugerowany tytuł problemu                          | Gotowe do `/10x-plan` | Uwagi                                                  |
 | ---------------- | -------------------------- | -------------------------------------------------- | --------------------- | ------------------------------------------------------ |
-| F-01             | build-tooling-baseline     | Zapięcie buildu: release=25, JUnit 5, mvnw, CI     | yes                   | Plan wykonawczy gotowy: `context/foundation/build-tooling-plan.md` |
+| F-01             | build-tooling-baseline     | Zapięcie buildu: release=21, JUnit 5, mvnw, CI     | done                  | Zaimplementowane: `context/changes/build-tooling-baseline/plan.md` |
 | S-01             | smooth-playable-loop       | Płynna grywalna pętla 60 FPS (Timer na EDT)        | yes                   | Gwiazda północna — `/10x-plan smooth-playable-loop`    |
 | S-02             | score-and-wave-progression | Scoring, HUD wyniku/fali i progresja fal           | no                    | Po S-01                                                |
 | S-03             | lives-gameover-restart     | Życia, ekran Game Over i restart spacją            | no                    | Po S-02                                                |
