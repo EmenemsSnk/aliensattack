@@ -27,6 +27,11 @@ public class Spaceship implements GameObject {
         y+=5;
     }
 
+    public void clampToBounds(int minX, int minY, int maxX, int maxY) {
+        x = Math.max(minX, Math.min(x, maxX));
+        y = Math.max(minY, Math.min(y, maxY));
+    }
+
     public int getX() {
         return x;
     }

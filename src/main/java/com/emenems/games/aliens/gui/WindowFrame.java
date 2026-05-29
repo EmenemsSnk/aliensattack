@@ -5,20 +5,17 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class WindowFrame extends JFrame {
-    private static final int FRAME_HEIGHT = 750;
-    private static final int FRAME_WIDTH = 1000;
-
     public WindowFrame(JPanel jPanel){
-        initUI();
         add(jPanel);
+        initUI();
     }
 
     private void initUI(){
-        setBounds(100, 100, FRAME_WIDTH, FRAME_HEIGHT);
         setBackground(Color.BLACK);
         setResizable(false);
-        setVisible(true);
+        pack();
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
     }
 }

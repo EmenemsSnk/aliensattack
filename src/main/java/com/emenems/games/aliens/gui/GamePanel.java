@@ -31,6 +31,8 @@ public class GamePanel extends JPanel {
     private int wave = 1;
     private int lives = 3;
     private GameState gameState = GameState.PLAYING;
+    private boolean hitFeedbackActive;
+    private String gameOverTitle = "GAME OVER";
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens) {
         this.spaceship = spaceship;
@@ -44,14 +46,29 @@ public class GamePanel extends JPanel {
     }
 
     public void updateGameState(int score, int wave, int lives, GameState gameState) {
+        updateGameState(score, wave, lives, gameState, hitFeedbackActive, gameOverTitle);
+    }
+
+    public void updateGameState(
+        int score,
+        int wave,
+        int lives,
+        GameState gameState,
+        boolean hitFeedbackActive,
+        String gameOverTitle
+    ) {
         this.score = score;
         this.wave = wave;
         this.lives = lives;
         this.gameState = gameState;
+        this.hitFeedbackActive = hitFeedbackActive;
+        this.gameOverTitle = gameOverTitle;
     }
 
     private void initBoard() {
         loadImages();
+        setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
+        setMinimumSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setMaximumSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setFocusable(true);
     }
@@ -71,6 +88,7 @@ public class GamePanel extends JPanel {
         drawAliens(g);
         drawMissiles(g);
         drawHud(g);
+        drawHitFeedback(g);
         drawGameOver(g);
         Toolkit.getDefaultToolkit().sync();
     }
@@ -93,7 +111,7 @@ public class GamePanel extends JPanel {
 
         graphics.setColor(Color.WHITE);
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
-        drawCenteredString(graphics, "GAME OVER", PANEL_HEIGHT / 2 - 60);
+        drawCenteredString(graphics, gameOverTitle, PANEL_HEIGHT / 2 - 60);
 
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
         drawCenteredString(graphics, "Final Score: " + score, PANEL_HEIGHT / 2);
@@ -108,6 +126,18 @@ public class GamePanel extends JPanel {
     private void drawMissiles(Graphics graphics) {
         missiles.forEach(missile -> graphics.drawImage(missileImage, missile.getX(),
             missile.getY(), DEFAULT_COMPONENT_SIZE, DEFAULT_COMPONENT_SIZE, this));
+    }
+
+    private void drawHitFeedback(Graphics graphics) {
+        if (!hitFeedbackActive) {
+            return;
+        }
+
+        graphics.setColor(new Color(255, 0, 0, 70));
+        graphics.fillRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
+        graphics.setColor(new Color(255, 80, 80, 220));
+        graphics.drawRect(2, 2, PANEL_WIDTH - 5, PANEL_HEIGHT - 5);
+        graphics.drawRect(5, 5, PANEL_WIDTH - 11, PANEL_HEIGHT - 11);
     }
 
     private void drawAliens(Graphics graphics) {

@@ -33,6 +33,8 @@ Aliens Attack to lokalna, jednoosobowa gra arcade 2D (typu Space Invaders) na Ja
 | S-01 | smooth-playable-loop       | grać płynnie w ~60 FPS — ruch, strzał, trafienia raz, brak wycieku obiektów          | —                 | US-01, FR-001, FR-002, FR-004       | done     |
 | S-02 | score-and-wave-progression | zdobywać 10×fala pkt, widzieć wynik i falę w HUD, dostać szybszą falę po wyczyszczeniu | S-01              | US-01, FR-007, FR-008, FR-009, FR-010 | done     |
 | S-03 | lives-gameover-restart     | tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją      | S-02, S-01        | US-01, FR-003, FR-006               | done     |
+| S-04 | wave-boundaries-and-hit-feedback | grać z poprawnymi granicami planszy, falami bez nakładania obcych, efektem utraty życia i porażką, gdy obcy nie zostaną wybici | S-03              | US-01, FR-002, FR-003, FR-010       | done     |
+| S-05 | post-mvp-arcade-feel       | uruchamiać grę z menu startowego, słyszeć retro feedback i mierzyć się ze strzelającymi obcymi | S-04              | FR-005, Secondary goals, Non-Goals  | planned  |
 
 ## Strumienie
 
@@ -40,8 +42,9 @@ Pomoc nawigacyjna — grupuje elementy współdzielące łańcuch Wymagań wstę
 
 | Strumień | Temat              | Łańcuch                      | Uwaga                                                                                  |
 | -------- | ------------------ | ---------------------------- | -------------------------------------------------------------------------------------- |
-| A        | Grywalna pętla     | `S-01` → `S-02` → `S-03`     | Główna ścieżka must-have; kotwiczy gwiazdę północną i domyka pełną sesję gry.            |
+| A        | Grywalna pętla     | `S-01` → `S-02` → `S-03` → `S-04` | Główna ścieżka must-have; kotwiczy gwiazdę północną, domyka pełną sesję gry i utwardza reguły planszy/fali. |
 | B        | Utwardzenie buildu | `F-01`                       | Równolegle z całym Strumieniem A; przy celu „niska złożoność" nie blokuje grania, ale daje automatyczną weryfikację guardraila kompilacji. |
+| C        | Post-MVP polish    | `S-05`                       | Świadomie odłożone usprawnienia z PRD/shape-notes, sensowne po ukończeniu MVP.            |
 
 ## Baza
 
@@ -110,6 +113,34 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 - **Ryzyko:** domyka pętlę sesji (przegrana → restart). Zależy od S-02, bo ekran Game Over wyświetla wynik końcowy, a restart zeruje wynik+falę — sekwencjonowane po S-02, by uniknąć dostarczenia ekranu Game Over bez wyniku i późniejszego przerabiania go. Zależy od S-01 (wykrycie kolizji statek↔kosmita, dziś no-op `return`).
 - **Status:** done
 
+### S-04: Granice planszy, fale i feedback trafienia
+
+- **Wynik:** gracz nie może wyprowadzić statku poza planszę; obcy w każdej fali startują w zróżnicowanych odstępach i wysokościach, nie nachodzą na siebie, a ich startowa pozycja Y nie przekracza 1/5 wysokości planszy od góry; po kolizji statku z obcym widać krótką reakcję wizualną utraty życia; jeśli obcy z danej fali nie zostaną zabici i przejdą przez warunek porażki fali, gra kończy się komunikatem, że obcy wygrali.
+- **Change ID:** wave-boundaries-and-hit-feedback
+- **Odnośniki PRD:** US-01, FR-002 (kosmici opuszczający ekran), FR-003 (utrata życia przy kolizji), FR-010 (nowe fale)
+- **Wymagania wstępne:** S-03
+- **Równolegle z:** —
+- **Blokady:** —
+- **Niewiadome:**
+  - Dokładny warunek „obcy wygrali" — Właściciel: developer. Propozycja domyślna: Game Over, gdy którykolwiek obcy dotrze do dolnej granicy planszy albo strefy statku. Blokuje: nie (do doprecyzowania w planie/implementacji).
+  - Minimalny odstęp między obcymi przy generowaniu fali — Właściciel: developer. Propozycja domyślna: co najmniej rozmiar sprite'a + margines bezpieczeństwa, walidowany prostokątem kolizji. Blokuje: nie.
+- **Ryzyko:** dotyka reguł ruchu, generowania fal, kolizji i stanu Game Over, więc ryzykiem jest niejawne sprzężenie w `GameController`. Warto utrzymać logikę granic i generowania jako małe, testowalne metody bez zmiany architektury View/Controller. Efekt wizualny utraty życia powinien być krótkim stanem renderowania wypychanym do `GamePanel` przez istniejący kanał HUD/state, bez blokowania EDT.
+- **Status:** done
+
+### S-05: Post-MVP arcade feel
+
+- **Wynik:** gracz widzi ekran startowy i rozpoczyna rozgrywkę spacją, dostaje retro feedback dźwiękowy dla strzału/eksplozji, a obcy losowo strzelają w stronę statku, dzięki czemu ukończone MVP zyskuje pełniejszy arcade feel.
+- **Change ID:** post-mvp-arcade-feel
+- **Odnośniki PRD:** FR-005 (Start Menu jako nice-to-have), Success Criteria → Secondary (retro sound effects, alien fire), Non-Goals (elementy odłożone poza MVP)
+- **Wymagania wstępne:** S-04
+- **Równolegle z:** —
+- **Blokady:** —
+- **Niewiadome:**
+  - Czy dźwięk ma używać wyłącznie Java standard library i lokalnych zasobów WAV — Właściciel: developer. Propozycja domyślna: tak, bez nowych zależności runtime.
+  - Parametry ostrzału obcych (częstotliwość, prędkość pocisku, limit pocisków na ekranie) — Właściciel: developer. Blokuje: nie; wymaga kalibracji gameplay-feel.
+- **Ryzyko:** to mieszanka trzech świadomie odłożonych usprawnień, więc największe ryzyko to rozlanie zakresu. Jeśli plan okaże się zbyt duży, pierwszym podziałem powinno być: Start Menu osobno, audio osobno, alien fire osobno. Dźwięk nie może dodawać nowych zależności runtime bez jawnej decyzji, a alien fire powinien reuse'ować istniejące reguły pocisków/kolizji zamiast tworzyć drugi silnik pocisków.
+- **Status:** planned
+
 ## Przekazanie backlogu
 
 | ID mapy drogowej | Change ID                  | Sugerowany tytuł problemu                          | Gotowe do `/10x-plan` | Uwagi                                                  |
@@ -118,25 +149,29 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 | S-01             | smooth-playable-loop       | Płynna grywalna pętla 60 FPS (Timer na EDT)        | yes                   | Gwiazda północna — `/10x-plan smooth-playable-loop`    |
 | S-02             | score-and-wave-progression | Scoring, HUD wyniku/fali i progresja fal           | no                    | Po S-01                                                |
 | S-03             | lives-gameover-restart     | Życia, ekran Game Over i restart spacją            | no                    | Po S-02                                                |
+| S-04             | wave-boundaries-and-hit-feedback | Granice planszy, poprawny spawn fal, feedback utraty życia i porażka po niepowstrzymanej fali | yes | Po S-03; nowy slice dla zauważonych poprawek gameplayu |
+| S-05             | post-mvp-arcade-feel       | Start Menu, retro dźwięki i strzelający obcy       | yes                   | Po S-04; świadomie odłożone z PRD/shape-notes          |
 
 ## Otwarte pytania dotyczące mapy drogowej
 
 1. **Dokładny cap prędkości kosmitów (~2× bazowej)** — Właściciel: developer. Blokuje: tylko `S-02` (kalibracja przy implementacji; nie blokuje planowania — Blok: nie).
 2. **Wartość bazowej prędkości kosmitów** — Właściciel: developer. Blokuje: tylko `S-02` (do odczytania z kodu przy implementacji FR-010; Blok: nie).
+3. **Warunek porażki fali / „obcy wygrali"** — Właściciel: developer. Blokuje: tylko `S-04` (domyślnie: obcy dociera do dolnej granicy planszy albo strefy statku; do doprecyzowania w planie).
+4. **Minimalny odstęp i strategia losowania pozycji obcych** — Właściciel: developer. Blokuje: tylko `S-04` (domyślnie: brak nakładania prostokątów + margines bezpieczeństwa; start w górnej 1/5 planszy).
+5. **Parametry post-MVP audio i alien fire** — Właściciel: developer. Blokuje: tylko `S-05` (kalibracja; bez nowych zależności runtime jako domyślne założenie).
 
-(Oba pochodzą z PRD `## Open Questions` i są niewiadomymi dotyczącymi pojedynczego wycinka S-02 — wymienione tu, bo PRD trzyma je na poziomie projektu; żadne nie podnosi statusu wycinka do `blocked`.)
+(Pytania 1–2 pochodzą z PRD `## Open Questions`; pytania 3–5 dodano po ukończeniu MVP jako niewiadome dla nowych wycinków. Żadne nie podnosi statusu wycinka do `blocked`.)
 
 ## Zaparkowane
 
-- **Start Menu (Space = start)** — Dlaczego zaparkowane: FR-005 obniżone do nice-to-have; PRD §Non-Goals — MVP startuje bezpośrednio w stanie PLAYING.
-- **Dźwięki (strzał, eksplozja, muzyka)** — Dlaczego zaparkowane: PRD §Non-Goals — oddzielna iteracja; brak dźwięku nie blokuje grywalności ani celów portfolio.
-- **Strzelający kosmici (alien fire)** — Dlaczego zaparkowane: PRD §Non-Goals — nice-to-have; nie część pierwszej grywalnej wersji.
+- **Start Menu (Space = start), dźwięki i strzelający kosmici** — Przeniesione z zaparkowanych do `S-05: post-mvp-arcade-feel`, bo MVP jest domknięte i można wrócić do świadomie odłożonych usprawnień.
 - **Refaktoryzacja View/Controller** — Dlaczego zaparkowane: PRD §Non-Goals + Constraints — `GameController` pozostaje centralnym węzłem; separacja prezentacji poza zakresem.
 - **Konta / multiplayer / sieć / zapisy w chmurze / dystrybucja** — Dlaczego zaparkowane: PRD §Non-Goals — gra pozostaje lokalną aplikacją jednoosobową.
 - **Twarde gwarancje wydajności poza ~60 FPS subiektywnie** — Dlaczego zaparkowane: PRD §Non-Goals — brak budżetu klatkowego, profilowania ani benchmarków.
 
 ## Zrobione
 
+- **S-04: gracz nie może wyprowadzić statku poza planszę; obcy w każdej fali startują w zróżnicowanych odstępach i wysokościach, nie nachodzą na siebie, a ich startowa pozycja Y nie przekracza 1/5 wysokości planszy od góry; po kolizji statku z obcym widać krótką reakcję wizualną utraty życia; jeśli obcy z danej fali nie zostaną zabici i przejdą przez warunek porażki fali, gra kończy się komunikatem, że obcy wygrali.** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-wave-boundaries-and-hit-feedback/`. Lekcja: —.
 - **S-03: tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-lives-gameover-restart/`. Lekcja: —.
 - **F-01: (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-build-tooling-baseline/`. Lekcja: —.
 - **S-01: gracz może płynnie grać w ~60 FPS — porusza statkiem strzałkami i strzela spacją bez odczuwalnego lagu, pociski trafiają kosmitów dokładnie raz, a pociski/kosmici opuszczający ekran są usuwani (brak rosnącej listy obiektów).** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-smooth-playable-loop/`. Lekcja: —.
