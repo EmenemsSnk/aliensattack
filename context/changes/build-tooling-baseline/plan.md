@@ -302,15 +302,15 @@ None — no persistent state, no external contracts. Existing developers gain `.
 
 #### Automated
 
-- [x] 3.1 Wrapper builds: `./mvnw clean compile`
-- [x] 3.2 Wrapper runs tests: `./mvnw test`
-- [x] 3.3 Wrapper + .editorconfig files tracked in git
+- [x] 3.1 Wrapper builds: `./mvnw clean compile` — dd59133
+- [x] 3.2 Wrapper runs tests: `./mvnw test` — dd59133
+- [x] 3.3 Wrapper + .editorconfig files tracked in git — dd59133
 
 ### Phase 4: CI workflow
 
 #### Automated
 
-- [ ] 4.1 `.github/workflows/build.yml` present and valid YAML
+- [x] 4.1 `.github/workflows/build.yml` present and valid YAML
 
 #### Manual
 
