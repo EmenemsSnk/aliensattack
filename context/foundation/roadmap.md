@@ -30,7 +30,7 @@ Aliens Attack to lokalna, jednoosobowa gra arcade 2D (typu Space Invaders) na Ja
 | ID   | Change ID                  | Wynik (gracz może…)                                                                 | Wymagania wstępne | Odnośniki PRD                       | Status   |
 | ---- | -------------------------- | ----------------------------------------------------------------------------------- | ----------------- | ----------------------------------- | -------- |
 | F-01 | build-tooling-baseline     | (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone | —                 | Constraints & Compatibility, Guardrail | done    |
-| S-01 | smooth-playable-loop       | grać płynnie w ~60 FPS — ruch, strzał, trafienia raz, brak wycieku obiektów          | —                 | US-01, FR-001, FR-002, FR-004       | ready    |
+| S-01 | smooth-playable-loop       | grać płynnie w ~60 FPS — ruch, strzał, trafienia raz, brak wycieku obiektów          | —                 | US-01, FR-001, FR-002, FR-004       | done     |
 | S-02 | score-and-wave-progression | zdobywać 10×fala pkt, widzieć wynik i falę w HUD, dostać szybszą falę po wyczyszczeniu | S-01              | US-01, FR-007, FR-008, FR-009, FR-010 | proposed |
 | S-03 | lives-gameover-restart     | tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją      | S-02, S-01        | US-01, FR-003, FR-006               | proposed |
 
@@ -68,7 +68,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** „jak" jest już rozpisane w `build-tooling-plan.md`, więc niskie ryzyko wykonawcze. Główne ryzyko to dryf dokumentów — „Java 8" / „bez nowych zależności" jest asertowane w wielu plikach; aktualizacja jednego bez pozostałych tworzy sprzeczności (Krok 5 planu). Przy celu „niska złożoność" sekwencjonowane równolegle do rozgrywki, nie jako twarda brama — gra kompiluje się i działa na obecnym `pom.xml`.
-- **Status:** ready
+- **Status:** done
 
 ## Wycinki
 
@@ -82,7 +82,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** rdzeń zmiany — zamiana wątku `Thread.sleep(1000)` (off-EDT, ~1 FPS) na `javax.swing.Timer` na EDT. Ryzyko regresji responsywności sterowania (dziś `keyTyped` i `keyPressed` oba wołają `makeAction` → podwójne wywołanie) oraz operacji blokujących na EDT. Sekwencjonowane pierwsze, bo bez grywalnej pętli żaden kolejny wycinek nie ma się gdzie zadziać.
-- **Status:** ready
+- **Status:** done
 
 ### S-02: Wynik i progresja fal
 
@@ -137,4 +137,5 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 
 ## Zrobione
 
-(Puste przy pierwszym generowaniu. `/10x-archive` dodaje tu wpis i zmienia `Status` elementu na `done`, gdy zmiana o pasującym `Change ID` zostanie zarchiwizowana. NIE wypełniać wstępnie.)
+- **F-01: (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-build-tooling-baseline/`. Lekcja: —.
+- **S-01: gracz może płynnie grać w ~60 FPS — porusza statkiem strzałkami i strzela spacją bez odczuwalnego lagu, pociski trafiają kosmitów dokładnie raz, a pociski/kosmici opuszczający ekran są usuwani (brak rosnącej listy obiektów).** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-smooth-playable-loop/`. Lekcja: —.
