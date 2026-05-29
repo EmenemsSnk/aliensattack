@@ -1,7 +1,6 @@
 package com.emenems.games.aliens;
-/*
 
-public class GameState {
-
+public enum GameState {
+    PLAYING,
+    GAME_OVER
 }
-*/
