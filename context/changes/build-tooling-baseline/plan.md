@@ -2,7 +2,7 @@
 
 ## Overview
 
-Turn the bare `pom.xml` (groupId/artifactId/version only) into a fully-pinned, reproducible, CI-verified Maven build with a working JUnit 5 test harness and an internally consistent documentation set. This executes the build/tooling decisions already locked in `context/foundation/prd.md` (*Constraints & Compatibility*) and drafted in `context/foundation/build-tooling-plan.md` — with **one correction**: the Java compiler level is pinned to **21**, not 25, because the active local toolchain is JDK 21.0.7 (JDK 25 is installed but not the default). Java 21 is LTS and already provides every modern language feature the PRD's rationale named (records, `var`, switch expressions, pattern matching, text blocks).
+Turn the bare `pom.xml` (groupId/artifactId/version only) into a fully-pinned, reproducible, CI-verified Maven build with a working JUnit 5 test harness and an internally consistent documentation set. This executes the build/tooling decisions already locked in `context/foundation/prd.md` (*Constraints & Compatibility*) and drafted in `context/changes/build-tooling-baseline/build-tooling-plan.md` — with **one correction**: the Java compiler level is pinned to **21**, not 25, because the active local toolchain is JDK 21.0.7 (JDK 25 is installed but not the default). Java 21 is LTS and already provides every modern language feature the PRD's rationale named (records, `var`, switch expressions, pattern matching, text blocks).
 
 ## Current State Analysis
 
@@ -208,7 +208,7 @@ Reconcile every doc that asserts a now-stale build fact. "Java 8 / no new deps /
 
 #### 3. Build tooling plan
 
-**File**: `context/foundation/build-tooling-plan.md`
+**File**: `context/changes/build-tooling-baseline/build-tooling-plan.md`
 
 **Purpose**: Align the preliminary execution doc with what was actually done and record the 25→21 correction.
 
@@ -270,7 +270,7 @@ None — no persistent state, no external contracts. Existing developers gain `.
 ## References
 
 - Decisions: `context/foundation/prd.md` (*Constraints & Compatibility*)
-- Preliminary execution detail: `context/foundation/build-tooling-plan.md`
+- Preliminary execution detail: `context/changes/build-tooling-baseline/build-tooling-plan.md`
 - Gaps confirmed: `context/foundation/stack-assessment.md`, `context/foundation/health-check.md`
 - Test target: `src/main/java/com/emenems/games/aliens/gamemachines/Spaceship.java:14-36`
 - Bare POM: `pom.xml:7-9`
@@ -320,10 +320,10 @@ None — no persistent state, no external contracts. Existing developers gain `.
 
 #### Automated
 
-- [x] 5.1 No stale Java-8 / 1.8 compiler assertions: `grep -rn "Java 8\|1\.8" CLAUDE.md context/foundation/`
-- [x] 5.2 No stale release=25 / Java 25 claims: `grep -rn "release=25\|release 25\|Java 25\|java-version: 25" CLAUDE.md context/foundation/`
-- [x] 5.3 Full build green after doc edits: `./mvnw clean compile && ./mvnw test`
+- [x] 5.1 No stale Java-8 / 1.8 compiler assertions: `grep -rn "Java 8\|1\.8" CLAUDE.md context/foundation/` — 8f1669f
+- [x] 5.2 No stale release=25 / Java 25 claims: `grep -rn "release=25\|release 25\|Java 25\|java-version: 25" CLAUDE.md context/foundation/` — 8f1669f
+- [x] 5.3 Full build green after doc edits: `./mvnw clean compile && ./mvnw test` — 8f1669f
 
 #### Manual
 
-- [x] 5.4 Read-through confirms no doc contradicts another
+- [x] 5.4 Read-through confirms no doc contradicts another — 8f1669f
