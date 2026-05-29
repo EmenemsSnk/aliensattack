@@ -1,5 +1,6 @@
 package com.emenems.games.aliens.controller;
 
+import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
@@ -20,6 +21,7 @@ public class GameController implements ActionListener {
     private static final int MAX_ALIEN_SPEED = BASE_ALIEN_SPEED * 2;
     private static final int ALIEN_START_Y = 30;
     private static final int[] ALIEN_START_X_VALUES = {10, 100, 200, 300, 400, 500, 600, 700, 800, 900};
+    private static final int DEFAULT_LIVES = 3;
 
     private final Spaceship spaceship;
     private final List<Missile> missiles;
@@ -29,6 +31,8 @@ public class GameController implements ActionListener {
     private Timer timer;
     private int score;
     private int wave = 1;
+    private int lives = DEFAULT_LIVES;
+    private GameState gameState = GameState.PLAYING;
 
     public GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel) {
         this.spaceship = spaceship;
@@ -39,7 +43,7 @@ public class GameController implements ActionListener {
 
     public void initialize(){
         generateSpaceObjects();
-        updateHud();
+        updatePanelState();
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -66,6 +70,13 @@ public class GameController implements ActionListener {
     }
 
     void handleKeyPressed(int keyCode) {
+        if (gameState == GameState.GAME_OVER) {
+            if (keyCode == KeyEvent.VK_SPACE) {
+                restartGame();
+            }
+            return;
+        }
+
         if (keyCode == KeyEvent.VK_SPACE) {
             missiles.add(new Missile(spaceship.getX(), spaceship.getY() - GamePanel.DEFAULT_COMPONENT_SIZE));
             repaintGamePanel();
@@ -109,13 +120,22 @@ public class GameController implements ActionListener {
     }
 
     void tick() {
+        if (gameState == GameState.GAME_OVER) {
+            updatePanelState();
+            return;
+        }
+
         moveSpaceshipFromPressedKeys();
         aliens.forEach(Alien::move);
         missiles.forEach(Missile::move);
         checkCollisions();
+        if (gameState == GameState.GAME_OVER) {
+            updatePanelState();
+            return;
+        }
         cleanupOffscreenObjects();
         advanceWaveIfCleared();
-        updateHud();
+        updatePanelState();
     }
 
     private void checkCollisions() {
@@ -125,13 +145,27 @@ public class GameController implements ActionListener {
 
     void checkCollisionsWithSpaceShip() {
         Rectangle spaceshipArea = new Rectangle(spaceship.getX(), spaceship.getY(), GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
+        Alien collidingAlien = null;
 
         for (Alien alien : aliens) {
             Rectangle alienArea = new Rectangle(alien.getX(), alien.getY(), GamePanel.DEFAULT_COMPONENT_SIZE,
                 GamePanel.DEFAULT_COMPONENT_SIZE);
             if (spaceshipArea.intersects(alienArea)) {
-                return;
+                collidingAlien = alien;
+                break;
             }
+        }
+
+        if (collidingAlien == null) {
+            return;
+        }
+
+        aliens.remove(collidingAlien);
+        lives--;
+        if (lives <= 0) {
+            lives = 0;
+            gameState = GameState.GAME_OVER;
+            pressedMovementKeys.clear();
         }
     }
 
@@ -176,6 +210,14 @@ public class GameController implements ActionListener {
         return wave;
     }
 
+    int getLives() {
+        return lives;
+    }
+
+    GameState getGameState() {
+        return gameState;
+    }
+
     private Rectangle objectArea(int x, int y) {
         return new Rectangle(x, y, GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
     }
@@ -189,9 +231,9 @@ public class GameController implements ActionListener {
         generateSpaceObjects();
     }
 
-    private void updateHud() {
+    private void updatePanelState() {
         if (gamePanel != null) {
-            gamePanel.updateHud(score, wave);
+            gamePanel.updateGameState(score, wave, lives, gameState);
         }
     }
 
@@ -208,5 +250,17 @@ public class GameController implements ActionListener {
         if (gamePanel != null) {
             gamePanel.repaint();
         }
+    }
+
+    private void restartGame() {
+        score = 0;
+        wave = 1;
+        lives = DEFAULT_LIVES;
+        gameState = GameState.PLAYING;
+        missiles.clear();
+        pressedMovementKeys.clear();
+        generateSpaceObjects();
+        updatePanelState();
+        repaintGamePanel();
     }
 }

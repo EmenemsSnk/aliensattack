@@ -1,5 +1,6 @@
 package com.emenems.games.aliens.gui;
 
+import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
@@ -28,6 +29,8 @@ public class GamePanel extends JPanel {
     private List<Alien> aliens;
     private int score;
     private int wave = 1;
+    private int lives = 3;
+    private GameState gameState = GameState.PLAYING;
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens) {
         this.spaceship = spaceship;
@@ -37,8 +40,14 @@ public class GamePanel extends JPanel {
     }
 
     public void updateHud(int score, int wave) {
+        updateGameState(score, wave, lives, gameState);
+    }
+
+    public void updateGameState(int score, int wave, int lives, GameState gameState) {
         this.score = score;
         this.wave = wave;
+        this.lives = lives;
+        this.gameState = gameState;
     }
 
     private void initBoard() {
@@ -62,6 +71,7 @@ public class GamePanel extends JPanel {
         drawAliens(g);
         drawMissiles(g);
         drawHud(g);
+        drawGameOver(g);
         Toolkit.getDefaultToolkit().sync();
     }
 
@@ -70,6 +80,29 @@ public class GamePanel extends JPanel {
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
         graphics.drawString("Score: " + score, 20, 30);
         graphics.drawString("Wave: " + wave, 20, 55);
+        graphics.drawString("Lives: " + lives, 20, 80);
+    }
+
+    private void drawGameOver(Graphics graphics) {
+        if (gameState != GameState.GAME_OVER) {
+            return;
+        }
+
+        graphics.setColor(new Color(0, 0, 0, 180));
+        graphics.fillRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
+
+        graphics.setColor(Color.WHITE);
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+        drawCenteredString(graphics, "GAME OVER", PANEL_HEIGHT / 2 - 60);
+
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        drawCenteredString(graphics, "Final Score: " + score, PANEL_HEIGHT / 2);
+        drawCenteredString(graphics, "Press SPACE to Restart", PANEL_HEIGHT / 2 + 40);
+    }
+
+    private void drawCenteredString(Graphics graphics, String text, int y) {
+        int textWidth = graphics.getFontMetrics().stringWidth(text);
+        graphics.drawString(text, (PANEL_WIDTH - textWidth) / 2, y);
     }
 
     private void drawMissiles(Graphics graphics) {

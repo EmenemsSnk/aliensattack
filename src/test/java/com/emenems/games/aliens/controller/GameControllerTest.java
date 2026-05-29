@@ -3,6 +3,7 @@ package com.emenems.games.aliens.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
@@ -125,6 +126,118 @@ class GameControllerTest {
 
         assertEquals(2, controller.getWave());
         assertEquals(10, aliens.size());
+    }
+
+    @Test
+    void spaceshipAlienCollisionRemovesOneLifeAndCollidingAlien() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        Alien collidingAlien = new Alien(500, 680);
+        Alien otherAlien = new Alien(100, 100);
+        aliens.add(collidingAlien);
+        aliens.add(otherAlien);
+        GameController controller = newController(missiles, aliens);
+
+        controller.checkCollisionsWithSpaceShip();
+
+        assertEquals(2, controller.getLives());
+        assertEquals(GameState.PLAYING, controller.getGameState());
+        assertEquals(1, aliens.size());
+        assertSame(otherAlien, aliens.getFirst());
+    }
+
+    @Test
+    void thirdSpaceshipAlienCollisionEntersGameOver() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+
+        assertEquals(0, controller.getLives());
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+    }
+
+    @Test
+    void tickDoesNotMoveObjectsWhileGameOver() {
+        Spaceship spaceship = new Spaceship(500, 680);
+        List<Missile> missiles = new ArrayList<>();
+        Missile missile = new Missile(100, 100);
+        missiles.add(missile);
+        List<Alien> aliens = new ArrayList<>();
+        Alien stationaryAlien = new Alien(100, 100);
+        aliens.add(stationaryAlien);
+        GameController controller = new GameController(spaceship, missiles, aliens, null);
+
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        controller.tick();
+
+        assertEquals(100, missile.getY());
+        assertEquals(100, stationaryAlien.getY());
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+    }
+
+    @Test
+    void spaceFiresMissilesWhilePlayingButRestartsGameOver() {
+        Spaceship spaceship = new Spaceship(500, 680);
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = new GameController(spaceship, missiles, aliens, null);
+
+        controller.handleKeyPressed(KeyEvent.VK_SPACE);
+
+        assertEquals(1, missiles.size());
+
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        controller.handleKeyPressed(KeyEvent.VK_SPACE);
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
+        assertEquals(0, missiles.size());
+        assertEquals(10, aliens.size());
+    }
+
+    @Test
+    void restartResetsSessionStateAndPressedMovementKeys() {
+        Spaceship spaceship = new Spaceship(500, 680);
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = new GameController(spaceship, missiles, aliens, null);
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        controller.checkCollisionsWithMissile();
+        controller.handleKeyPressed(KeyEvent.VK_RIGHT);
+
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        aliens.add(new Alien(500, 680));
+        controller.checkCollisionsWithSpaceShip();
+        controller.handleKeyPressed(KeyEvent.VK_SPACE);
+        controller.tick();
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
+        assertEquals(0, controller.getScore());
+        assertEquals(1, controller.getWave());
+        assertEquals(3, controller.getLives());
+        assertEquals(10, aliens.size());
+        assertEquals(0, missiles.size());
+        assertEquals(500, spaceship.getX());
     }
 
     @Test
