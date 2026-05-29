@@ -211,29 +211,29 @@ No persistent data exists, so there is nothing to migrate.
 
 #### Automated
 
-- [x] 1.1 Project compiles: `./mvnw clean compile`
-- [x] 1.2 Test suite passes: `./mvnw test`
-- [x] 1.3 Unit tests verify one spaceship collision removes one life and the colliding alien
-- [x] 1.4 Unit tests verify the third collision enters `GAME_OVER`
-- [x] 1.5 Unit tests verify `tick()` does not advance gameplay objects while in `GAME_OVER`
+- [x] 1.1 Project compiles: `./mvnw clean compile` — 222de00
+- [x] 1.2 Test suite passes: `./mvnw test` — 222de00
+- [x] 1.3 Unit tests verify one spaceship collision removes one life and the colliding alien — 222de00
+- [x] 1.4 Unit tests verify the third collision enters `GAME_OVER` — 222de00
+- [x] 1.5 Unit tests verify `tick()` does not advance gameplay objects while in `GAME_OVER` — 222de00
 
 #### Manual
 
-- [x] 1.6 While playing, colliding with an alien visibly reduces lives by one instead of ending immediately
-- [x] 1.7 After a collision, the same alien is gone so lives do not drain instantly from one overlap
+- [x] 1.6 While playing, colliding with an alien visibly reduces lives by one instead of ending immediately — 222de00
+- [x] 1.7 After a collision, the same alien is gone so lives do not drain instantly from one overlap — 222de00
 
 ### Phase 2: HUD Lives, Game Over Overlay, and Restart
 
 #### Automated
 
-- [x] 2.1 Project compiles: `./mvnw clean compile`
-- [x] 2.2 Full test suite passes: `./mvnw test`
-- [x] 2.3 Unit tests verify Space fires missiles while playing but restarts when in `GAME_OVER`
-- [x] 2.4 Unit tests verify restart resets score, wave, lives, state, missiles, pressed input effects, and the alien wave
+- [x] 2.1 Project compiles: `./mvnw clean compile` — 222de00
+- [x] 2.2 Full test suite passes: `./mvnw test` — 222de00
+- [x] 2.3 Unit tests verify Space fires missiles while playing but restarts when in `GAME_OVER` — 222de00
+- [x] 2.4 Unit tests verify restart resets score, wave, lives, state, missiles, pressed input effects, and the alien wave — 222de00
 
 #### Manual
 
-- [x] 2.5 HUD shows `Score: 0`, `Wave: 1`, and `Lives: 3` at game start
-- [x] 2.6 Game Over overlay shows `GAME OVER`, final score, and `Press SPACE to Restart` after the last life is lost
-- [x] 2.7 Pressing Space on Game Over restarts to score 0, wave 1, lives 3, and a fresh alien row
-- [x] 2.8 Existing movement, firing, scoring, wave progression, sprite rendering, and HUD readability still work
+- [x] 2.5 HUD shows `Score: 0`, `Wave: 1`, and `Lives: 3` at game start — 222de00
+- [x] 2.6 Game Over overlay shows `GAME OVER`, final score, and `Press SPACE to Restart` after the last life is lost — 222de00
+- [x] 2.7 Pressing Space on Game Over restarts to score 0, wave 1, lives 3, and a fresh alien row — 222de00
+- [x] 2.8 Existing movement, firing, scoring, wave progression, sprite rendering, and HUD readability still work — 222de00

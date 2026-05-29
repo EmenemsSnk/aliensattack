@@ -1,7 +1,7 @@
 ---
 change_id: lives-gameover-restart
 title: Lives gameover restart
-status: implementing
+status: implemented
 created: 2026-05-29
 updated: 2026-05-29
 archived_at: null
