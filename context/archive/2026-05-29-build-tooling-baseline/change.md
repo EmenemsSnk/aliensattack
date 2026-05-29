@@ -1,10 +1,10 @@
 ---
 change_id: build-tooling-baseline
 title: Build tooling baseline
-status: implementing
+status: archived
 created: 2026-05-29
 updated: 2026-05-29
-archived_at: null
+archived_at: 2026-05-29T13:43:23Z
 ---
 
 ## Notes

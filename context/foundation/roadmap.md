@@ -68,7 +68,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** „jak" jest już rozpisane w `build-tooling-plan.md`, więc niskie ryzyko wykonawcze. Główne ryzyko to dryf dokumentów — „Java 8" / „bez nowych zależności" jest asertowane w wielu plikach; aktualizacja jednego bez pozostałych tworzy sprzeczności (Krok 5 planu). Przy celu „niska złożoność" sekwencjonowane równolegle do rozgrywki, nie jako twarda brama — gra kompiluje się i działa na obecnym `pom.xml`.
-- **Status:** ready
+- **Status:** done
 
 ## Wycinki
 
@@ -137,4 +137,4 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 
 ## Zrobione
 
-(Puste przy pierwszym generowaniu. `/10x-archive` dodaje tu wpis i zmienia `Status` elementu na `done`, gdy zmiana o pasującym `Change ID` zostanie zarchiwizowana. NIE wypełniać wstępnie.)
+- **F-01: (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-build-tooling-baseline/`. Lekcja: —.
