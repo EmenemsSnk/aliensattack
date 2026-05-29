@@ -295,16 +295,16 @@ None — no persistent state, no external contracts. Existing developers gain `.
 
 #### Automated
 
-- [x] 2.1 Tests run and pass with non-zero count: `mvn test`
-- [x] 2.2 Surefire executed Jupiter ("Tests run: N", N>0)
+- [x] 2.1 Tests run and pass with non-zero count: `mvn test` — 818b1d1
+- [x] 2.2 Surefire executed Jupiter ("Tests run: N", N>0) — 818b1d1
 
 ### Phase 3: Maven wrapper + .editorconfig
 
 #### Automated
 
-- [ ] 3.1 Wrapper builds: `./mvnw clean compile`
-- [ ] 3.2 Wrapper runs tests: `./mvnw test`
-- [ ] 3.3 Wrapper + .editorconfig files tracked in git
+- [x] 3.1 Wrapper builds: `./mvnw clean compile`
+- [x] 3.2 Wrapper runs tests: `./mvnw test`
+- [x] 3.3 Wrapper + .editorconfig files tracked in git
 
 ### Phase 4: CI workflow
 
