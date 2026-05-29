@@ -19,7 +19,7 @@ timeline_budget:
 
 - **System purpose**: A 2D Java Swing arcade game (Space Invaders-like) — player controls a spaceship and shoots at a fleet of advancing aliens.
 - **Key architecture**: Single-process desktop app; central `GameController` holds the game loop and input handling; domain objects live in the `gamemachines` package (Spaceship, Alien, Missile); rendering via `GamePanel`.
-- **Tech stack**: Java + Maven + `javax.swing` (Swing UI); desktop application; no external game/audio libraries.
+- **Tech stack**: Java 25 LTS + Maven + `javax.swing` (Swing UI); desktop application; no external **runtime** libraries. Build pins the compiler to `maven.compiler.release=25`; **JUnit 5** is used for tests (`test` scope only); CI runs on **GitHub Actions**. (decyzje zapięte poniżej w *Constraints & Compatibility*; szczegóły wykonawcze: `context/foundation/build-tooling-plan.md`)
 - **Current user base**: Single developer/player; local machine; no networking or accounts.
 - **Core functionality**: Spaceship movement (keyboard input), missile firing, alien grid movement, basic collision detection, partial rendering via `GamePanel`; game loop in `GameController`; domain objects in `gamemachines` package (Spaceship, Alien, Missile).
 
@@ -107,7 +107,9 @@ This is the existing (and only) user. The change improves the experience of this
 
 ## Constraints & Compatibility
 
-- **Brak nowych zależności zewnętrznych**: Tylko Java standard library + `javax.swing`. Żadne nowe biblioteki (game engine, audio library, JSON parser) nie są dodawane bez wyraźnej decyzji.
+- **Java 25 LTS (poziom kompilatora zapięty)**: Build pina `maven.compiler.release=25` (lokalny JDK to 25.0.3 LTS; gra jest lokalna, jednoużytkownikowa, bez dystrybucji — zero kosztu przenośności). Nowoczesna składnia (`record`, `var`, switch expressions, pattern matching, text blocks) jest dozwolona. (decyzja zamykająca dawne Open Q3; szczegóły wykonawcze: `context/foundation/build-tooling-plan.md`)
+- **Brak nowych zależności runtime (zero-dependency w czasie wykonania)**: Runtime to wyłącznie Java standard library + `javax.swing`. Świadomy, jawny wyjątek: **JUnit 5** dodany w zakresie `test` (decyzja łamiąca pierwotny zapis „bez nowych bibliotek", podjęta świadomie) — dostarczana gra pozostaje zero-dependency, bo zależność testowa nie trafia do artefaktu. Wszelkie inne nowe biblioteki (game engine, audio library, JSON parser) nadal wymagają wyraźnej decyzji. (decyzja zamykająca dawne Open Q4; szczegóły wykonawcze: `context/foundation/build-tooling-plan.md`)
+- **CI (GitHub Actions)**: Build i testy uruchamiają się automatycznie na push/PR (`./mvnw clean compile` + `./mvnw test`), egzekwując guardrail „`mvn clean compile` musi przejść na każdym etapie". `pom.xml` jest w pełni zapięty (encoding, wersje pluginów, `exec-maven-plugin`) plus Maven wrapper. (decyzja zamykająca dawne Open Q5 + brak CI; szczegóły wykonawcze: `context/foundation/build-tooling-plan.md`)
 - **Swing EDT**: Cały rendering i logika gry wywoływana przez timer musi działać na Event Dispatch Thread (EDT Swing). Zmiana game loop nie może wprowadzać operacji blokujących EDT.
 - **GameController jako centralny węzeł**: Logika gry i input handling pozostają w `GameController` — architektoniczna separacja View/Controller nie jest celem tego MVP; refaktoryzacja poza zakresem.
 - **Istniejące zachowanie sterowania**: Arrow keys i Space obsługują ruch statku i strzelanie — to zachowanie musi przetrwać zmianę game loop bez regresji responsywności.
@@ -143,13 +145,7 @@ No access control changes — current model preserved. Single player; no authent
 
 1. **Dokładny cap prędkości kosmitów** — ustalono ~2× prędkości bazowej; dokładna wartość do kalibracji przy implementacji (gameplay feel). Właściciel: developer. Blok: nie — gra działa z dowolną wartością graniczną.
 2. **Wartość bazowej prędkości kosmitów** — obecna wartość w kodzie jest nieznana bez inspekcji; do weryfikacji przy implementacji FR-010. Właściciel: developer. Blok: nie.
-</content>
-</invoke>
 
+> **Rozstrzygnięte decyzje tooling/build (dawne Open Q3–Q5 + CI)**: poziom Javy, testy, zawartość `pom.xml` i CI zostały świadomie ustalone i zapisane w sekcji *Constraints & Compatibility* (Java 25 LTS; JUnit 5 w zakresie `test`; GitHub Actions; zapięty `pom.xml` + Maven wrapper). Plan wykonawczy „jak to wdrożyć": `context/foundation/build-tooling-plan.md`.
 
-The file has been written successfully to /Users/michaldziedzic/Priv/aliensattack/context/foundation/prd.md
-
-Result of calling the Write tool.
-
-Done — written to disk.
 
