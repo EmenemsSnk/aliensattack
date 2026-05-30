@@ -247,36 +247,36 @@ No persistent data exists, so there is nothing to migrate.
 
 #### Automated
 
-- [x] 1.1 Project compiles: `./mvnw clean compile`
-- [x] 1.2 Full test suite passes: `./mvnw test`
-- [x] 1.3 Unit tests verify `START_MENU` does not move gameplay objects until Enter starts play
-- [x] 1.4 Unit tests verify Enter starts from menu, Space fires while playing, and Enter restarts from Game Over
-- [x] 1.5 Unit tests verify alien missiles move downward and are removed offscreen
-- [x] 1.6 Unit tests verify alien missile collision removes one life, removes the projectile, activates hit feedback, and can enter Game Over
-- [x] 1.7 Unit tests verify alien firing respects the configured active-projectile cap
+- [x] 1.1 Project compiles: `./mvnw clean compile` — d67030a
+- [x] 1.2 Full test suite passes: `./mvnw test` — d67030a
+- [x] 1.3 Unit tests verify `START_MENU` does not move gameplay objects until Enter starts play — d67030a
+- [x] 1.4 Unit tests verify Enter starts from menu, Space fires while playing, and Enter restarts from Game Over — d67030a
+- [x] 1.5 Unit tests verify alien missiles move downward and are removed offscreen — d67030a
+- [x] 1.6 Unit tests verify alien missile collision removes one life, removes the projectile, activates hit feedback, and can enter Game Over — d67030a
+- [x] 1.7 Unit tests verify alien firing respects the configured active-projectile cap — d67030a
 
 #### Manual
 
-- [x] 1.8 Running the game shows a start overlay; pressing Enter starts play
-- [x] 1.9 Shooting plays a short retro sound and destroyed aliens play a distinct explosion sound when audio output is available
-- [x] 1.10 Aliens visibly fire downward projectiles at a playable rate
-- [x] 1.11 Alien projectile hits reduce lives, show hit feedback, and Game Over/restart behavior still works
-- [x] 1.12 Existing movement, player shooting, scoring, wave progression, bottom invasion loss, and HUD readability still work
+- [x] 1.8 Running the game shows a start overlay; pressing Enter starts play — d67030a
+- [x] 1.9 Shooting plays a short retro sound and destroyed aliens play a distinct explosion sound when audio output is available — d67030a
+- [x] 1.10 Aliens visibly fire downward projectiles at a playable rate — d67030a
+- [x] 1.11 Alien projectile hits reduce lives, show hit feedback, and Game Over/restart behavior still works — d67030a
+- [x] 1.12 Existing movement, player shooting, scoring, wave progression, bottom invasion loss, and HUD readability still work — d67030a
 
 ### Phase 2: Manual Feedback Tuning
 
 #### Automated
 
-- [x] 2.1 Project compiles: `./mvnw clean compile`
-- [x] 2.2 Full test suite passes: `./mvnw test`
-- [x] 2.3 Unit tests verify Enter starts from menu and restarts from Game Over while Space does not restart
-- [x] 2.4 Unit tests verify holding Space auto-fires with cooldown
-- [x] 2.5 Unit tests verify tuned alien count/speed/cap expectations remain coherent with wave and firing rules
+- [x] 2.1 Project compiles: `./mvnw clean compile` — d67030a
+- [x] 2.2 Full test suite passes: `./mvnw test` — d67030a
+- [x] 2.3 Unit tests verify Enter starts from menu and restarts from Game Over while Space does not restart — d67030a
+- [x] 2.4 Unit tests verify holding Space auto-fires with cooldown — d67030a
+- [x] 2.5 Unit tests verify tuned alien count/speed/cap expectations remain coherent with wave and firing rules — d67030a
 
 #### Manual
 
-- [x] 2.6 Start and restart happen on Enter, not Space
-- [x] 2.7 Sprites are easier to see and the board feels less overly wide
-- [x] 2.8 The first wave has fewer aliens and less immediate pressure
-- [x] 2.9 Holding Space is enough for repeated shooting; repeated tapping is not required
-- [x] 2.10 The new audio feels less harsh, and the background loop improves the space mood without being distracting
+- [x] 2.6 Start and restart happen on Enter, not Space — d67030a
+- [x] 2.7 Sprites are easier to see and the board feels less overly wide — d67030a
+- [x] 2.8 The first wave has fewer aliens and less immediate pressure — d67030a
+- [x] 2.9 Holding Space is enough for repeated shooting; repeated tapping is not required — d67030a
+- [x] 2.10 The new audio feels less harsh, and the background loop improves the space mood without being distracting — d67030a
