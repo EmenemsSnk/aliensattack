@@ -356,29 +356,29 @@ No player data, saves, or external APIs exist, so there is no data migration. Th
 
 #### Automated
 
-- [x] 2.1 Project compiles: `./mvnw clean compile`
-- [x] 2.2 Full test suite passes: `./mvnw test`
-- [x] 2.3 No stale `GamePanel` world-constant references remain
-- [x] 2.4 Wave, boundary, collision, and cleanup tests still prove equivalent behavior
+- [x] 2.1 Project compiles: `./mvnw clean compile` — be483ab
+- [x] 2.2 Full test suite passes: `./mvnw test` — be483ab
+- [x] 2.3 No stale `GamePanel` world-constant references remain — be483ab
+- [x] 2.4 Wave, boundary, collision, and cleanup tests still prove equivalent behavior — be483ab
 
 #### Manual
 
-- [x] 2.5 Board size, sprite size, HUD layout, start overlay, and game-over overlay appear unchanged
-- [x] 2.6 Ship bounds and alien bottom-loss behavior remain unchanged in play
+- [x] 2.5 Board size, sprite size, HUD layout, start overlay, and game-over overlay appear unchanged — be483ab
+- [x] 2.6 Ship bounds and alien bottom-loss behavior remain unchanged in play — be483ab
 
 ### Phase 3: Collapse Constructors and Compatibility Shims
 
 #### Automated
 
-- [ ] 3.1 Project compiles: `./mvnw clean compile`
-- [ ] 3.2 Full test suite passes: `./mvnw test`
-- [ ] 3.3 Controller constructor call sites use explicit production/test wiring
-- [ ] 3.4 Dead `GamePanel` state-update and constructor overloads are removed
+- [x] 3.1 Project compiles: `./mvnw clean compile`
+- [x] 3.2 Full test suite passes: `./mvnw test`
+- [x] 3.3 Controller constructor call sites use explicit production/test wiring
+- [x] 3.4 Dead `GamePanel` state-update and constructor overloads are removed
 
 #### Manual
 
-- [ ] 3.5 Start menu, play, Game Over, and restart still work
-- [ ] 3.6 Alien missiles still render, move, collide, and clear correctly
+- [x] 3.5 Start menu, play, Game Over, and restart still work
+- [x] 3.6 Alien missiles still render, move, collide, and clear correctly
 
 ### Phase 4: Focused Java 21 Modernization and Documentation Reconciliation
 

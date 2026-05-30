@@ -32,24 +32,12 @@ public class GamePanel extends JPanel {
     private boolean hitFeedbackActive;
     private String gameOverTitle = "GAME OVER";
 
-    public GamePanel(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens) {
-        this(spaceship, missiles, List.of(), aliens);
-    }
-
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<AlienMissile> alienMissiles, List<Alien> aliens) {
         this.spaceship = spaceship;
         this.missiles = missiles;
         this.alienMissiles = alienMissiles;
         this.aliens = aliens;
         initBoard();
-    }
-
-    public void updateHud(int score, int wave) {
-        updateGameState(score, wave, lives, gameState);
-    }
-
-    public void updateGameState(int score, int wave, int lives, GameState gameState) {
-        updateGameState(score, wave, lives, gameState, hitFeedbackActive, gameOverTitle);
     }
 
     public void updateGameState(

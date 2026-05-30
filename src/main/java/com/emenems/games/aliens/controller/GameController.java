@@ -13,7 +13,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -54,10 +53,6 @@ public class GameController implements ActionListener {
     private boolean spacePressed;
     private String gameOverTitle = DEFAULT_GAME_OVER_TITLE;
 
-    public GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel) {
-        this(spaceship, missiles, new ArrayList<>(), aliens, gamePanel, new Random(), new ArcadeSoundPlayer());
-    }
-
     public GameController(
         Spaceship spaceship,
         List<Missile> missiles,
@@ -66,21 +61,6 @@ public class GameController implements ActionListener {
         GamePanel gamePanel
     ) {
         this(spaceship, missiles, alienMissiles, aliens, gamePanel, new Random(), new ArcadeSoundPlayer());
-    }
-
-    GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel, Random random) {
-        this(spaceship, missiles, new ArrayList<>(), aliens, gamePanel, random, new ArcadeSoundPlayer());
-    }
-
-    GameController(
-        Spaceship spaceship,
-        List<Missile> missiles,
-        List<AlienMissile> alienMissiles,
-        List<Alien> aliens,
-        GamePanel gamePanel,
-        Random random
-    ) {
-        this(spaceship, missiles, alienMissiles, aliens, gamePanel, random, new ArcadeSoundPlayer());
     }
 
     GameController(
