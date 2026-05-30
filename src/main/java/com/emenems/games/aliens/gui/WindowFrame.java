@@ -5,12 +5,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 public class WindowFrame extends JFrame {
-    public WindowFrame(JPanel jPanel){
+    public WindowFrame(JPanel jPanel) {
         add(jPanel);
         initUI();
     }
 
-    private void initUI(){
+    private void initUI() {
         setBackground(Color.BLACK);
         setResizable(false);
         pack();

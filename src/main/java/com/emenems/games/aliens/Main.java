@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args){
+    public static void main(String[] args) {
         Spaceship spaceship = new Spaceship(
             (GamePanel.PANEL_WIDTH - GamePanel.DEFAULT_COMPONENT_SIZE) / 2,
             GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE - 20
@@ -24,8 +24,7 @@ public class Main {
 
         EventQueue.invokeLater(() -> {
             WindowFrame windowFrame = new WindowFrame(gamePanel);
-            windowFrame.show();
-            GameController controller =  new GameController(spaceship, missiles, alienMissiles, aliens,gamePanel);
+            GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, gamePanel);
             controller.initialize();
         });
     }

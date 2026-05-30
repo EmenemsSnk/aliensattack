@@ -1,8 +1,8 @@
 package com.emenems.games.aliens.gamemachines;
 
 public class Spaceship implements GameObject {
-    private int health = 100;
-    private int speed;
+    private static final int MOVE_STEP = 5;
+
     private int x;
     private int y;
 
@@ -11,20 +11,20 @@ public class Spaceship implements GameObject {
         this.y = y;
     }
 
-    public void moveLeft(){
-        x-=5;
+    public void moveLeft() {
+        x -= MOVE_STEP;
     }
 
-    public void moveRight(){
-        x+=5;
+    public void moveRight() {
+        x += MOVE_STEP;
     }
 
-    public void moveUp(){
-        y-=5;
+    public void moveUp() {
+        y -= MOVE_STEP;
     }
 
-    public void moveDown(){
-        y+=5;
+    public void moveDown() {
+        y += MOVE_STEP;
     }
 
     public void clampToBounds(int minX, int minY, int maxX, int maxY) {
@@ -40,7 +40,4 @@ public class Spaceship implements GameObject {
         return y;
     }
 
-    public void decreaseHealth(int demage){
-        health-=demage;
-    }
 }

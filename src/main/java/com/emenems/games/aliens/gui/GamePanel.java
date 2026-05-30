@@ -42,9 +42,9 @@ public class GamePanel extends JPanel {
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<AlienMissile> alienMissiles, List<Alien> aliens) {
         this.spaceship = spaceship;
-        this.missiles =  missiles;
+        this.missiles = missiles;
         this.alienMissiles = alienMissiles;
-        this.aliens =  aliens;
+        this.aliens = aliens;
         initBoard();
     }
 
@@ -177,7 +177,6 @@ public class GamePanel extends JPanel {
     private void drawAliens(Graphics graphics) {
         aliens.forEach(alien -> graphics.drawImage(alienImage, alien.getX(),
             alien.getY(), DEFAULT_COMPONENT_SIZE, DEFAULT_COMPONENT_SIZE, this));
-
     }
 
     private void drawSpaceship(Graphics graphics) {

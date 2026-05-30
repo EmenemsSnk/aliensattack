@@ -92,27 +92,25 @@ public class GameController implements ActionListener {
         ArcadeSoundPlayer soundPlayer
     ) {
         this.spaceship = spaceship;
-        this.missiles =  missiles;
+        this.missiles = missiles;
         this.alienMissiles = alienMissiles;
-        this.aliens =  aliens;
+        this.aliens = aliens;
         this.gamePanel = gamePanel;
         this.random = random;
         this.soundPlayer = soundPlayer;
     }
 
-    public void initialize(){
+    public void initialize() {
         generateSpaceObjects();
         updatePanelState();
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                super.keyPressed(e);
                 handleKeyPressed(e.getKeyCode());
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                super.keyReleased(e);
                 handleKeyReleased(e.getKeyCode());
             }
         });
