@@ -5,12 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.emenems.games.aliens.GameConstants;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
-import com.emenems.games.aliens.gui.GamePanel;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ class GameControllerTest {
     @Test
     void cleanupRemovesMissilesAbovePanel() {
         List<Missile> missiles = new ArrayList<>();
-        Missile offscreen = new Missile(100, -GamePanel.DEFAULT_COMPONENT_SIZE - 1);
+        Missile offscreen = new Missile(100, -GameConstants.COMPONENT_SIZE - 1);
         Missile visible = new Missile(100, 0);
         missiles.add(offscreen);
         missiles.add(visible);
@@ -60,9 +60,9 @@ class GameControllerTest {
     void cleanupRemovesAliensOutsidePanel() {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        Alien belowPanel = new Alien(100, GamePanel.PANEL_HEIGHT + 1);
-        Alien leftOfPanel = new Alien(-GamePanel.DEFAULT_COMPONENT_SIZE - 1, 100);
-        Alien rightOfPanel = new Alien(GamePanel.PANEL_WIDTH + 1, 100);
+        Alien belowPanel = new Alien(100, GameConstants.PANEL_HEIGHT + 1);
+        Alien leftOfPanel = new Alien(-GameConstants.COMPONENT_SIZE - 1, 100);
+        Alien rightOfPanel = new Alien(GameConstants.PANEL_WIDTH + 1, 100);
         Alien visible = new Alien(100, 100);
         aliens.add(belowPanel);
         aliens.add(leftOfPanel);
@@ -126,7 +126,7 @@ class GameControllerTest {
 
     @Test
     void heldArrowMovesSpaceshipOnEveryTickUntilReleased() {
-        Spaceship spaceship = new Spaceship(500, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE - 20);
+        Spaceship spaceship = new Spaceship(500, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE - GameConstants.SPACESHIP_START_BOTTOM_MARGIN);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
         GameController controller = new GameController(spaceship, missiles, aliens, null);
@@ -139,12 +139,12 @@ class GameControllerTest {
         controller.tick();
 
         assertEquals(510, spaceship.getX());
-        assertEquals(GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE - 20, spaceship.getY());
+        assertEquals(GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE - GameConstants.SPACESHIP_START_BOTTOM_MARGIN, spaceship.getY());
     }
 
     @Test
     void heldArrowMovementCannotMoveSpaceshipOutsidePanel() {
-        Spaceship spaceship = new Spaceship(0, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE);
+        Spaceship spaceship = new Spaceship(0, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
         GameController controller = new GameController(spaceship, missiles, aliens, null);
@@ -156,7 +156,7 @@ class GameControllerTest {
         controller.tick();
 
         assertEquals(0, spaceship.getX());
-        assertEquals(GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE, spaceship.getY());
+        assertEquals(GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE, spaceship.getY());
     }
 
     @Test
@@ -184,7 +184,7 @@ class GameControllerTest {
         controller.tick();
 
         Set<Integer> yValues = new HashSet<>();
-        int topFifthLimit = GamePanel.PANEL_HEIGHT / 5;
+        int topFifthLimit = GameConstants.PANEL_HEIGHT / 5;
         for (Alien alien : aliens) {
             assertTrue(alien.getY() <= topFifthLimit);
             yValues.add(alien.getY());
@@ -266,11 +266,11 @@ class GameControllerTest {
     void alienReachingBottomEntersGameOverWithAliensWinTitle() {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        aliens.add(new Alien(100, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE));
+        aliens.add(new Alien(100, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE));
         GameController controller = newController(missiles, aliens);
         startPlaying(controller);
         aliens.clear();
-        aliens.add(new Alien(100, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE));
+        aliens.add(new Alien(100, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE));
 
         controller.tick();
 
@@ -423,7 +423,7 @@ class GameControllerTest {
         aliens.clear();
         aliens.add(new Alien(500, 680));
         controller.checkCollisionsWithSpaceShip();
-        aliens.add(new Alien(100, GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE));
+        aliens.add(new Alien(100, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE));
         controller.tick();
 
         controller.handleKeyPressed(KeyEvent.VK_ENTER);
@@ -499,8 +499,8 @@ class GameControllerTest {
     void cleanupRemovesAlienMissilesBelowPanel() {
         List<Missile> missiles = new ArrayList<>();
         List<AlienMissile> alienMissiles = new ArrayList<>();
-        AlienMissile offscreen = new AlienMissile(100, GamePanel.PANEL_HEIGHT + 1);
-        AlienMissile visible = new AlienMissile(100, GamePanel.PANEL_HEIGHT);
+        AlienMissile offscreen = new AlienMissile(100, GameConstants.PANEL_HEIGHT + 1);
+        AlienMissile visible = new AlienMissile(100, GameConstants.PANEL_HEIGHT);
         alienMissiles.add(offscreen);
         alienMissiles.add(visible);
         List<Alien> aliens = new ArrayList<>();
@@ -583,8 +583,8 @@ class GameControllerTest {
         return new Rectangle(
             alien.getX(),
             alien.getY(),
-            GamePanel.DEFAULT_COMPONENT_SIZE,
-            GamePanel.DEFAULT_COMPONENT_SIZE
+            GameConstants.COMPONENT_SIZE,
+            GameConstants.COMPONENT_SIZE
         );
     }
 

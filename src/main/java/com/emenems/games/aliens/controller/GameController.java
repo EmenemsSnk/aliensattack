@@ -1,5 +1,6 @@
 package com.emenems.games.aliens.controller;
 
+import com.emenems.games.aliens.GameConstants;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
@@ -121,9 +122,9 @@ public class GameController implements ActionListener {
     private void generateSpaceObjects() {
         aliens.clear();
         double alienSpeed = calculateAlienSpeed(wave, BASE_ALIEN_SPEED, MAX_ALIEN_SPEED);
-        int laneSpacing = (GamePanel.PANEL_WIDTH - GamePanel.DEFAULT_COMPONENT_SIZE) / ALIEN_COUNT;
+        int laneSpacing = (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / ALIEN_COUNT;
         for (int index = 0; index < ALIEN_COUNT; index++) {
-            int laneX = index * laneSpacing + (laneSpacing - GamePanel.DEFAULT_COMPONENT_SIZE) / 2;
+            int laneX = index * laneSpacing + (laneSpacing - GameConstants.COMPONENT_SIZE) / 2;
             int x = laneX + random.nextInt(ALIEN_START_X_JITTER * 2 + 1) - ALIEN_START_X_JITTER;
             int y = ALIEN_START_MIN_Y + random.nextInt(ALIEN_START_Y_JITTER + 1);
             aliens.add(new Alien(x, y, alienSpeed));
@@ -185,8 +186,8 @@ public class GameController implements ActionListener {
         spaceship.clampToBounds(
             0,
             0,
-            GamePanel.PANEL_WIDTH - GamePanel.DEFAULT_COMPONENT_SIZE,
-            GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE
+            GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE,
+            GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE
         );
     }
 
@@ -232,12 +233,12 @@ public class GameController implements ActionListener {
     }
 
     void checkCollisionsWithSpaceShip() {
-        Rectangle spaceshipArea = new Rectangle(spaceship.getX(), spaceship.getY(), GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
+        Rectangle spaceshipArea = new Rectangle(spaceship.getX(), spaceship.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE);
         Alien collidingAlien = null;
 
         for (Alien alien : aliens) {
-            Rectangle alienArea = new Rectangle(alien.getX(), alien.getY(), GamePanel.DEFAULT_COMPONENT_SIZE,
-                GamePanel.DEFAULT_COMPONENT_SIZE);
+            Rectangle alienArea = new Rectangle(alien.getX(), alien.getY(), GameConstants.COMPONENT_SIZE,
+                GameConstants.COMPONENT_SIZE);
             if (spaceshipArea.intersects(alienArea)) {
                 collidingAlien = alien;
                 break;
@@ -300,12 +301,12 @@ public class GameController implements ActionListener {
     }
 
     void cleanupOffscreenObjects() {
-        missiles.removeIf(missile -> missile.getY() + GamePanel.DEFAULT_COMPONENT_SIZE < 0);
-        alienMissiles.removeIf(missile -> missile.getY() > GamePanel.PANEL_HEIGHT);
+        missiles.removeIf(missile -> missile.getY() + GameConstants.COMPONENT_SIZE < 0);
+        alienMissiles.removeIf(missile -> missile.getY() > GameConstants.PANEL_HEIGHT);
         aliens.removeIf(alien ->
-            alien.getY() > GamePanel.PANEL_HEIGHT
-                || alien.getX() + GamePanel.DEFAULT_COMPONENT_SIZE < 0
-                || alien.getX() > GamePanel.PANEL_WIDTH);
+            alien.getY() > GameConstants.PANEL_HEIGHT
+                || alien.getX() + GameConstants.COMPONENT_SIZE < 0
+                || alien.getX() > GameConstants.PANEL_WIDTH);
     }
 
     int getScore() {
@@ -333,11 +334,11 @@ public class GameController implements ActionListener {
     }
 
     private Rectangle objectArea(int x, int y) {
-        return new Rectangle(x, y, GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
+        return new Rectangle(x, y, GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE);
     }
 
     private Rectangle alienMissileArea(AlienMissile alienMissile) {
-        return new Rectangle(alienMissile.getX() + 9, alienMissile.getY(), 7, GamePanel.DEFAULT_COMPONENT_SIZE);
+        return new Rectangle(alienMissile.getX() + 9, alienMissile.getY(), 7, GameConstants.COMPONENT_SIZE);
     }
 
     private void advanceWaveIfCleared() {
@@ -400,7 +401,7 @@ public class GameController implements ActionListener {
 
     private void checkAlienInvasion() {
         boolean alienReachedBottom = aliens.stream()
-            .anyMatch(alien -> alien.getY() + GamePanel.DEFAULT_COMPONENT_SIZE >= GamePanel.PANEL_HEIGHT);
+            .anyMatch(alien -> alien.getY() + GameConstants.COMPONENT_SIZE >= GameConstants.PANEL_HEIGHT);
         if (alienReachedBottom) {
             enterGameOver(ALIENS_WIN_TITLE);
         }
@@ -437,7 +438,7 @@ public class GameController implements ActionListener {
             return;
         }
 
-        missiles.add(new Missile(spaceship.getX(), spaceship.getY() - GamePanel.DEFAULT_COMPONENT_SIZE));
+        missiles.add(new Missile(spaceship.getX(), spaceship.getY() - GameConstants.COMPONENT_SIZE));
         playerFireCooldownTicks = PLAYER_FIRE_COOLDOWN_TICKS;
         soundPlayer.playShoot();
         repaintGamePanel();
@@ -453,7 +454,7 @@ public class GameController implements ActionListener {
 
         Alien alien = aliens.get(random.nextInt(aliens.size()));
         int missileX = alien.getX();
-        int missileY = alien.getY() + GamePanel.DEFAULT_COMPONENT_SIZE;
+        int missileY = alien.getY() + GameConstants.COMPONENT_SIZE;
         alienMissiles.add(new AlienMissile(missileX, missileY));
     }
 

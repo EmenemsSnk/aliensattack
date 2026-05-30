@@ -342,29 +342,29 @@ No player data, saves, or external APIs exist, so there is no data migration. Th
 
 #### Automated
 
-- [x] 1.1 Project compiles: `./mvnw clean compile`
-- [x] 1.2 Full test suite passes: `./mvnw test`
-- [x] 1.3 Stale dead-code/deprecated references are removed by grep
-- [x] 1.4 `Point.java` no longer exists
+- [x] 1.1 Project compiles: `./mvnw clean compile` — a5d7503
+- [x] 1.2 Full test suite passes: `./mvnw test` — a5d7503
+- [x] 1.3 Stale dead-code/deprecated references are removed by grep — a5d7503
+- [x] 1.4 `Point.java` no longer exists — a5d7503
 
 #### Manual
 
-- [x] 1.5 Running the game still opens the Swing window normally
-- [x] 1.6 Movement, start/restart, shooting, alien fire, Game Over, and audio behavior appear unchanged
+- [x] 1.5 Running the game still opens the Swing window normally — a5d7503
+- [x] 1.6 Movement, start/restart, shooting, alien fire, Game Over, and audio behavior appear unchanged — a5d7503
 
 ### Phase 2: Extract Game-World Constants from Swing Panel
 
 #### Automated
 
-- [ ] 2.1 Project compiles: `./mvnw clean compile`
-- [ ] 2.2 Full test suite passes: `./mvnw test`
-- [ ] 2.3 No stale `GamePanel` world-constant references remain
-- [ ] 2.4 Wave, boundary, collision, and cleanup tests still prove equivalent behavior
+- [x] 2.1 Project compiles: `./mvnw clean compile`
+- [x] 2.2 Full test suite passes: `./mvnw test`
+- [x] 2.3 No stale `GamePanel` world-constant references remain
+- [x] 2.4 Wave, boundary, collision, and cleanup tests still prove equivalent behavior
 
 #### Manual
 
-- [ ] 2.5 Board size, sprite size, HUD layout, start overlay, and game-over overlay appear unchanged
-- [ ] 2.6 Ship bounds and alien bottom-loss behavior remain unchanged in play
+- [x] 2.5 Board size, sprite size, HUD layout, start overlay, and game-over overlay appear unchanged
+- [x] 2.6 Ship bounds and alien bottom-loss behavior remain unchanged in play
 
 ### Phase 3: Collapse Constructors and Compatibility Shims
 
