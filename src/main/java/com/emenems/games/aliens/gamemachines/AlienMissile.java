@@ -1,6 +1,6 @@
 package com.emenems.games.aliens.gamemachines;
 
-public class AlienMissile implements GameObject {
+public final class AlienMissile implements GameObject {
     private static final int DEFAULT_SPEED = 4;
 
     private final int x;

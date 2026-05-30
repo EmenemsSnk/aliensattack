@@ -1,6 +1,6 @@
 package com.emenems.games.aliens.gamemachines;
 
-public class Spaceship implements GameObject {
+public final class Spaceship implements GameObject {
     private static final int MOVE_STEP = 5;
 
     private int x;
@@ -28,8 +28,8 @@ public class Spaceship implements GameObject {
     }
 
     public void clampToBounds(int minX, int minY, int maxX, int maxY) {
-        x = Math.max(minX, Math.min(x, maxX));
-        y = Math.max(minY, Math.min(y, maxY));
+        x = Math.clamp(x, minX, maxX);
+        y = Math.clamp(y, minY, maxY);
     }
 
     public int getX() {

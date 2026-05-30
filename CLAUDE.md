@@ -22,15 +22,16 @@ The Java compiler level is **pinned** to `maven.compiler.release=21` in `pom.xml
 ## Architecture
 
 Packages under `com.emenems.games.aliens`:
-- `gamemachines` — domain objects implementing the `GameObject` interface (`getX`/`getY`): `Spaceship`, `Alien`, `Missile` (player), `AlienMissile` (enemy fire). Plain mutable state plus a `move()` method; pixel coordinates, `DEFAULT_COMPONENT_SIZE = 42px`. `Alien` tracks `y` as a `double` (sub-pixel speed) and rounds in `getY()`.
+- `gamemachines` — domain objects implementing the sealed `GameObject` interface (`getX`/`getY`): `Spaceship`, `Alien`, `Missile` (player), `AlienMissile` (enemy fire). Plain mutable state plus a `move()` method; pixel coordinates use `GameConstants.COMPONENT_SIZE`. `Alien` tracks `y` as a `double` (sub-pixel speed) and rounds in `getY()`.
 - `controller` — `GameController` holds the game loop, input handling, collision logic, and the **state machine**. Per the PRD this stays the central node; a View/Controller refactor is explicitly out of scope.
 - `gui` — Swing presentation: `WindowFrame` (the `JFrame`) and `GamePanel` (the `JPanel`; all `paintComponent` rendering — entities, HUD, hit-flash overlay, start menu, game-over screen — plus image loading from `src/main/resources/images/`).
 - `audio` — `ArcadeSoundPlayer` synthesizes all sound at runtime via `javax.sound.sampled` (no audio files, no library): square/sine PCM tone buffers for shoot/explosion SFX and a looping background melody. **All audio calls swallow exceptions** — headless/CI machines have no mixer, and gameplay must continue silently. Keep that contract: never let a missing audio device throw into the game loop.
-- `GameState` (top level) — the enum `START_MENU | PLAYING | GAME_OVER`. `Point.java` remains an empty commented-out placeholder; ignore it.
+- `GameState` (top level) — the enum `START_MENU | PLAYING | GAME_OVER`.
+- `GameConstants` (top level) — shared board dimensions, component size, and startup placement constants. Gameplay logic and rendering both read these values from here, not from `GamePanel`.
 
 **The load-bearing wiring (read `Main.java` first):** `Main` constructs the `Spaceship` and the three `List<Missile>` / `List<AlienMissile>` / `List<Alien>` collections once, then passes the **same references** to both `GamePanel` (which reads them to render) and `GameController` (which mutates them each tick). There is no separate model object — the shared mutable lists *are* the game state, and rendering stays in sync because both sides point at the same instances. UI construction is correctly wrapped in `EventQueue.invokeLater`.
 
-**Scalar/HUD state is *not* shared by reference.** `score`, `wave`, `lives`, `gameState`, the hit-feedback flag, and the game-over title are owned by `GameController`; the panel keeps its own copies and the controller pushes them every tick via `gamePanel.updateGameState(score, wave, lives, gameState, hitFeedbackActive, gameOverTitle)`. So the rule is: **collections flow by shared reference, scalars flow by an explicit push call.** Add any new per-tick scalar to that push channel — don't reach into the panel's fields. (`updateHud(...)` is a thin legacy overload that delegates to `updateGameState`.)
+**Scalar/HUD state is *not* shared by reference.** `score`, `wave`, `lives`, `gameState`, the hit-feedback flag, and the game-over title are owned by `GameController`; the panel keeps its own copies and the controller pushes them every tick via `gamePanel.updateGameState(score, wave, lives, gameState, hitFeedbackActive, gameOverTitle)`. So the rule is: **collections flow by shared reference, scalars flow by an explicit push call.** Add any new per-tick scalar to that push channel — don't reach into the panel's fields.
 
 **The loop (`GameController`):** a single `javax.swing.Timer` at `TIMER_DELAY_MS = 16` (~60 FPS) drives `actionPerformed → tick() + repaint`. `tick()` is gated by `gameState`: **outside `PLAYING` it only pushes panel state and returns** (no entities move on the menu / game-over screens). While `PLAYING` the ordered pipeline is: update hit-feedback & fire-cooldown timers → fire held player missile if ready → move ship (from the held-key set, then `clampToBounds`) → move aliens / player missiles / alien missiles → maybe fire an alien missile → `checkCollisions` → (bail if game over) → `checkAlienInvasion` (bail if game over) → `cleanupOffscreenObjects` → `advanceWaveIfCleared` → push panel state.
 
@@ -40,11 +41,11 @@ Packages under `com.emenems.games.aliens`:
 
 **Difficulty tuning (pure static methods — keep new tuning logic here, they're unit-tested):** `calculateAlienScore(wave)` = `wave * 10`; `calculateAlienSpeed(wave, base, max)` = `base * 1.15^(wave-1)` capped at `max` (`BASE_ALIEN_SPEED = 0.8`, `MAX_ALIEN_SPEED = 2.8`). Each wave spawns `ALIEN_COUNT = 6` aliens in jittered lanes near the top; they descend straight down (no horizontal sweep).
 
-**Test seams:** `GameController` has package-private constructor overloads that inject a seeded `Random` and a stand-in `ArcadeSoundPlayer`, accepts a `null` `GamePanel`, and exposes package-private getters (`getScore`, `getWave`, `getLives`, `getGameState`, …). Tests drive `tick()`/`handleKeyPressed(...)` directly and assert on those — follow that pattern (deterministic `Random`, no real window/audio) for new controller tests.
+**Test seams:** `GameController` has a package-private constructor that injects a seeded `Random` and a stand-in `ArcadeSoundPlayer`, accepts a `null` `GamePanel`, and exposes package-private getters (`getScore`, `getWave`, `getLives`, `getGameState`, ...). Tests drive `tick()`/`handleKeyPressed(...)` directly and assert on those — follow that pattern (deterministic `Random`, no real window/audio) for new controller tests.
 
 **Swing threading rule (critical):** all rendering and timer-driven game logic must run on the Event Dispatch Thread (EDT). Drive the loop with `javax.swing.Timer` (its `ActionListener` callbacks fire on the EDT) — not a background thread. Never do blocking or long-running work inside an EDT callback. (Audio playback uses non-blocking `Clip` start/loop, so it doesn't violate this.)
 
-## Vestigial code — don't be misled
+## Removed vestiges
 
-- **`Spaceship` still carries unused `health`/`speed`/`decreaseHealth`.** Lives and damage now live entirely in `GameController` (the spaceship-collision branch calls `loseLife()`); `health` is never read and movement uses hardcoded `±5`. Don't wire game logic through these fields — extend the controller's `lives` instead.
-- **`Point.java` is an empty commented-out placeholder.** Coordinates are plain `int x`/`int y` on each `GameObject`.
+- `Spaceship` no longer carries health or speed state. Lives and damage live entirely in `GameController`; extend the controller's `lives` flow rather than adding parallel state to the ship.
+- The old commented-out `Point.java` placeholder was deleted. Coordinates remain plain `int x`/`int y` through the `GameObject` contract.

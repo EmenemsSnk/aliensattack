@@ -1,5 +1,7 @@
 # Refactor Plan — Aliens Attack (Java 21)
 
+> Superseded by `context/changes/refactor-plan/plan.md`. Kept for historical analysis only.
+>
 > **Date:** 2026-05-30
 > **Scope:** `src/main/java` — all production code
 > **Constraint:** Zero new libraries (only JUnit 5 test-scope exists). No behavioral change.
@@ -130,4 +132,3 @@ The other 4 (3-arg, 4-arg, 5-arg-with-random, 6-arg-without-soundPlayer) are **i
 - Introducing new external libraries
 - Changing the `Timer`-driven game loop architecture
 - Adding Spring, DI framework, or any build-time annotation processors
-

@@ -17,6 +17,9 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel {
+    private static final int ALIEN_MISSILE_RENDER_X_OFFSET = 17;
+    private static final int ALIEN_MISSILE_RENDER_WIDTH = 8;
+
     private Image space;
     private Image alienImage;
     private Image missileImage;
@@ -143,7 +146,12 @@ public class GamePanel extends JPanel {
     private void drawAlienMissiles(Graphics graphics) {
         graphics.setColor(new Color(255, 80, 40));
         alienMissiles.forEach(missile ->
-            graphics.fillRect(missile.getX() + 17, missile.getY(), 8, GameConstants.COMPONENT_SIZE));
+            graphics.fillRect(
+                missile.getX() + ALIEN_MISSILE_RENDER_X_OFFSET,
+                missile.getY(),
+                ALIEN_MISSILE_RENDER_WIDTH,
+                GameConstants.COMPONENT_SIZE
+            ));
     }
 
     private void drawHitFeedback(Graphics graphics) {

@@ -370,26 +370,26 @@ No player data, saves, or external APIs exist, so there is no data migration. Th
 
 #### Automated
 
-- [x] 3.1 Project compiles: `./mvnw clean compile`
-- [x] 3.2 Full test suite passes: `./mvnw test`
-- [x] 3.3 Controller constructor call sites use explicit production/test wiring
-- [x] 3.4 Dead `GamePanel` state-update and constructor overloads are removed
+- [x] 3.1 Project compiles: `./mvnw clean compile` — bbac118
+- [x] 3.2 Full test suite passes: `./mvnw test` — bbac118
+- [x] 3.3 Controller constructor call sites use explicit production/test wiring — bbac118
+- [x] 3.4 Dead `GamePanel` state-update and constructor overloads are removed — bbac118
 
 #### Manual
 
-- [x] 3.5 Start menu, play, Game Over, and restart still work
-- [x] 3.6 Alien missiles still render, move, collide, and clear correctly
+- [x] 3.5 Start menu, play, Game Over, and restart still work — bbac118
+- [x] 3.6 Alien missiles still render, move, collide, and clear correctly — bbac118
 
 ### Phase 4: Focused Java 21 Modernization and Documentation Reconciliation
 
 #### Automated
 
-- [ ] 4.1 Project compiles: `./mvnw clean compile`
-- [ ] 4.2 Full test suite passes: `./mvnw test`
-- [ ] 4.3 `CLAUDE.md` has no stale vestigial-code guidance
-- [ ] 4.4 `GameObject` is sealed while preserving the `getX()` / `getY()` coordinate contract
+- [x] 4.1 Project compiles: `./mvnw clean compile`
+- [x] 4.2 Full test suite passes: `./mvnw test`
+- [x] 4.3 `CLAUDE.md` has no stale vestigial-code guidance
+- [x] 4.4 `GameObject` is sealed while preserving the `getX()` / `getY()` coordinate contract
 
 #### Manual
 
-- [ ] 4.5 No visible gameplay or UI regression after modernization
-- [ ] 4.6 Constants, object hierarchy, and input-state behavior are clearer than before
+- [x] 4.5 No visible gameplay or UI regression after modernization
+- [x] 4.6 Constants, object hierarchy, and input-state behavior are clearer than before

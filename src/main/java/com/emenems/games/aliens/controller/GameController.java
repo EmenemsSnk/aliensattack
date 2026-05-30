@@ -34,6 +34,8 @@ public class GameController implements ActionListener {
     static final int MAX_ALIEN_MISSILES = 2;
     private static final double ALIEN_FIRE_CHANCE = 0.008;
     private static final int PLAYER_FIRE_COOLDOWN_TICKS = 10;
+    private static final int ALIEN_MISSILE_HITBOX_X_OFFSET = 9;
+    private static final int ALIEN_MISSILE_HITBOX_WIDTH = 7;
 
     private final Spaceship spaceship;
     private final List<Missile> missiles;
@@ -112,20 +114,22 @@ public class GameController implements ActionListener {
     }
 
     void handleKeyPressed(int keyCode) {
-        if (gameState == GameState.START_MENU) {
-            if (keyCode == KeyEvent.VK_ENTER) {
-                startGame();
+        switch (gameState) {
+            case START_MENU -> {
+                if (keyCode == KeyEvent.VK_ENTER) {
+                    startGame();
+                }
             }
-            return;
-        }
-
-        if (gameState == GameState.GAME_OVER) {
-            if (keyCode == KeyEvent.VK_ENTER) {
-                restartGame();
+            case GAME_OVER -> {
+                if (keyCode == KeyEvent.VK_ENTER) {
+                    restartGame();
+                }
             }
-            return;
+            case PLAYING -> handlePlayingKeyPressed(keyCode);
         }
+    }
 
+    private void handlePlayingKeyPressed(int keyCode) {
         if (keyCode == KeyEvent.VK_SPACE) {
             spacePressed = true;
             firePlayerMissileIfReady();
@@ -318,7 +322,12 @@ public class GameController implements ActionListener {
     }
 
     private Rectangle alienMissileArea(AlienMissile alienMissile) {
-        return new Rectangle(alienMissile.getX() + 9, alienMissile.getY(), 7, GameConstants.COMPONENT_SIZE);
+        return new Rectangle(
+            alienMissile.getX() + ALIEN_MISSILE_HITBOX_X_OFFSET,
+            alienMissile.getY(),
+            ALIEN_MISSILE_HITBOX_WIDTH,
+            GameConstants.COMPONENT_SIZE
+        );
     }
 
     private void advanceWaveIfCleared() {

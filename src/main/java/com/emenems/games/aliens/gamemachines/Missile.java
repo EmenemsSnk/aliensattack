@@ -1,6 +1,6 @@
 package com.emenems.games.aliens.gamemachines;
 
-public class Missile implements GameObject {
+public final class Missile implements GameObject {
     private int x;
     private int y;
 
@@ -9,8 +9,8 @@ public class Missile implements GameObject {
         this.y = y;
     }
 
-    public void move(){
-        y-=5;
+    public void move() {
+        y -= 5;
     }
 
     @Override
