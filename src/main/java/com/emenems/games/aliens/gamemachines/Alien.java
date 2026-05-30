@@ -1,6 +1,6 @@
 package com.emenems.games.aliens.gamemachines;
 
-public class Alien implements GameObject {
+public final class Alien implements GameObject {
     private int x;
     private double y;
     private double speed;

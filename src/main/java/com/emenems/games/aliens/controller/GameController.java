@@ -1,7 +1,10 @@
 package com.emenems.games.aliens.controller;
 
+import com.emenems.games.aliens.GameConstants;
 import com.emenems.games.aliens.GameState;
+import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import com.emenems.games.aliens.gui.GamePanel;
@@ -18,9 +21,9 @@ import javax.swing.Timer;
 
 public class GameController implements ActionListener {
     private static final int TIMER_DELAY_MS = 16;
-    private static final double BASE_ALIEN_SPEED = 1.4;
-    private static final double MAX_ALIEN_SPEED = 4.5;
-    private static final int ALIEN_COUNT = 10;
+    private static final double BASE_ALIEN_SPEED = 0.8;
+    private static final double MAX_ALIEN_SPEED = 2.8;
+    private static final int ALIEN_COUNT = 6;
     private static final int ALIEN_START_MIN_Y = 30;
     private static final int ALIEN_START_X_JITTER = 20;
     private static final int ALIEN_START_Y_JITTER = 90;
@@ -28,46 +31,69 @@ public class GameController implements ActionListener {
     private static final int HIT_FEEDBACK_TICKS = 18;
     private static final String DEFAULT_GAME_OVER_TITLE = "GAME OVER";
     private static final String ALIENS_WIN_TITLE = "ALIENS WIN";
+    static final int MAX_ALIEN_MISSILES = 2;
+    private static final double ALIEN_FIRE_CHANCE = 0.008;
+    private static final int PLAYER_FIRE_COOLDOWN_TICKS = 10;
+    private static final int ALIEN_MISSILE_HITBOX_X_OFFSET = 9;
+    private static final int ALIEN_MISSILE_HITBOX_WIDTH = 7;
 
     private final Spaceship spaceship;
     private final List<Missile> missiles;
+    private final List<AlienMissile> alienMissiles;
     private final List<Alien> aliens;
     private final GamePanel gamePanel;
     private final Random random;
+    private final ArcadeSoundPlayer soundPlayer;
     private final Set<Integer> pressedMovementKeys = new HashSet<>();
     private Timer timer;
     private int score;
     private int wave = 1;
     private int lives = DEFAULT_LIVES;
-    private GameState gameState = GameState.PLAYING;
+    private GameState gameState = GameState.START_MENU;
     private int hitFeedbackTicks;
+    private int playerFireCooldownTicks;
+    private boolean spacePressed;
     private String gameOverTitle = DEFAULT_GAME_OVER_TITLE;
 
-    public GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel) {
-        this(spaceship, missiles, aliens, gamePanel, new Random());
+    public GameController(
+        Spaceship spaceship,
+        List<Missile> missiles,
+        List<AlienMissile> alienMissiles,
+        List<Alien> aliens,
+        GamePanel gamePanel
+    ) {
+        this(spaceship, missiles, alienMissiles, aliens, gamePanel, new Random(), new ArcadeSoundPlayer());
     }
 
-    GameController(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens, GamePanel gamePanel, Random random) {
+    GameController(
+        Spaceship spaceship,
+        List<Missile> missiles,
+        List<AlienMissile> alienMissiles,
+        List<Alien> aliens,
+        GamePanel gamePanel,
+        Random random,
+        ArcadeSoundPlayer soundPlayer
+    ) {
         this.spaceship = spaceship;
-        this.missiles =  missiles;
-        this.aliens =  aliens;
+        this.missiles = missiles;
+        this.alienMissiles = alienMissiles;
+        this.aliens = aliens;
         this.gamePanel = gamePanel;
         this.random = random;
+        this.soundPlayer = soundPlayer;
     }
 
-    public void initialize(){
+    public void initialize() {
         generateSpaceObjects();
         updatePanelState();
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                super.keyPressed(e);
                 handleKeyPressed(e.getKeyCode());
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                super.keyReleased(e);
                 handleKeyReleased(e.getKeyCode());
             }
         });
@@ -78,9 +104,9 @@ public class GameController implements ActionListener {
     private void generateSpaceObjects() {
         aliens.clear();
         double alienSpeed = calculateAlienSpeed(wave, BASE_ALIEN_SPEED, MAX_ALIEN_SPEED);
-        int laneSpacing = (GamePanel.PANEL_WIDTH - GamePanel.DEFAULT_COMPONENT_SIZE) / ALIEN_COUNT;
+        int laneSpacing = (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / ALIEN_COUNT;
         for (int index = 0; index < ALIEN_COUNT; index++) {
-            int laneX = index * laneSpacing + (laneSpacing - GamePanel.DEFAULT_COMPONENT_SIZE) / 2;
+            int laneX = index * laneSpacing + (laneSpacing - GameConstants.COMPONENT_SIZE) / 2;
             int x = laneX + random.nextInt(ALIEN_START_X_JITTER * 2 + 1) - ALIEN_START_X_JITTER;
             int y = ALIEN_START_MIN_Y + random.nextInt(ALIEN_START_Y_JITTER + 1);
             aliens.add(new Alien(x, y, alienSpeed));
@@ -88,22 +114,34 @@ public class GameController implements ActionListener {
     }
 
     void handleKeyPressed(int keyCode) {
-        if (gameState == GameState.GAME_OVER) {
-            if (keyCode == KeyEvent.VK_SPACE) {
-                restartGame();
+        switch (gameState) {
+            case START_MENU -> {
+                if (keyCode == KeyEvent.VK_ENTER) {
+                    startGame();
+                }
             }
-            return;
+            case GAME_OVER -> {
+                if (keyCode == KeyEvent.VK_ENTER) {
+                    restartGame();
+                }
+            }
+            case PLAYING -> handlePlayingKeyPressed(keyCode);
         }
+    }
 
+    private void handlePlayingKeyPressed(int keyCode) {
         if (keyCode == KeyEvent.VK_SPACE) {
-            missiles.add(new Missile(spaceship.getX(), spaceship.getY() - GamePanel.DEFAULT_COMPONENT_SIZE));
-            repaintGamePanel();
+            spacePressed = true;
+            firePlayerMissileIfReady();
         } else if (isMovementKey(keyCode)) {
             pressedMovementKeys.add(keyCode);
         }
     }
 
     void handleKeyReleased(int keyCode) {
+        if (keyCode == KeyEvent.VK_SPACE) {
+            spacePressed = false;
+        }
         if (isMovementKey(keyCode)) {
             pressedMovementKeys.remove(keyCode);
         }
@@ -132,8 +170,8 @@ public class GameController implements ActionListener {
         spaceship.clampToBounds(
             0,
             0,
-            GamePanel.PANEL_WIDTH - GamePanel.DEFAULT_COMPONENT_SIZE,
-            GamePanel.PANEL_HEIGHT - GamePanel.DEFAULT_COMPONENT_SIZE
+            GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE,
+            GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE
         );
     }
 
@@ -144,15 +182,19 @@ public class GameController implements ActionListener {
     }
 
     void tick() {
-        if (gameState == GameState.GAME_OVER) {
+        if (gameState != GameState.PLAYING) {
             updatePanelState();
             return;
         }
 
         updateHitFeedback();
+        updatePlayerFireCooldown();
+        fireHeldPlayerMissileIfReady();
         moveSpaceshipFromPressedKeys();
         aliens.forEach(Alien::move);
         missiles.forEach(Missile::move);
+        alienMissiles.forEach(AlienMissile::move);
+        fireAlienMissileIfReady();
         checkCollisions();
         if (gameState == GameState.GAME_OVER) {
             updatePanelState();
@@ -170,16 +212,17 @@ public class GameController implements ActionListener {
 
     private void checkCollisions() {
         checkCollisionsWithMissile();
+        checkCollisionsWithAlienMissile();
         checkCollisionsWithSpaceShip();
     }
 
     void checkCollisionsWithSpaceShip() {
-        Rectangle spaceshipArea = new Rectangle(spaceship.getX(), spaceship.getY(), GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
+        Rectangle spaceshipArea = new Rectangle(spaceship.getX(), spaceship.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE);
         Alien collidingAlien = null;
 
         for (Alien alien : aliens) {
-            Rectangle alienArea = new Rectangle(alien.getX(), alien.getY(), GamePanel.DEFAULT_COMPONENT_SIZE,
-                GamePanel.DEFAULT_COMPONENT_SIZE);
+            Rectangle alienArea = new Rectangle(alien.getX(), alien.getY(), GameConstants.COMPONENT_SIZE,
+                GameConstants.COMPONENT_SIZE);
             if (spaceshipArea.intersects(alienArea)) {
                 collidingAlien = alien;
                 break;
@@ -191,12 +234,7 @@ public class GameController implements ActionListener {
         }
 
         aliens.remove(collidingAlien);
-        hitFeedbackTicks = HIT_FEEDBACK_TICKS;
-        lives--;
-        if (lives <= 0) {
-            lives = 0;
-            enterGameOver(DEFAULT_GAME_OVER_TITLE);
-        }
+        loseLife();
     }
 
     void checkCollisionsWithMissile() {
@@ -222,14 +260,37 @@ public class GameController implements ActionListener {
         missiles.removeAll(missilesToRemove);
         aliens.removeAll(aliensToRemove);
         score += aliensToRemove.size() * calculateAlienScore(wave);
+        if (!aliensToRemove.isEmpty()) {
+            soundPlayer.playExplosion();
+        }
+    }
+
+    void checkCollisionsWithAlienMissile() {
+        AlienMissile collidingMissile = null;
+        Rectangle spaceshipArea = objectArea(spaceship.getX(), spaceship.getY());
+
+        for (AlienMissile alienMissile : alienMissiles) {
+            if (spaceshipArea.intersects(alienMissileArea(alienMissile))) {
+                collidingMissile = alienMissile;
+                break;
+            }
+        }
+
+        if (collidingMissile == null) {
+            return;
+        }
+
+        alienMissiles.remove(collidingMissile);
+        loseLife();
     }
 
     void cleanupOffscreenObjects() {
-        missiles.removeIf(missile -> missile.getY() + GamePanel.DEFAULT_COMPONENT_SIZE < 0);
+        missiles.removeIf(missile -> missile.getY() + GameConstants.COMPONENT_SIZE < 0);
+        alienMissiles.removeIf(missile -> missile.getY() > GameConstants.PANEL_HEIGHT);
         aliens.removeIf(alien ->
-            alien.getY() > GamePanel.PANEL_HEIGHT
-                || alien.getX() + GamePanel.DEFAULT_COMPONENT_SIZE < 0
-                || alien.getX() > GamePanel.PANEL_WIDTH);
+            alien.getY() > GameConstants.PANEL_HEIGHT
+                || alien.getX() + GameConstants.COMPONENT_SIZE < 0
+                || alien.getX() > GameConstants.PANEL_WIDTH);
     }
 
     int getScore() {
@@ -257,7 +318,16 @@ public class GameController implements ActionListener {
     }
 
     private Rectangle objectArea(int x, int y) {
-        return new Rectangle(x, y, GamePanel.DEFAULT_COMPONENT_SIZE, GamePanel.DEFAULT_COMPONENT_SIZE);
+        return new Rectangle(x, y, GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE);
+    }
+
+    private Rectangle alienMissileArea(AlienMissile alienMissile) {
+        return new Rectangle(
+            alienMissile.getX() + ALIEN_MISSILE_HITBOX_X_OFFSET,
+            alienMissile.getY(),
+            ALIEN_MISSILE_HITBOX_WIDTH,
+            GameConstants.COMPONENT_SIZE
+        );
     }
 
     private void advanceWaveIfCleared() {
@@ -290,7 +360,19 @@ public class GameController implements ActionListener {
         }
     }
 
+    private void startGame() {
+        resetSession();
+        soundPlayer.startBackgroundMusic();
+        repaintGamePanel();
+    }
+
     private void restartGame() {
+        resetSession();
+        soundPlayer.startBackgroundMusic();
+        repaintGamePanel();
+    }
+
+    private void resetSession() {
         score = 0;
         wave = 1;
         lives = DEFAULT_LIVES;
@@ -298,15 +380,17 @@ public class GameController implements ActionListener {
         hitFeedbackTicks = 0;
         gameOverTitle = DEFAULT_GAME_OVER_TITLE;
         missiles.clear();
+        alienMissiles.clear();
         pressedMovementKeys.clear();
+        spacePressed = false;
+        playerFireCooldownTicks = 0;
         generateSpaceObjects();
         updatePanelState();
-        repaintGamePanel();
     }
 
     private void checkAlienInvasion() {
         boolean alienReachedBottom = aliens.stream()
-            .anyMatch(alien -> alien.getY() + GamePanel.DEFAULT_COMPONENT_SIZE >= GamePanel.PANEL_HEIGHT);
+            .anyMatch(alien -> alien.getY() + GameConstants.COMPONENT_SIZE >= GameConstants.PANEL_HEIGHT);
         if (alienReachedBottom) {
             enterGameOver(ALIENS_WIN_TITLE);
         }
@@ -316,11 +400,59 @@ public class GameController implements ActionListener {
         gameState = GameState.GAME_OVER;
         gameOverTitle = title;
         pressedMovementKeys.clear();
+        spacePressed = false;
+        soundPlayer.stopBackgroundMusic();
     }
 
     private void updateHitFeedback() {
         if (hitFeedbackTicks > 0) {
             hitFeedbackTicks--;
+        }
+    }
+
+    private void updatePlayerFireCooldown() {
+        if (playerFireCooldownTicks > 0) {
+            playerFireCooldownTicks--;
+        }
+    }
+
+    private void fireHeldPlayerMissileIfReady() {
+        if (spacePressed) {
+            firePlayerMissileIfReady();
+        }
+    }
+
+    private void firePlayerMissileIfReady() {
+        if (playerFireCooldownTicks > 0) {
+            return;
+        }
+
+        missiles.add(new Missile(spaceship.getX(), spaceship.getY() - GameConstants.COMPONENT_SIZE));
+        playerFireCooldownTicks = PLAYER_FIRE_COOLDOWN_TICKS;
+        soundPlayer.playShoot();
+        repaintGamePanel();
+    }
+
+    void fireAlienMissileIfReady() {
+        if (aliens.isEmpty() || alienMissiles.size() >= MAX_ALIEN_MISSILES) {
+            return;
+        }
+        if (random.nextDouble() > ALIEN_FIRE_CHANCE) {
+            return;
+        }
+
+        Alien alien = aliens.get(random.nextInt(aliens.size()));
+        int missileX = alien.getX();
+        int missileY = alien.getY() + GameConstants.COMPONENT_SIZE;
+        alienMissiles.add(new AlienMissile(missileX, missileY));
+    }
+
+    private void loseLife() {
+        hitFeedbackTicks = HIT_FEEDBACK_TICKS;
+        lives--;
+        if (lives <= 0) {
+            lives = 0;
+            enterGameOver(DEFAULT_GAME_OVER_TITLE);
         }
     }
 }
