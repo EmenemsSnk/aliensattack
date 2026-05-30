@@ -2,6 +2,7 @@ package com.emenems.games.aliens.gui;
 
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import java.awt.Color;
@@ -16,16 +17,17 @@ import javax.swing.JPanel;
 
 public class GamePanel extends JPanel {
     public static final int MINIMUM_BORDER_VALUE = 10;
-    public static final int PANEL_HEIGHT = 750;
-    public static final int PANEL_WIDTH = 1000;
-    public static final Dimension DEFAULT_DIMENSION = new Dimension(25, 25);
-    public static final int DEFAULT_COMPONENT_SIZE = 25;
+    public static final int PANEL_HEIGHT = 650;
+    public static final int PANEL_WIDTH = 760;
+    public static final Dimension DEFAULT_DIMENSION = new Dimension(42, 42);
+    public static final int DEFAULT_COMPONENT_SIZE = 42;
     private Image space;
     private Image alienImage;
     private Image missileImage;
     private Image spaceshipImage;
     private Spaceship spaceship;
     private List<Missile> missiles;
+    private List<AlienMissile> alienMissiles;
     private List<Alien> aliens;
     private int score;
     private int wave = 1;
@@ -35,8 +37,13 @@ public class GamePanel extends JPanel {
     private String gameOverTitle = "GAME OVER";
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<Alien> aliens) {
+        this(spaceship, missiles, List.of(), aliens);
+    }
+
+    public GamePanel(Spaceship spaceship, List<Missile> missiles, List<AlienMissile> alienMissiles, List<Alien> aliens) {
         this.spaceship = spaceship;
         this.missiles =  missiles;
+        this.alienMissiles = alienMissiles;
         this.aliens =  aliens;
         initBoard();
     }
@@ -87,8 +94,10 @@ public class GamePanel extends JPanel {
         drawSpaceship(g);
         drawAliens(g);
         drawMissiles(g);
+        drawAlienMissiles(g);
         drawHud(g);
         drawHitFeedback(g);
+        drawStartMenu(g);
         drawGameOver(g);
         Toolkit.getDefaultToolkit().sync();
     }
@@ -115,7 +124,26 @@ public class GamePanel extends JPanel {
 
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
         drawCenteredString(graphics, "Final Score: " + score, PANEL_HEIGHT / 2);
-        drawCenteredString(graphics, "Press SPACE to Restart", PANEL_HEIGHT / 2 + 40);
+        drawCenteredString(graphics, "Press ENTER to Restart", PANEL_HEIGHT / 2 + 40);
+    }
+
+    private void drawStartMenu(Graphics graphics) {
+        if (gameState != GameState.START_MENU) {
+            return;
+        }
+
+        graphics.setColor(new Color(0, 0, 0, 185));
+        graphics.fillRect(0, 0, PANEL_WIDTH, PANEL_HEIGHT);
+
+        graphics.setColor(Color.WHITE);
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 52));
+        drawCenteredString(graphics, "ALIENS ATTACK", PANEL_HEIGHT / 2 - 80);
+
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        drawCenteredString(graphics, "Press ENTER to Start", PANEL_HEIGHT / 2 - 25);
+
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
+        drawCenteredString(graphics, "Arrow keys move    Hold Space to fire", PANEL_HEIGHT / 2 + 20);
     }
 
     private void drawCenteredString(Graphics graphics, String text, int y) {
@@ -126,6 +154,12 @@ public class GamePanel extends JPanel {
     private void drawMissiles(Graphics graphics) {
         missiles.forEach(missile -> graphics.drawImage(missileImage, missile.getX(),
             missile.getY(), DEFAULT_COMPONENT_SIZE, DEFAULT_COMPONENT_SIZE, this));
+    }
+
+    private void drawAlienMissiles(Graphics graphics) {
+        graphics.setColor(new Color(255, 80, 40));
+        alienMissiles.forEach(missile ->
+            graphics.fillRect(missile.getX() + 17, missile.getY(), 8, DEFAULT_COMPONENT_SIZE));
     }
 
     private void drawHitFeedback(Graphics graphics) {
