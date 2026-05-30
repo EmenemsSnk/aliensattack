@@ -3,7 +3,7 @@ project: "Aliens Attack"
 version: 1
 status: draft
 created: 2026-05-29
-updated: 2026-05-29
+updated: 2026-05-30
 prd_version: 1
 main_goal: low-complexity
 top_blocker: none
@@ -34,7 +34,7 @@ Aliens Attack to lokalna, jednoosobowa gra arcade 2D (typu Space Invaders) na Ja
 | S-02 | score-and-wave-progression | zdobywać 10×fala pkt, widzieć wynik i falę w HUD, dostać szybszą falę po wyczyszczeniu | S-01              | US-01, FR-007, FR-008, FR-009, FR-010 | done     |
 | S-03 | lives-gameover-restart     | tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją      | S-02, S-01        | US-01, FR-003, FR-006               | done     |
 | S-04 | wave-boundaries-and-hit-feedback | grać z poprawnymi granicami planszy, falami bez nakładania obcych, efektem utraty życia i porażką, gdy obcy nie zostaną wybici | S-03              | US-01, FR-002, FR-003, FR-010       | done     |
-| S-05 | post-mvp-arcade-feel       | uruchamiać grę z menu startowego, słyszeć retro feedback i mierzyć się ze strzelającymi obcymi | S-04              | FR-005, Secondary goals, Non-Goals  | planned  |
+| S-05 | post-mvp-arcade-feel       | uruchamiać grę z menu startowego, słyszeć retro feedback i mierzyć się ze strzelającymi obcymi | S-04              | FR-005, Secondary goals, Non-Goals  | done     |
 
 ## Strumienie
 
@@ -139,7 +139,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
   - Czy dźwięk ma używać wyłącznie Java standard library i lokalnych zasobów WAV — Właściciel: developer. Propozycja domyślna: tak, bez nowych zależności runtime.
   - Parametry ostrzału obcych (częstotliwość, prędkość pocisku, limit pocisków na ekranie) — Właściciel: developer. Blokuje: nie; wymaga kalibracji gameplay-feel.
 - **Ryzyko:** to mieszanka trzech świadomie odłożonych usprawnień, więc największe ryzyko to rozlanie zakresu. Jeśli plan okaże się zbyt duży, pierwszym podziałem powinno być: Start Menu osobno, audio osobno, alien fire osobno. Dźwięk nie może dodawać nowych zależności runtime bez jawnej decyzji, a alien fire powinien reuse'ować istniejące reguły pocisków/kolizji zamiast tworzyć drugi silnik pocisków.
-- **Status:** planned
+- **Status:** done
 
 ## Przekazanie backlogu
 
@@ -171,6 +171,7 @@ Poniższe fundamenty zakładają, że jest to obecne i NIE odbudowują tego.
 
 ## Zrobione
 
+- **S-05: gracz widzi ekran startowy i rozpoczyna rozgrywkę spacją, dostaje retro feedback dźwiękowy dla strzału/eksplozji, a obcy losowo strzelają w stronę statku, dzięki czemu ukończone MVP zyskuje pełniejszy arcade feel.** — Zarchiwizowano 2026-05-30 → `context/archive/2026-05-29-post-mvp-arcade-feel/`. Lekcja: —.
 - **S-04: gracz nie może wyprowadzić statku poza planszę; obcy w każdej fali startują w zróżnicowanych odstępach i wysokościach, nie nachodzą na siebie, a ich startowa pozycja Y nie przekracza 1/5 wysokości planszy od góry; po kolizji statku z obcym widać krótką reakcję wizualną utraty życia; jeśli obcy z danej fali nie zostaną zabici i przejdą przez warunek porażki fali, gra kończy się komunikatem, że obcy wygrali.** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-wave-boundaries-and-hit-feedback/`. Lekcja: —.
 - **S-03: tracić życia przy kolizji, dotrzeć do Game Over z wynikiem i zrestartować spacją** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-lives-gameover-restart/`. Lekcja: —.
 - **F-01: (fundament) build zapięty (release=21), harness JUnit 5, Maven wrapper i CI zielone** — Zarchiwizowano 2026-05-29 → `context/archive/2026-05-29-build-tooling-baseline/`. Lekcja: —.

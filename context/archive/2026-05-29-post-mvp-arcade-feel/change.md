@@ -1,10 +1,10 @@
 ---
 change_id: post-mvp-arcade-feel
 title: Post mvp arcade feel
-status: implemented
+status: archived
 created: 2026-05-29
 updated: 2026-05-30
-archived_at: null
+archived_at: 2026-05-30T07:53:38Z
 ---
 
 ## Notes
