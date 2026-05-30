@@ -384,12 +384,12 @@ No player data, saves, or external APIs exist, so there is no data migration. Th
 
 #### Automated
 
-- [x] 4.1 Project compiles: `./mvnw clean compile`
-- [x] 4.2 Full test suite passes: `./mvnw test`
-- [x] 4.3 `CLAUDE.md` has no stale vestigial-code guidance
-- [x] 4.4 `GameObject` is sealed while preserving the `getX()` / `getY()` coordinate contract
+- [x] 4.1 Project compiles: `./mvnw clean compile` — 6ad9853
+- [x] 4.2 Full test suite passes: `./mvnw test` — 6ad9853
+- [x] 4.3 `CLAUDE.md` has no stale vestigial-code guidance — 6ad9853
+- [x] 4.4 `GameObject` is sealed while preserving the `getX()` / `getY()` coordinate contract — 6ad9853
 
 #### Manual
 
-- [x] 4.5 No visible gameplay or UI regression after modernization
-- [x] 4.6 Constants, object hierarchy, and input-state behavior are clearer than before
+- [x] 4.5 No visible gameplay or UI regression after modernization — 6ad9853
+- [x] 4.6 Constants, object hierarchy, and input-state behavior are clearer than before — 6ad9853
