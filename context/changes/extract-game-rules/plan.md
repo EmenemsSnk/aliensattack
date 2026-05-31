@@ -211,22 +211,22 @@ No data migration or player-state migration is required. This is an internal ref
 
 #### Automated
 
-- [x] 2.1 `./mvnw clean compile` passes.
-- [x] 2.2 `./mvnw test` passes.
+- [x] 2.1 `./mvnw clean compile` passes. — ffe570f
+- [x] 2.2 `./mvnw test` passes. — ffe570f
 
 #### Manual
 
-- [x] 2.3 Code review confirms `GameController` no longer owns scoring or alien-speed formulas.
-- [x] 2.4 Code review confirms controller behavior tests still cover score application and wave advancement.
+- [x] 2.3 Code review confirms `GameController` no longer owns scoring or alien-speed formulas. — ffe570f
+- [x] 2.4 Code review confirms controller behavior tests still cover score application and wave advancement. — ffe570f
 
 ### Phase 3: Align Documentation and Regression Evidence
 
 #### Automated
 
-- [ ] 3.1 `./mvnw clean compile` passes.
-- [ ] 3.2 `./mvnw test` passes.
+- [x] 3.1 `./mvnw clean compile` passes.
+- [x] 3.2 `./mvnw test` passes.
 
 #### Manual
 
-- [ ] 3.3 Run or hand off the S-01 smoke checklist.
-- [ ] 3.4 Confirm gameplay is visibly unchanged for start, scoring, wave progression, Game Over, and restart.
+- [x] 3.3 Run or hand off the S-01 smoke checklist.
+- [x] 3.4 Confirm gameplay is visibly unchanged for start, scoring, wave progression, Game Over, and restart.
