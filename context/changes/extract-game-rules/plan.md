@@ -223,10 +223,10 @@ No data migration or player-state migration is required. This is an internal ref
 
 #### Automated
 
-- [x] 3.1 `./mvnw clean compile` passes.
-- [x] 3.2 `./mvnw test` passes.
+- [x] 3.1 `./mvnw clean compile` passes. — 7573b16
+- [x] 3.2 `./mvnw test` passes. — 7573b16
 
 #### Manual
 
-- [x] 3.3 Run or hand off the S-01 smoke checklist.
-- [x] 3.4 Confirm gameplay is visibly unchanged for start, scoring, wave progression, Game Over, and restart.
+- [x] 3.3 Run or hand off the S-01 smoke checklist. — 7573b16
+- [x] 3.4 Confirm gameplay is visibly unchanged for start, scoring, wave progression, Game Over, and restart. — 7573b16
