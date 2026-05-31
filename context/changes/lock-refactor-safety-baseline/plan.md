@@ -219,29 +219,29 @@ No player data, saves, or external integrations exist. No migration is required.
 
 #### Automated
 
-- [x] 1.1 `baseline.md` exists
-- [x] 1.2 `baseline.md` names `./mvnw clean compile` and `./mvnw test` as the canonical automated gate
-- [x] 1.3 `baseline.md` records the pre-change baseline as 37 passing tests on 2026-05-31
-- [x] 1.4 `baseline.md` includes a pending manual smoke checklist
+- [x] 1.1 `baseline.md` exists — 39ab235
+- [x] 1.2 `baseline.md` names `./mvnw clean compile` and `./mvnw test` as the canonical automated gate — 39ab235
+- [x] 1.3 `baseline.md` records the pre-change baseline as 37 passing tests on 2026-05-31 — 39ab235
+- [x] 1.4 `baseline.md` includes a pending manual smoke checklist — 39ab235
 
 #### Manual
 
-- [x] 1.5 Checklist is specific enough for a future implementer
-- [x] 1.6 Artifact states production gameplay refactoring is out of scope for S-01
+- [x] 1.5 Checklist is specific enough for a future implementer — 39ab235
+- [x] 1.6 Artifact states production gameplay refactoring is out of scope for S-01 — 39ab235
 
 ### Phase 2: Focused Regression Tests
 
 #### Automated
 
-- [ ] 2.1 Project compiles: `./mvnw clean compile`
-- [ ] 2.2 Full test suite passes: `./mvnw test`
-- [ ] 2.3 Added tests fail against broken reset/held-fire or active-wave scoring behavior
-- [ ] 2.4 No production source file under `src/main/java/` is changed
+- [x] 2.1 Project compiles: `./mvnw clean compile`
+- [x] 2.2 Full test suite passes: `./mvnw test`
+- [x] 2.3 Added tests fail against broken reset/held-fire or active-wave scoring behavior
+- [x] 2.4 No production source file under `src/main/java/` is changed
 
 #### Manual
 
-- [ ] 2.5 Added tests read as behavioral regression tests
-- [ ] 2.6 Test additions do not lock private controller structure
+- [x] 2.5 Added tests read as behavioral regression tests
+- [x] 2.6 Test additions do not lock private controller structure
 
 ### Phase 3: Verification Gate and Handoff
 

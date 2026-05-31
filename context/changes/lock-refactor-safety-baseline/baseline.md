@@ -62,7 +62,7 @@ Pre-implementation coverage already includes controller regression tests for:
 - Life loss, hit feedback, Game Over, and restart basics.
 - Alien missile cap and cleanup.
 
-S-01 Phase 2 will add focused regression coverage for:
+S-01 adds focused regression coverage for:
 
 - Restart clearing held fire state and player fire cooldown.
 - Restart preserving the spaceship's current coordinates.
