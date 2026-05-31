@@ -521,28 +521,6 @@ class GameControllerTest {
     }
 
     @Test
-    void calculateAlienScoreScalesWithWave() {
-        assertEquals(10, GameController.calculateAlienScore(1));
-        assertEquals(30, GameController.calculateAlienScore(3));
-    }
-
-    @Test
-    void calculateAlienSpeedStartsAtBaseSpeed() {
-        assertEquals(0.8, GameController.calculateAlienSpeed(1, 0.8, 2.8), 0.001);
-    }
-
-    @Test
-    void calculateAlienSpeedIncreasesWithWave() {
-        assertTrue(GameController.calculateAlienSpeed(2, 0.8, 2.8) > 0.8);
-        assertTrue(GameController.calculateAlienSpeed(10, 0.8, 2.8) > 2.0);
-    }
-
-    @Test
-    void calculateAlienSpeedNeverExceedsCap() {
-        assertEquals(2.8, GameController.calculateAlienSpeed(20, 0.8, 2.8), 0.001);
-    }
-
-    @Test
     void alienMissileCollisionRemovesOneLifeAndProjectile() {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();

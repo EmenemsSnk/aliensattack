@@ -200,24 +200,24 @@ No data migration or player-state migration is required. This is an internal ref
 
 #### Automated
 
-- [x] 1.1 `./mvnw clean compile` passes.
-- [x] 1.2 `./mvnw test -Dtest=GameRulesTest` passes.
+- [x] 1.1 `./mvnw clean compile` passes. — a4b1876
+- [x] 1.2 `./mvnw test -Dtest=GameRulesTest` passes. — a4b1876
 
 #### Manual
 
-- [x] 1.3 Code review confirms `GameRules` contains only current pure rule calculations and no session state.
+- [x] 1.3 Code review confirms `GameRules` contains only current pure rule calculations and no session state. — a4b1876
 
 ### Phase 2: Wire Controller to Extracted Rules
 
 #### Automated
 
-- [ ] 2.1 `./mvnw clean compile` passes.
-- [ ] 2.2 `./mvnw test` passes.
+- [x] 2.1 `./mvnw clean compile` passes.
+- [x] 2.2 `./mvnw test` passes.
 
 #### Manual
 
-- [ ] 2.3 Code review confirms `GameController` no longer owns scoring or alien-speed formulas.
-- [ ] 2.4 Code review confirms controller behavior tests still cover score application and wave advancement.
+- [x] 2.3 Code review confirms `GameController` no longer owns scoring or alien-speed formulas.
+- [x] 2.4 Code review confirms controller behavior tests still cover score application and wave advancement.
 
 ### Phase 3: Align Documentation and Regression Evidence
 

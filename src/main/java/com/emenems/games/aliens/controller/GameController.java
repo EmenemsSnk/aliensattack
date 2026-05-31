@@ -1,6 +1,7 @@
 package com.emenems.games.aliens.controller;
 
 import com.emenems.games.aliens.GameConstants;
+import com.emenems.games.aliens.GameRules;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
@@ -21,8 +22,6 @@ import javax.swing.Timer;
 
 public class GameController implements ActionListener {
     private static final int TIMER_DELAY_MS = 16;
-    private static final double BASE_ALIEN_SPEED = 0.8;
-    private static final double MAX_ALIEN_SPEED = 2.8;
     private static final int ALIEN_COUNT = 6;
     private static final int ALIEN_START_MIN_Y = 30;
     private static final int ALIEN_START_X_JITTER = 20;
@@ -103,7 +102,7 @@ public class GameController implements ActionListener {
 
     private void generateSpaceObjects() {
         aliens.clear();
-        double alienSpeed = calculateAlienSpeed(wave, BASE_ALIEN_SPEED, MAX_ALIEN_SPEED);
+        double alienSpeed = GameRules.alienSpeedForWave(wave);
         int laneSpacing = (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / ALIEN_COUNT;
         for (int index = 0; index < ALIEN_COUNT; index++) {
             int laneX = index * laneSpacing + (laneSpacing - GameConstants.COMPONENT_SIZE) / 2;
@@ -259,7 +258,7 @@ public class GameController implements ActionListener {
 
         missiles.removeAll(missilesToRemove);
         aliens.removeAll(aliensToRemove);
-        score += aliensToRemove.size() * calculateAlienScore(wave);
+        score += aliensToRemove.size() * GameRules.alienScoreForWave(wave);
         if (!aliensToRemove.isEmpty()) {
             soundPlayer.playExplosion();
         }
@@ -343,15 +342,6 @@ public class GameController implements ActionListener {
         if (gamePanel != null) {
             gamePanel.updateGameState(score, wave, lives, gameState, isHitFeedbackActive(), gameOverTitle);
         }
-    }
-
-    static int calculateAlienScore(int wave) {
-        return wave * 10;
-    }
-
-    static double calculateAlienSpeed(int wave, double baseSpeed, double maxSpeed) {
-        double speed = baseSpeed * Math.pow(1.15, wave - 1);
-        return Math.min(speed, maxSpeed);
     }
 
     private void repaintGamePanel() {
