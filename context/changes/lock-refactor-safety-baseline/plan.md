@@ -233,26 +233,26 @@ No player data, saves, or external integrations exist. No migration is required.
 
 #### Automated
 
-- [x] 2.1 Project compiles: `./mvnw clean compile`
-- [x] 2.2 Full test suite passes: `./mvnw test`
-- [x] 2.3 Added tests fail against broken reset/held-fire or active-wave scoring behavior
-- [x] 2.4 No production source file under `src/main/java/` is changed
+- [x] 2.1 Project compiles: `./mvnw clean compile` — a915e80
+- [x] 2.2 Full test suite passes: `./mvnw test` — a915e80
+- [x] 2.3 Added tests fail against broken reset/held-fire or active-wave scoring behavior — a915e80
+- [x] 2.4 No production source file under `src/main/java/` is changed — a915e80
 
 #### Manual
 
-- [x] 2.5 Added tests read as behavioral regression tests
-- [x] 2.6 Test additions do not lock private controller structure
+- [x] 2.5 Added tests read as behavioral regression tests — a915e80
+- [x] 2.6 Test additions do not lock private controller structure — a915e80
 
 ### Phase 3: Verification Gate and Handoff
 
 #### Automated
 
-- [ ] 3.1 Project compiles: `./mvnw clean compile`
-- [ ] 3.2 Full test suite passes: `./mvnw test`
-- [ ] 3.3 No production gameplay logic is modified
-- [ ] 3.4 `baseline.md` contains final automated evidence with the post-change test count
+- [x] 3.1 Project compiles: `./mvnw clean compile`
+- [x] 3.2 Full test suite passes: `./mvnw test`
+- [x] 3.3 No production gameplay logic is modified
+- [x] 3.4 `baseline.md` contains final automated evidence with the post-change test count
 
 #### Manual
 
-- [ ] 3.5 Manual smoke checklist is completed or explicitly left pending
-- [ ] 3.6 Baseline handoff says future refactor slices must run compile + full test before and after changes
+- [x] 3.5 Manual smoke checklist is completed or explicitly left pending
+- [x] 3.6 Baseline handoff says future refactor slices must run compile + full test before and after changes

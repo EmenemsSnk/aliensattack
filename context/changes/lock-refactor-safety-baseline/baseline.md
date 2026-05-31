@@ -48,6 +48,8 @@ Before and after each future refactor slice, run:
 Both commands must pass before the slice is treated as safe to continue or
 archive. Green automated checks are required but not sufficient: visible
 gameplay must also be smoke-checked by a human when behavior could be affected.
+For future refactor slices, run the compile and full-test gate before the
+change and again after the change, then compare against this baseline.
 
 ## Focused Test Coverage
 
@@ -99,3 +101,5 @@ checked by a human with a display.
 | --- | --- | --- | --- |
 | 2026-05-31 | `./mvnw clean compile` | Passing | Initial baseline before S-01 test additions. |
 | 2026-05-31 | `./mvnw test` | Passing | Initial baseline: 37 tests across 3 test classes before S-01 test additions. |
+| 2026-05-31 | `./mvnw clean compile` | Passing | Final S-01 baseline: 12 production source files compiled successfully. |
+| 2026-05-31 | `./mvnw test` | Passing | Final S-01 baseline: 41 tests across 3 test classes; manual smoke remains pending human verification. |
