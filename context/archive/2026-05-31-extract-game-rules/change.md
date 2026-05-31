@@ -1,10 +1,10 @@
 ---
 change_id: extract-game-rules
 title: Extract game rules
-status: implemented
+status: archived
 created: 2026-05-31
 updated: 2026-05-31
-archived_at: null
+archived_at: 2026-05-31T17:11:00Z
 ---
 
 ## Notes

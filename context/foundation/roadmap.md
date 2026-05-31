@@ -32,7 +32,7 @@ Główny cel sekwencjonowania to jakość: najpierw utrzymujemy bezpieczeństwo 
 | ID   | Change ID                    | Wynik (użytkownik może...)                                         | Wymagania wstępne | Odnośniki PRD       | Status   |
 | ---- | ---------------------------- | ------------------------------------------------------------------ | ----------------- | ------------------- | -------- |
 | S-01 | lock-refactor-safety-baseline | Developer może potwierdzić bezpieczny baseline refaktoru           | —                 | FR-004              | done     |
-| S-02 | extract-game-rules            | Developer może pracować z wydzielonymi regułami scoringu i fali    | S-01              | FR-002              | proposed |
+| S-02 | extract-game-rules            | Developer może pracować z wydzielonymi regułami scoringu i fali    | S-01              | FR-002              | done     |
 | S-03 | extract-game-session          | Developer może pracować z wydzieloną sesją gry bez zmiany gameplayu | S-02              | US-01, FR-001, FR-003 | proposed |
 
 ## Baza
@@ -74,7 +74,7 @@ Brak osobnych fundamentów. Build, testy i CI są już obecne, a PRD nie wymaga 
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** To najmniejszy refaktor domenowy; ogranicza ryzyko zbyt sztywnej abstrakcji, bo dotyczy obecnych reguł i nie projektuje przyszłych mechanik.
-- **Status:** proposed
+- **Status:** done
 
 ### S-03: Wydziel sesję gry bez zmiany gameplayu
 
@@ -112,3 +112,4 @@ Ta tabela to czyste przekazanie do backlogu. Zawiera jeden wiersz dla każdego e
 ## Zrobione
 
 - **S-01: Developer może potwierdzić bezpieczny baseline refaktoru przed przenoszeniem logiki** — Zarchiwizowano 2026-05-31 → `context/archive/2026-05-31-lock-refactor-safety-baseline/`. Lekcja: —.
+- **S-02: Developer może pracować z wydzielonymi regułami scoringu i skalowania fali.** — Zarchiwizowano 2026-05-31 → `context/archive/2026-05-31-extract-game-rules/`. Lekcja: —.
