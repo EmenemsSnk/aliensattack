@@ -247,12 +247,12 @@ No player data, saves, or external integrations exist. No migration is required.
 
 #### Automated
 
-- [x] 3.1 Project compiles: `./mvnw clean compile`
-- [x] 3.2 Full test suite passes: `./mvnw test`
-- [x] 3.3 No production gameplay logic is modified
-- [x] 3.4 `baseline.md` contains final automated evidence with the post-change test count
+- [x] 3.1 Project compiles: `./mvnw clean compile` — d75164e
+- [x] 3.2 Full test suite passes: `./mvnw test` — d75164e
+- [x] 3.3 No production gameplay logic is modified — d75164e
+- [x] 3.4 `baseline.md` contains final automated evidence with the post-change test count — d75164e
 
 #### Manual
 
-- [x] 3.5 Manual smoke checklist is completed or explicitly left pending
-- [x] 3.6 Baseline handoff says future refactor slices must run compile + full test before and after changes
+- [x] 3.5 Manual smoke checklist is completed or explicitly left pending — d75164e
+- [x] 3.6 Baseline handoff says future refactor slices must run compile + full test before and after changes — d75164e
