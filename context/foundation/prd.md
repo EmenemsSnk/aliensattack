@@ -2,150 +2,119 @@
 project: "Aliens Attack"
 version: 1
 status: draft
-created: 2026-05-28
+created: 2026-05-31
 context_type: brownfield
 product_type: desktop
 target_scale:
   users: small
-  qps: negligible
-  data_volume: none
+  qps: low
+  data_volume: small
 timeline_budget:
-  delivery_weeks: 2
+  delivery_weeks: 1
   hard_deadline: null
   after_hours_only: true
 ---
 
+# Aliens Attack Refactor Pack PRD
+
 ## Current System Overview
 
-- **System purpose**: A 2D Java Swing arcade game (Space Invaders-like) — player controls a spaceship and shoots at a fleet of advancing aliens.
-- **Key architecture**: Single-process desktop app; central `GameController` holds the game loop and input handling; domain objects live in the `gamemachines` package (Spaceship, Alien, Missile); rendering via `GamePanel`.
-- **Tech stack**: Java 21 LTS + Maven + `javax.swing` (Swing UI); desktop application; no external **runtime** libraries. Build pins the compiler to `maven.compiler.release=21`; **JUnit 5** is used for tests (`test` scope only); CI runs on **GitHub Actions**. (decyzje zapięte poniżej w *Constraints & Compatibility*; szczegóły wykonawcze: `context/changes/build-tooling-baseline/build-tooling-plan.md`)
-- **Current user base**: Single developer/player; local machine; no networking or accounts.
-- **Core functionality**: Spaceship movement (keyboard input), missile firing, alien grid movement, basic collision detection, partial rendering via `GamePanel`; game loop in `GameController`; domain objects in `gamemachines` package (Spaceship, Alien, Missile).
+Aliens Attack is an existing Java 21 + Maven + Swing desktop arcade game.
+
+The current architecture is a single-process Swing application. Version 1.0.0 is a playable MVP with a complete loop: start menu, gameplay, waves, score, lives, Game Over, restart, basic audio feedback, and shooting aliens. `GameController` is the central node for input, ticks, collision logic, waves, scoring, lives, missiles, audio, and game state. `GamePanel` renders the game, and the controller pushes scalar HUD/game-state values into it each tick. Runtime dependencies remain limited to the JDK standard library.
+
+Current users are players of the local desktop game. For this change, the primary affected persona is the developer/maintainer extending the game after the MVP.
 
 ## Problem Statement & Motivation
 
-**What's wrong now**: The game is unplayable in its current state:
-- Game loop runs at 1 FPS (`Thread.sleep(1000)` in `GameController`) — movement is too slow to be a game.
-- Missiles fly off-screen and are never removed — memory leak over time.
-- Spaceship collision with an alien triggers no response — no Game Over state.
-- No game flow exists — no start menu, no end screen, no way to win or lose; the game just starts and runs until the window is closed.
+The next change is an architecture improvement without visible gameplay changes. The immediate pain is that `GameController` was pragmatic for shipping the MVP, but its current scope makes future mechanics riskier and more expensive to add.
 
-**Why now**: The prototype skeleton is in place (spaceship, aliens, missiles, basic rendering). The gap between "compiles" and "actually playable" is fillable without a rewrite — fixing the loop and collision handling unlocks the ability to layer meaningful features (scoring, waves) on top.
+The motivation is to prepare the codebase for later Replayability Pack work by extracting a cleaner gameplay foundation first. This PRD should not add power-ups, new aliens, polish, high scores, or distribution work.
 
-**Current workaround**: None — the game is simply not playable as a game.
+The current workaround is to keep adding behavior directly to `GameController`, which increases regression risk and makes focused tests harder as the next gameplay iteration approaches.
 
 ## User & Persona
 
-**Primary persona**: The developer himself — a Java programmer building and playing this game as a portfolio/learning project. Runs on their own machine via `mvn exec:java`; expects full keyboard control (arrow keys + space) and smooth ~60 FPS gameplay; no need for accounts, multiplayer, cloud saves, or any form of distribution.
+Primary persona: developer/maintainer continuing development of Aliens Attack after the MVP.
 
-This is the existing (and only) user. The change improves the experience of this same user — from an unplayable prototype to a complete play-loop session.
+The moment they feel the pain is when planning the next gameplay iteration, especially Replayability Pack mechanics, and seeing that adding more behavior directly to `GameController` would increase regression risk and make focused tests harder.
+
+Players remain affected indirectly because their existing game experience must not change during this refactor.
 
 ## Success Criteria
 
 ### Primary
-- Player can: launch the game → play immediately at ~60 FPS with responsive controls → earn (10 × wave) points per alien destroyed → see the next faster wave spawn when all aliens are cleared → lose one of 3 lives when hit → reach Game Over after 3 hits → see final score on Game Over screen → press Space to restart. All of this completes in a single session without crashing or visibly growing memory usage.
+
+- Developer/maintainer can extract `GameSession` and `GameRules` from `GameController` while preserving visible gameplay behavior.
+- The game still supports the existing player-visible loop: start, movement, shooting, wave progression, scoring, lives, Game Over, and restart.
 
 ### Secondary
-- Health system: spaceship has 3 lives displayed in HUD; Game Over triggers only after all 3 are lost (nice-to-have, not MVP blocker).
-- Retro sound effects: audio feedback for shooting and alien explosion (nice-to-have).
-- Alien fire: aliens randomly shoot back at the player (nice-to-have).
+
+- The extracted foundation makes the later Replayability Pack easier to add.
 
 ### Guardrails
-- Keyboard controls (arrow keys + space bar) must respond correctly in all game states — control responsiveness must not degrade from the current state.
-- `mvn clean compile` must pass without errors at every stage of the change.
+
+- Zero visible gameplay behavior changes.
+- Keep the blast radius focused on `GameController`, controller tests, and session/reset/scoring/wave flow.
+- Existing tests continue to pass.
+- The game remains responsive to player input at the same perceived level as before the refactor.
+- The runtime remains JDK-only with no new external runtime dependencies.
 
 ## User Stories
 
-### US-01: Gracz rozgrywa kompletną sesję gry
+### US-01: Developer extracts gameplay foundation without changing player-visible behavior
 
-- **Given** gracz uruchamia aplikację przez `mvn exec:java`
-- **When** gra startuje (bezpośrednio w stanie PLAYING)
-- **Then** gra działa w ~60 FPS; HUD wyświetla wynik (0), numer fali (1) i 3 życia; gracz strzela Space i porusza się strzałkami; wynik rośnie o 10 × numer_fali za każdego trafionego kosmitę; trafienie przez kosmitę odejmuje 1 życie (HUD aktualizuje się); po 3 trafieniach pojawia się ekran Game Over z wynikiem końcowym i "Press SPACE to Restart"; po zniszczeniu wszystkich kosmitów pojawia się fala 2 (szybsza o 10%, do limitu 2× prędkości bazowej); naciśnięcie Space na Game Over restartuje od fali=1, wynik=0, życia=3
-
-*Delta note*: Wcześniej gra startowała w ~1 FPS bez HUD, bez scoringu, bez żyć, bez stanu Game Over i bez kolejnych fal — sesja nie miała początku ani końca.
+- **Given** the existing Aliens Attack MVP with `GameController` owning session state and gameplay rules
+- **When** the developer/maintainer performs the refactor
+- **Then** session state and game-rule calculations are available through focused classes while the player-visible game loop remains unchanged
 
 #### Acceptance Criteria
-- Gra osiąga ~60 FPS subiektywnie (płynny ruch bez zauważalnych zacinań)
-- Wynik, numer fali i liczba żyć w HUD aktualizują się w czasie rzeczywistym
-- Każde trafienie przez kosmitę odejmuje dokładnie 1 życie; po 3 trafieniach — Game Over
-- Scoring: fala 1 = 10 pkt/kosmita, fala 2 = 20 pkt/kosmita, fala N = N×10 pkt/kosmita
-- Prędkość fali nie przekracza ~2× prędkości bazowej
-- Pociski opuszczające granice ekranu są usuwane z listy obiektów
-- Restart przywraca: fala=1, wynik=0, życia=3, prędkość bazowa=domyślna
+
+- Score, wave, lives, game state, and reset behavior are represented outside the monolithic controller.
+- Scoring and wave-speed calculations are represented as focused game-rule behavior.
+- The game still supports start, movement, shooting, wave progression, scoring, lives, Game Over, and restart.
+- Existing tests continue to pass.
 
 ## Scope of Change
 
-### Silnik gry
-- [modified] FR-001: Gra działa w ~60 FPS (było ~1 FPS). Priorytet: must-have.
-  > Sokrates: Kontrargument: "30 FPS wystarczy — 60 FPS to nadmiar złożoności." Zachowane: 60 FPS jest standardem dla płynnej gry arcade; różnica jest wyraźnie odczuwalna.
-- [new] FR-002: Pociski i kosmici opuszczający ekran są usuwani z pamięci. Priorytet: must-have.
-  > Sokrates: Kontrargument: "Prostsze czyścić wszystkie pociski przy zmianie stanu." Zachowane: per-frame cleanup zapobiega rosnącej liście obiektów przy szybkim strzelaniu między zdarzeniami stanu.
-- [new] FR-003: Gracz ma 3 życia; kolizja statku z kosmitą odbiera jedno życie; Game Over po utracie ostatniego; HUD wyświetla liczbę pozostałych żyć. Priorytet: must-have.
-  > Sokrates: Kontrargument: "Lepiej od razu implementować 3 życia niż iterować dwa razy." Zaakceptowano — FR zaktualizowany; system 3 żyć przeniesiony z secondary goals na must-have.
-- [modified] FR-004: Kolizja pocisku z kosmitą jest wykrywana raz (eliminacja podwójnej pętli). Priorytet: must-have.
-  > Sokrates: Kontrargument: "Przedwczesna optymalizacja przy małej skali." Zachowane jako must-have: to błąd logiczny (może liczyć trafienia dwukrotnie), nie tylko wydajnościowy.
-
-### Stany gry
-- [new] FR-005: Gracz może uruchomić grę z ekranu Start Menu (Space = start). Priorytet: nice-to-have.
-  > Sokrates: Kontrargument: "Menu dodaje złożoność zanim gra działa — lepiej startować bezpośrednio w PLAYING." Obniżono do nice-to-have: MVP startuje od razu w stanie PLAYING.
-- [new] FR-006: Ekran Game Over wyświetla "GAME OVER", wynik końcowy i "Press SPACE to Restart". Priorytet: must-have.
-  > Sokrates: Kontrargument: "Game Over ma wyższy priorytet niż Start Menu." Zachowane i potwierdzono jako must-have.
-
-### Scoring i postęp
-- [new] FR-007: Gracz zdobywa (10 × numer_fali) punktów za każdego zniszczonego kosmitę. Priorytet: must-have.
-  > Sokrates: Kontrargument: "Płaskie 10 pkt traci sens przy wyższych falach." Zaktualizowano formułę na 10 × numer_fali — scoring rośnie proporcjonalnie do trudności.
-- [new] FR-008: Aktualny wynik jest wyświetlany w HUD podczas gry. Priorytet: must-have.
-  > Sokrates: Kontrargument: "Wynik tylko na ekranie Game Over wystarczy." Zachowane jako must-have: wynik na żywo w HUD jest standardem gatunku.
-- [new] FR-009: Aktualny numer fali jest wyświetlany w HUD podczas gry. Priorytet: must-have.
-  > Sokrates: Brak kontrargumentu — numer fali jest konieczny skoro scoring = 10 × fala; gracz musi wiedzieć na której fali jest.
-- [new] FR-010: Po zniszczeniu wszystkich kosmitów pojawia się nowa fala z prędkością bazową ×1.1^(fala-1), z limitem ~2× prędkości bazowej. Priorytet: must-have.
-  > Sokrates: Kontrargument: "+10% liniowo bez limitu sprawi, że gra stanie się niezagrą po ~15 falach." Zaktualizowano: dodano cap przy ~2× prędkości bazowej; dokładna wartość do kalibracji przy implementacji.
-
-### Zachowane (preserved)
-- [preserved] Sterowanie klawiaturą (strzałki + Space) dla ruchu statku i strzelania — musi przetrwać zmianę game loop bez regresji responsywności.
+- [new] FR-001: Developer/maintainer can work with an extracted game session model covering score, wave, lives, game state, and reset. Priority: must-have.
+  > Socratic: Considered counterargument: extracting session state may split the simple reset and game-state flow across too many places. Resolution: keep the FR, but the extraction must preserve a clear single reset/session boundary rather than scatter state ownership.
+- [new] FR-002: Developer/maintainer can work with extracted game rules for scoring and wave scaling. Priority: must-have.
+  > Socratic: Considered counterargument: extracting scoring and wave-scaling rules could make later balancing harder if rules are locked behind a rigid abstraction too early. Resolution: keep the FR, but the extracted rules should stay small and focused on current behavior rather than over-designing for future mechanics.
+- [preserved] FR-003: Player can play Aliens Attack with the same visible behavior as before the refactor. Priority: must-have.
+  > Socratic: No counterargument; remains as written.
+- [preserved] FR-004: Developer/maintainer can run the existing test suite and confirm no regression. Priority: must-have.
+  > Socratic: Considered counterargument: the existing tests may not cover every player-visible behavior. Resolution: keep the FR, but do not treat green tests as the only confidence signal; a short manual smoke check remains necessary.
 
 ## Constraints & Compatibility
 
-- **Java 21 LTS (poziom kompilatora zapięty)**: Build pina `maven.compiler.release=21`. Aktywny lokalny toolchain to JDK 21.0.7 (JDK 25.0.3 jest zainstalowany, ale nie jest domyślny — pinowanie 25 łamałoby guardrail `mvn clean compile`); gra jest lokalna, jednoużytkownikowa, bez dystrybucji — zero kosztu przenośności. Java 21 jest LTS i dostarcza już całą nowoczesną składnię (`record`, `var`, switch expressions, pattern matching, text blocks), więc jest dozwolona. (decyzja zamykająca dawne Open Q3; korekta 25→21 podczas wykonania, szczegóły: `context/changes/build-tooling-baseline/plan.md`)
-- **Brak nowych zależności runtime (zero-dependency w czasie wykonania)**: Runtime to wyłącznie Java standard library + `javax.swing`. Świadomy, jawny wyjątek: **JUnit 5** dodany w zakresie `test` (decyzja łamiąca pierwotny zapis „bez nowych bibliotek", podjęta świadomie) — dostarczana gra pozostaje zero-dependency, bo zależność testowa nie trafia do artefaktu. Wszelkie inne nowe biblioteki (game engine, audio library, JSON parser) nadal wymagają wyraźnej decyzji. (decyzja zamykająca dawne Open Q4; szczegóły wykonawcze: `context/changes/build-tooling-baseline/build-tooling-plan.md`)
-- **CI (GitHub Actions)**: Build i testy uruchamiają się automatycznie na push/PR (`./mvnw clean compile` + `./mvnw test`), egzekwując guardrail „`mvn clean compile` musi przejść na każdym etapie". `pom.xml` jest w pełni zapięty (encoding, wersje pluginów, `exec-maven-plugin`) plus Maven wrapper. (decyzja zamykająca dawne Open Q5 + brak CI; szczegóły wykonawcze: `context/changes/build-tooling-baseline/build-tooling-plan.md`)
-- **Swing EDT**: Cały rendering i logika gry wywoływana przez timer musi działać na Event Dispatch Thread (EDT Swing). Zmiana game loop nie może wprowadzać operacji blokujących EDT.
-- **GameController jako centralny węzeł**: Logika gry i input handling pozostają w `GameController` — architektoniczna separacja View/Controller nie jest celem tego MVP; refaktoryzacja poza zakresem.
-- **Istniejące zachowanie sterowania**: Arrow keys i Space obsługują ruch statku i strzelanie — to zachowanie musi przetrwać zmianę game loop bez regresji responsywności.
-- **Migracja danych**: Brak — gra nie posiada trwałego stanu ani zapisów; nic do migracji.
-- **Kompatybilność wsteczna**: Brak zewnętrznych kontraktów (API, formaty plików, integracje) — zmiana dotyczy wyłącznie lokalnej rozgrywki jednego użytkownika.
+- Preserve the existing presentation layer.
+- Preserve the current launch path and local desktop game model.
+- Preserve the zero external runtime dependency posture.
+- Preserve existing player-visible behavior: start, movement, shooting, wave progression, scoring, lives, Game Over, and restart.
+- Preserve current test confidence and supplement it with a short manual smoke check because existing tests may not cover every visible behavior.
+- No migration of player data is required for this refactor.
+- No changes to external integrations are required; the game has no external runtime service integration.
 
 ## Business Logic Changes
 
-**Istniejąca reguła domenowa**: Brak — obecny system nie posiada żadnej logiki domenowej. Wszystkie zdarzenia kolizji są no-op, nie ma scoringu, zarządzania życiami ani progresji trudności.
+The system preserves the existing arcade-session rules: score depends on wave, wave difficulty scales alien speed, and losing all lives or allowing invasion ends the session without changing visible gameplay.
 
-**Nowe reguły dodawane przez tę zmianę**:
-
-1. *Reguła postępu*: Gra ocenia postęp gracza przez fale — wynik rośnie proporcjonalnie do trudności (10 × numer_fali punktów za każdego zniszczonego kosmitę), a prędkość ruchu kosmitów rośnie o 10% z każdą ukończoną falą do limitu ~2× prędkości bazowej. Gracz na wejściu: strzelanie; na wyjściu: wynik i nowa fala.
-
-2. *Reguła żyć*: Gra zarządza 3 życiami gracza — każda kolizja statku z kosmitą odbiera 1 życie; po utracie wszystkich 3 żyć gra wchodzi w stan Game Over, prezentując wynik końcowy i możliwość restartu.
-
-Zmiany są addytywne: żadna istniejąca reguła domenowa nie jest modyfikowana (żadna nie istnieje).
+This change reorganizes where the existing rules live; it does not add a new player-facing domain rule. The relevant inputs are the same player-visible session events as before: alien destruction, wave progression, life loss, reset, and Game Over triggers. The output remains the same score, wave, lives, and game-state behavior the player already sees.
 
 ## Access Control Changes
 
-No access control changes — current model preserved. Single player; no authentication; no accounts; game state lives on-device only.
+No access control changes are planned.
+
+Current model preserved: Aliens Attack is a local single-player desktop game with no login, no accounts, and no role separation.
 
 ## Non-Goals
 
-- **Brak dźwięków w tym MVP** — audio (strzał, eksplozja, muzyka tła) to oddzielna iteracja; brak dźwięku nie blokuje grywalności ani celów portfolio.
-- **Brak strzelających kosmitów w tym MVP** — alien fire pozostaje nice-to-have; nie jest częścią pierwszej grywalnej wersji.
-- **Brak Start Menu jako must-have** — MVP startuje bezpośrednio w stanie PLAYING; Start Menu (FR-005) jest nice-to-have.
-- **Brak refaktoryzacji architektury View/Controller** — separacja prezentacji od logiki gry nie jest celem tej zmiany; `GameController` pozostaje centralnym węzłem.
-- **Brak kont, multiplayera, sieci, zapisów w chmurze ani dystrybucji** — gra pozostaje lokalną, jednoosobową aplikacją desktopową.
-- **Brak gwarancji wydajności poza ~60 FPS subiektywnie** (non-functional) — brak twardego budżetu klatkowego, profilowania ani benchmarków poza odczuwalną płynnością.
+- No power-ups or new alien types in this PRD; those belong to the later Replayability Pack.
+- No presentation rendering rewrite; this PRD focuses on gameplay foundation extraction, not presentation architecture.
+- No high scores, data persistence, playable artifact distribution, or release packaging; those remain deferred to a later version.
+- No gameplay balance changes; scoring, wave progression, lives, movement, shooting, and Game Over behavior should remain visibly unchanged.
 
 ## Open Questions
 
-1. **Dokładny cap prędkości kosmitów** — ustalono ~2× prędkości bazowej; dokładna wartość do kalibracji przy implementacji (gameplay feel). Właściciel: developer. Blok: nie — gra działa z dowolną wartością graniczną.
-2. **Wartość bazowej prędkości kosmitów** — obecna wartość w kodzie jest nieznana bez inspekcji; do weryfikacji przy implementacji FR-010. Właściciel: developer. Blok: nie.
-
-> **Rozstrzygnięte decyzje tooling/build (dawne Open Q3–Q5 + CI)**: poziom Javy, testy, zawartość `pom.xml` i CI zostały świadomie ustalone i zapisane w sekcji *Constraints & Compatibility* (Java 21 LTS; JUnit 5 w zakresie `test`; GitHub Actions; zapięty `pom.xml` + Maven wrapper). Plan wykonawczy „jak to wdrożyć": `context/changes/build-tooling-baseline/plan.md` (zaimplementowany; supersedes preliminary `context/changes/build-tooling-baseline/build-tooling-plan.md`).
-
-
+- None.
