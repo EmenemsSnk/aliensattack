@@ -3,7 +3,7 @@ project: "Aliens Attack"
 version: 1
 status: draft
 created: 2026-05-31
-updated: 2026-05-31
+updated: 2026-06-01
 prd_version: 1
 main_goal: quality
 top_blocker: none
@@ -33,7 +33,7 @@ Główny cel sekwencjonowania to jakość: najpierw utrzymujemy bezpieczeństwo 
 | ---- | ---------------------------- | ------------------------------------------------------------------ | ----------------- | ------------------- | -------- |
 | S-01 | lock-refactor-safety-baseline | Developer może potwierdzić bezpieczny baseline refaktoru           | —                 | FR-004              | done     |
 | S-02 | extract-game-rules            | Developer może pracować z wydzielonymi regułami scoringu i fali    | S-01              | FR-002              | done     |
-| S-03 | extract-game-session          | Developer może pracować z wydzieloną sesją gry bez zmiany gameplayu | S-02              | US-01, FR-001, FR-003 | proposed |
+| S-03 | extract-game-session          | Developer może pracować z wydzieloną sesją gry bez zmiany gameplayu | S-02              | US-01, FR-001, FR-003 | done     |
 
 ## Baza
 
@@ -86,7 +86,7 @@ Brak osobnych fundamentów. Build, testy i CI są już obecne, a PRD nie wymaga 
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** To właściwa walidacja PRD, ale ryzykuje rozproszenie resetu i stanu gry, więc powinna nastąpić po małym wycinku reguł i po zablokowaniu baseline'u.
-- **Status:** proposed
+- **Status:** done
 
 ## Przekazanie backlogu
 
@@ -113,3 +113,4 @@ Ta tabela to czyste przekazanie do backlogu. Zawiera jeden wiersz dla każdego e
 
 - **S-01: Developer może potwierdzić bezpieczny baseline refaktoru przed przenoszeniem logiki** — Zarchiwizowano 2026-05-31 → `context/archive/2026-05-31-lock-refactor-safety-baseline/`. Lekcja: —.
 - **S-02: Developer może pracować z wydzielonymi regułami scoringu i skalowania fali.** — Zarchiwizowano 2026-05-31 → `context/archive/2026-05-31-extract-game-rules/`. Lekcja: —.
+- **S-03: Developer może pracować z wydzieloną sesją gry obejmującą score, wave, lives, game state i reset, a gracz widzi ten sam gameplay co przed refaktorem.** — Zarchiwizowano 2026-06-01 → `context/archive/2026-05-31-extract-game-session/`. Lekcja: —.
