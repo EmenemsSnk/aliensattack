@@ -241,24 +241,24 @@ No player data, save files, external integrations, or deployment artifacts exist
 
 #### Automated
 
-- [x] 2.1 `./mvnw clean compile` passes.
-- [x] 2.2 `./mvnw test -Dtest=GameSessionTest,GameControllerTest` passes.
+- [x] 2.1 `./mvnw clean compile` passes. — f636cb1
+- [x] 2.2 `./mvnw test -Dtest=GameSessionTest,GameControllerTest` passes. — f636cb1
 
 #### Manual
 
-- [x] 2.3 Code review confirms `GameController` no longer owns scalar session fields directly.
-- [x] 2.4 Code review confirms shared entity lists still flow by reference from `Main` into both `GamePanel` and `GameController`.
-- [x] 2.5 Code review confirms reset remains one clear boundary split between scalar session reset and controller collection/input/spawn reset.
+- [x] 2.3 Code review confirms `GameController` no longer owns scalar session fields directly. — f636cb1
+- [x] 2.4 Code review confirms shared entity lists still flow by reference from `Main` into both `GamePanel` and `GameController`. — f636cb1
+- [x] 2.5 Code review confirms reset remains one clear boundary split between scalar session reset and controller collection/input/spawn reset. — f636cb1
 
 ### Phase 3: Documentation and Regression Gate
 
 #### Automated
 
-- [ ] 3.1 `./mvnw clean compile` passes.
-- [ ] 3.2 `./mvnw test` passes.
+- [x] 3.1 `./mvnw clean compile` passes.
+- [x] 3.2 `./mvnw test` passes.
 
 #### Manual
 
-- [ ] 3.3 Run or hand off the S-01 smoke checklist.
-- [ ] 3.4 Confirm gameplay is visibly unchanged for start, movement, firing, scoring, wave progression, life loss, Game Over, alien-invasion Game Over, and restart.
-- [ ] 3.5 Confirm `CLAUDE.md` accurately documents `GameSession`, `GameRules`, and `GameController` ownership.
+- [x] 3.3 Run or hand off the S-01 smoke checklist.
+- [x] 3.4 Confirm gameplay is visibly unchanged for start, movement, firing, scoring, wave progression, life loss, Game Over, alien-invasion Game Over, and restart.
+- [x] 3.5 Confirm `CLAUDE.md` accurately documents `GameSession`, `GameRules`, and `GameController` ownership.
