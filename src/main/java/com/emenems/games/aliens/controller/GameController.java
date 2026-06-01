@@ -2,6 +2,7 @@ package com.emenems.games.aliens.controller;
 
 import com.emenems.games.aliens.GameConstants;
 import com.emenems.games.aliens.GameRules;
+import com.emenems.games.aliens.GameSession;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
@@ -26,10 +27,6 @@ public class GameController implements ActionListener {
     private static final int ALIEN_START_MIN_Y = 30;
     private static final int ALIEN_START_X_JITTER = 20;
     private static final int ALIEN_START_Y_JITTER = 90;
-    private static final int DEFAULT_LIVES = 3;
-    private static final int HIT_FEEDBACK_TICKS = 18;
-    private static final String DEFAULT_GAME_OVER_TITLE = "GAME OVER";
-    private static final String ALIENS_WIN_TITLE = "ALIENS WIN";
     static final int MAX_ALIEN_MISSILES = 2;
     private static final double ALIEN_FIRE_CHANCE = 0.008;
     private static final int PLAYER_FIRE_COOLDOWN_TICKS = 10;
@@ -43,16 +40,11 @@ public class GameController implements ActionListener {
     private final GamePanel gamePanel;
     private final Random random;
     private final ArcadeSoundPlayer soundPlayer;
+    private final GameSession session = new GameSession();
     private final Set<Integer> pressedMovementKeys = new HashSet<>();
     private Timer timer;
-    private int score;
-    private int wave = 1;
-    private int lives = DEFAULT_LIVES;
-    private GameState gameState = GameState.START_MENU;
-    private int hitFeedbackTicks;
     private int playerFireCooldownTicks;
     private boolean spacePressed;
-    private String gameOverTitle = DEFAULT_GAME_OVER_TITLE;
 
     public GameController(
         Spaceship spaceship,
@@ -102,7 +94,7 @@ public class GameController implements ActionListener {
 
     private void generateSpaceObjects() {
         aliens.clear();
-        double alienSpeed = GameRules.alienSpeedForWave(wave);
+        double alienSpeed = GameRules.alienSpeedForWave(session.getWave());
         int laneSpacing = (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / ALIEN_COUNT;
         for (int index = 0; index < ALIEN_COUNT; index++) {
             int laneX = index * laneSpacing + (laneSpacing - GameConstants.COMPONENT_SIZE) / 2;
@@ -113,7 +105,7 @@ public class GameController implements ActionListener {
     }
 
     void handleKeyPressed(int keyCode) {
-        switch (gameState) {
+        switch (session.getGameState()) {
             case START_MENU -> {
                 if (keyCode == KeyEvent.VK_ENTER) {
                     startGame();
@@ -181,7 +173,7 @@ public class GameController implements ActionListener {
     }
 
     void tick() {
-        if (gameState != GameState.PLAYING) {
+        if (session.getGameState() != GameState.PLAYING) {
             updatePanelState();
             return;
         }
@@ -195,12 +187,12 @@ public class GameController implements ActionListener {
         alienMissiles.forEach(AlienMissile::move);
         fireAlienMissileIfReady();
         checkCollisions();
-        if (gameState == GameState.GAME_OVER) {
+        if (session.getGameState() == GameState.GAME_OVER) {
             updatePanelState();
             return;
         }
         checkAlienInvasion();
-        if (gameState == GameState.GAME_OVER) {
+        if (session.getGameState() == GameState.GAME_OVER) {
             updatePanelState();
             return;
         }
@@ -258,7 +250,7 @@ public class GameController implements ActionListener {
 
         missiles.removeAll(missilesToRemove);
         aliens.removeAll(aliensToRemove);
-        score += aliensToRemove.size() * GameRules.alienScoreForWave(wave);
+        session.addAlienKills(aliensToRemove.size());
         if (!aliensToRemove.isEmpty()) {
             soundPlayer.playExplosion();
         }
@@ -293,27 +285,27 @@ public class GameController implements ActionListener {
     }
 
     int getScore() {
-        return score;
+        return session.getScore();
     }
 
     int getWave() {
-        return wave;
+        return session.getWave();
     }
 
     int getLives() {
-        return lives;
+        return session.getLives();
     }
 
     GameState getGameState() {
-        return gameState;
+        return session.getGameState();
     }
 
     boolean isHitFeedbackActive() {
-        return hitFeedbackTicks > 0;
+        return session.isHitFeedbackActive();
     }
 
     String getGameOverTitle() {
-        return gameOverTitle;
+        return session.getGameOverTitle();
     }
 
     private Rectangle objectArea(int x, int y) {
@@ -334,13 +326,20 @@ public class GameController implements ActionListener {
             return;
         }
 
-        wave++;
+        session.advanceWave();
         generateSpaceObjects();
     }
 
     private void updatePanelState() {
         if (gamePanel != null) {
-            gamePanel.updateGameState(score, wave, lives, gameState, isHitFeedbackActive(), gameOverTitle);
+            gamePanel.updateGameState(
+                session.getScore(),
+                session.getWave(),
+                session.getLives(),
+                session.getGameState(),
+                session.isHitFeedbackActive(),
+                session.getGameOverTitle()
+            );
         }
     }
 
@@ -363,12 +362,11 @@ public class GameController implements ActionListener {
     }
 
     private void resetSession() {
-        score = 0;
-        wave = 1;
-        lives = DEFAULT_LIVES;
-        gameState = GameState.PLAYING;
-        hitFeedbackTicks = 0;
-        gameOverTitle = DEFAULT_GAME_OVER_TITLE;
+        session.startOrRestart();
+        spaceship.moveTo(
+            (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / 2,
+            GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE - GameConstants.SPACESHIP_START_BOTTOM_MARGIN
+        );
         missiles.clear();
         alienMissiles.clear();
         pressedMovementKeys.clear();
@@ -382,22 +380,19 @@ public class GameController implements ActionListener {
         boolean alienReachedBottom = aliens.stream()
             .anyMatch(alien -> alien.getY() + GameConstants.COMPONENT_SIZE >= GameConstants.PANEL_HEIGHT);
         if (alienReachedBottom) {
-            enterGameOver(ALIENS_WIN_TITLE);
+            session.enterAlienInvasionGameOver();
+            clearInputAndStopMusic();
         }
     }
 
-    private void enterGameOver(String title) {
-        gameState = GameState.GAME_OVER;
-        gameOverTitle = title;
+    private void clearInputAndStopMusic() {
         pressedMovementKeys.clear();
         spacePressed = false;
         soundPlayer.stopBackgroundMusic();
     }
 
     private void updateHitFeedback() {
-        if (hitFeedbackTicks > 0) {
-            hitFeedbackTicks--;
-        }
+        session.tickHitFeedback();
     }
 
     private void updatePlayerFireCooldown() {
@@ -438,11 +433,9 @@ public class GameController implements ActionListener {
     }
 
     private void loseLife() {
-        hitFeedbackTicks = HIT_FEEDBACK_TICKS;
-        lives--;
-        if (lives <= 0) {
-            lives = 0;
-            enterGameOver(DEFAULT_GAME_OVER_TITLE);
+        session.loseLife();
+        if (session.getGameState() == GameState.GAME_OVER) {
+            clearInputAndStopMusic();
         }
     }
 }

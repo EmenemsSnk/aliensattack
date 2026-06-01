@@ -32,6 +32,11 @@ public final class Spaceship implements GameObject {
         y = Math.clamp(y, minY, maxY);
     }
 
+    public void moveTo(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+
     public int getX() {
         return x;
     }

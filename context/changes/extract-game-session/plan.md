@@ -230,25 +230,25 @@ No player data, save files, external integrations, or deployment artifacts exist
 
 #### Automated
 
-- [x] 1.1 `./mvnw clean compile` passes.
-- [x] 1.2 `./mvnw test -Dtest=GameSessionTest` passes.
+- [x] 1.1 `./mvnw clean compile` passes. — 626d267
+- [x] 1.2 `./mvnw test -Dtest=GameSessionTest` passes. — 626d267
 
 #### Manual
 
-- [x] 1.3 Code review confirms `GameSession` owns only scalar session state and no Swing/controller/audio/random/entity-list concerns.
+- [x] 1.3 Code review confirms `GameSession` owns only scalar session state and no Swing/controller/audio/random/entity-list concerns. — 626d267
 
 ### Phase 2: Wire Controller Through GameSession
 
 #### Automated
 
-- [ ] 2.1 `./mvnw clean compile` passes.
-- [ ] 2.2 `./mvnw test -Dtest=GameSessionTest,GameControllerTest` passes.
+- [x] 2.1 `./mvnw clean compile` passes.
+- [x] 2.2 `./mvnw test -Dtest=GameSessionTest,GameControllerTest` passes.
 
 #### Manual
 
-- [ ] 2.3 Code review confirms `GameController` no longer owns scalar session fields directly.
-- [ ] 2.4 Code review confirms shared entity lists still flow by reference from `Main` into both `GamePanel` and `GameController`.
-- [ ] 2.5 Code review confirms reset remains one clear boundary split between scalar session reset and controller collection/input/spawn reset.
+- [x] 2.3 Code review confirms `GameController` no longer owns scalar session fields directly.
+- [x] 2.4 Code review confirms shared entity lists still flow by reference from `Main` into both `GamePanel` and `GameController`.
+- [x] 2.5 Code review confirms reset remains one clear boundary split between scalar session reset and controller collection/input/spawn reset.
 
 ### Phase 3: Documentation and Regression Gate
 
