@@ -1,9 +1,9 @@
 ---
 change_id: extract-game-session
 title: Extract game session
-status: implementing
+status: implemented
 created: 2026-05-31
-updated: 2026-05-31
+updated: 2026-06-01
 archived_at: null
 ---
 

@@ -254,11 +254,11 @@ No player data, save files, external integrations, or deployment artifacts exist
 
 #### Automated
 
-- [x] 3.1 `./mvnw clean compile` passes.
-- [x] 3.2 `./mvnw test` passes.
+- [x] 3.1 `./mvnw clean compile` passes. — cb39874
+- [x] 3.2 `./mvnw test` passes. — cb39874
 
 #### Manual
 
-- [x] 3.3 Run or hand off the S-01 smoke checklist.
-- [x] 3.4 Confirm gameplay is visibly unchanged for start, movement, firing, scoring, wave progression, life loss, Game Over, alien-invasion Game Over, and restart.
-- [x] 3.5 Confirm `CLAUDE.md` accurately documents `GameSession`, `GameRules`, and `GameController` ownership.
+- [x] 3.3 Run or hand off the S-01 smoke checklist. — cb39874
+- [x] 3.4 Confirm gameplay is visibly unchanged for start, movement, firing, scoring, wave progression, life loss, Game Over, alien-invasion Game Over, and restart. — cb39874
+- [x] 3.5 Confirm `CLAUDE.md` accurately documents `GameSession`, `GameRules`, and `GameController` ownership. — cb39874
