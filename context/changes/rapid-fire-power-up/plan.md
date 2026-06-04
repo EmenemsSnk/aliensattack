@@ -286,55 +286,55 @@ No persistent player data or schema exists for this slice. Starting or restartin
 
 #### Automated
 
-- [x] 1.1 Project compiles: `./mvnw clean compile`
-- [x] 1.2 Focused model/session tests pass: `./mvnw test -Dtest=RapidFirePowerUpTest,GameSessionTest`
-- [x] 1.3 Unit tests verify the collectible moves downward
-- [x] 1.4 Unit tests verify activation starts at 180 ticks and expires after 180 playing ticks
-- [x] 1.5 Unit tests verify repeated activation refreshes the duration to 180 ticks
-- [x] 1.6 Unit tests verify wave advancement preserves the effect and life loss cancels it
-- [x] 1.7 Unit tests verify session start/restart clears the effect
+- [x] 1.1 Project compiles: `./mvnw clean compile` — 1c3314c
+- [x] 1.2 Focused model/session tests pass: `./mvnw test -Dtest=RapidFirePowerUpTest,GameSessionTest` — 1c3314c
+- [x] 1.3 Unit tests verify the collectible moves downward — 1c3314c
+- [x] 1.4 Unit tests verify activation starts at 180 ticks and expires after 180 playing ticks — 1c3314c
+- [x] 1.5 Unit tests verify repeated activation refreshes the duration to 180 ticks — 1c3314c
+- [x] 1.6 Unit tests verify wave advancement preserves the effect and life loss cancels it — 1c3314c
+- [x] 1.7 Unit tests verify session start/restart clears the effect — 1c3314c
 
 #### Manual
 
-- [x] 1.8 Code review confirms `RapidFirePowerUp` contains only position and movement state
-- [x] 1.9 Code review confirms rapid-fire scalar lifecycle is owned by `GameSession`, with no Swing, random, audio, or entity-list dependency
+- [x] 1.8 Code review confirms `RapidFirePowerUp` contains only position and movement state — 1c3314c
+- [x] 1.9 Code review confirms rapid-fire scalar lifecycle is owned by `GameSession`, with no Swing, random, audio, or entity-list dependency — 1c3314c
 
 ### Phase 2: Controller Drop, Collection, and Firing Integration
 
 #### Automated
 
-- [x] 2.1 Focused controller tests pass: `./mvnw test -Dtest=GameControllerTest`
-- [x] 2.2 Deterministic tests verify a successful 12% roll creates one drop at the killed alien's position
-- [x] 2.3 Deterministic tests verify a failed roll creates no drop and one resolved kill receives only one roll
-- [x] 2.4 Tests verify drops move down and missed drops are cleaned up
-- [x] 2.5 Tests verify ship contact removes the drop and activates rapid-fire
-- [x] 2.6 Tests verify a second collection refreshes the duration rather than stacking it
-- [x] 2.7 Tests verify held Space fires at a 4-tick cooldown while active and returns to 10 ticks after expiration
-- [x] 2.8 Tests verify wave advancement preserves rapid-fire and life loss cancels it
-- [x] 2.9 Tests verify restart clears active rapid-fire and uncollected drops
+- [x] 2.1 Focused controller tests pass: `./mvnw test -Dtest=GameControllerTest` — 1c3314c
+- [x] 2.2 Deterministic tests verify a successful 12% roll creates one drop at the killed alien's position — 1c3314c
+- [x] 2.3 Deterministic tests verify a failed roll creates no drop and one resolved kill receives only one roll — 1c3314c
+- [x] 2.4 Tests verify drops move down and missed drops are cleaned up — 1c3314c
+- [x] 2.5 Tests verify ship contact removes the drop and activates rapid-fire — 1c3314c
+- [x] 2.6 Tests verify a second collection refreshes the duration rather than stacking it — 1c3314c
+- [x] 2.7 Tests verify held Space fires at a 4-tick cooldown while active and returns to 10 ticks after expiration — 1c3314c
+- [x] 2.8 Tests verify wave advancement preserves rapid-fire and life loss cancels it — 1c3314c
+- [x] 2.9 Tests verify restart clears active rapid-fire and uncollected drops — 1c3314c
 
 #### Manual
 
-- [x] 2.10 Code review confirms drop generation uses resolved alien kills, not raw collision pairs
-- [x] 2.11 Code review confirms no power-up state is stored on `Spaceship` or `GamePanel`
-- [x] 2.12 Code review confirms the shared drop list flows by reference from `Main` to controller and panel
+- [x] 2.10 Code review confirms drop generation uses resolved alien kills, not raw collision pairs — 1c3314c
+- [x] 2.11 Code review confirms no power-up state is stored on `Spaceship` or `GamePanel` — 1c3314c
+- [x] 2.12 Code review confirms the shared drop list flows by reference from `Main` to controller and panel — 1c3314c
 
 ### Phase 3: Rendering, HUD, and Regression Gate
 
 #### Automated
 
-- [x] 3.1 Project compiles: `./mvnw clean compile`
-- [x] 3.2 Full test suite passes: `./mvnw test`
-- [x] 3.3 Existing 48-test baseline remains green alongside the new power-up tests
-- [x] 3.4 No new runtime or test dependency is added
+- [x] 3.1 Project compiles: `./mvnw clean compile` — 1c3314c
+- [x] 3.2 Full test suite passes: `./mvnw test` — 1c3314c
+- [x] 3.3 Existing 48-test baseline remains green alongside the new power-up tests — 1c3314c
+- [x] 3.4 No new runtime or test dependency is added — 1c3314c
 
 #### Manual
 
-- [x] 3.5 Destroying aliens eventually produces visible, distinguishable falling rapid-fire drops
-- [x] 3.6 Moving the ship into a drop removes it and shows `RAPID FIRE: 3s` in the HUD
-- [x] 3.7 Holding Space visibly fires faster during the effect and returns to normal after the indicator expires
-- [x] 3.8 Collecting another drop while active refreshes the HUD countdown to 3 seconds
-- [x] 3.9 Losing a life cancels rapid-fire; clearing a wave does not
-- [x] 3.10 Missing a drop lets it fall offscreen without lingering
-- [x] 3.11 Game Over and Enter-to-restart clear the indicator and all drops
-- [x] 3.12 Existing movement, scoring, waves, lives, alien fire, hit feedback, audio safety, Game Over, and restart remain usable
+- [x] 3.5 Destroying aliens eventually produces visible, distinguishable falling rapid-fire drops — 1c3314c
+- [x] 3.6 Moving the ship into a drop removes it and shows `RAPID FIRE: 3s` in the HUD — 1c3314c
+- [x] 3.7 Holding Space visibly fires faster during the effect and returns to normal after the indicator expires — 1c3314c
+- [x] 3.8 Collecting another drop while active refreshes the HUD countdown to 3 seconds — 1c3314c
+- [x] 3.9 Losing a life cancels rapid-fire; clearing a wave does not — 1c3314c
+- [x] 3.10 Missing a drop lets it fall offscreen without lingering — 1c3314c
+- [x] 3.11 Game Over and Enter-to-restart clear the indicator and all drops — 1c3314c
+- [x] 3.12 Existing movement, scoring, waves, lives, alien fire, hit feedback, audio safety, Game Over, and restart remain usable — 1c3314c
