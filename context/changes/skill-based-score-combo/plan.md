@@ -281,36 +281,36 @@ No persisted data or external contract exists, so no migration is required. Roll
 
 #### Automated
 
-- [x] 1.1 Pure combo score rules and bounds are covered.
-- [x] 1.2 Session progression, timer, cap, no-op batch, and reset lifecycle are covered.
-- [x] 1.3 Project compiles and focused rule/session tests pass.
+- [x] 1.1 Pure combo score rules and bounds are covered. — 91c5475
+- [x] 1.2 Session progression, timer, cap, no-op batch, and reset lifecycle are covered. — 91c5475
+- [x] 1.3 Project compiles and focused rule/session tests pass. — 91c5475
 
 #### Manual
 
-- [x] 1.4 No manual verification required; combo is not yet connected to gameplay.
+- [x] 1.4 No manual verification required; combo is not yet connected to gameplay. — 91c5475
 
 ### Phase 2: Controller Collision and Lifecycle Integration
 
 #### Automated
 
-- [x] 2.1 Controller ticks combo only during play and uses one scoring event per collision batch.
-- [x] 2.2 Same-tick multi-kill, timeout, life-loss, wave-clear, missed-shot, and rapid-fire integration tests pass.
-- [x] 2.3 Project compiles and focused controller tests pass.
+- [x] 2.1 Controller ticks combo only during play and uses one scoring event per collision batch. — 91c5475
+- [x] 2.2 Same-tick multi-kill, timeout, life-loss, wave-clear, missed-shot, and rapid-fire integration tests pass. — 91c5475
+- [x] 2.3 Project compiles and focused controller tests pass. — 91c5475
 
 #### Manual
 
-- [x] 2.4 Quick kills increase score according to the expected multiplier.
-- [x] 2.5 Holding fire without hits does not directly cancel combo.
+- [x] 2.4 Quick kills increase score according to the expected multiplier. — 91c5475
+- [x] 2.5 Holding fire without hits does not directly cancel combo. — 91c5475
 
 ### Phase 3: Combo HUD and Full Regression Verification
 
 #### Automated
 
-- [x] 3.1 Combo HUD countdown and visibility rules are covered.
-- [x] 3.2 Full compile and test suite pass with non-zero test count.
+- [x] 3.1 Combo HUD countdown and visibility rules are covered. — 91c5475
+- [x] 3.2 Full compile and test suite pass with non-zero test count. — 91c5475
 
 #### Manual
 
-- [x] 3.3 HUD clearly shows active x2-x5 combo and countdown.
-- [x] 3.4 Timeout, life loss, wave advancement, and restart visibly reset combo.
-- [x] 3.5 Rapid fire does not allow same-tick kills to skip combo levels.
+- [x] 3.3 HUD clearly shows active x2-x5 combo and countdown. — 91c5475
+- [x] 3.4 Timeout, life loss, wave advancement, and restart visibly reset combo. — 91c5475
+- [x] 3.5 Rapid fire does not allow same-tick kills to skip combo levels. — 91c5475
