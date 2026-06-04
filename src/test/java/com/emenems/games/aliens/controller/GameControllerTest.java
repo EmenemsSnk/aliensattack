@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.emenems.games.aliens.GameConstants;
+import com.emenems.games.aliens.GameSession;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
+import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
@@ -617,6 +619,432 @@ class GameControllerTest {
         assertEquals(6, aliens.size());
     }
 
+    @Test
+    void resolvedAlienKillCreatesRapidFireDropOnSuccessfulRoll() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        missiles.add(new Missile(100, 120));
+        aliens.add(new Alien(100, 120));
+        GameController controller = new GameController(
+            new Spaceship(500, 600),
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null,
+            new AlwaysFireRandom(),
+            new ArcadeSoundPlayer()
+        );
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(1, powerUps.size());
+        assertEquals(100, powerUps.getFirst().getX());
+        assertEquals(120, powerUps.getFirst().getY());
+    }
+
+    @Test
+    void failedDropRollCreatesNoPowerUpAndResolvedKillRollsOnce() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        missiles.add(new Missile(100, 120));
+        missiles.add(new Missile(100, 120));
+        aliens.add(new Alien(100, 120));
+        CountingDropRandom random = new CountingDropRandom(0.5);
+        GameController controller = new GameController(
+            new Spaceship(500, 600),
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null,
+            random,
+            new ArcadeSoundPlayer()
+        );
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(0, powerUps.size());
+        assertEquals(1, random.doubleCalls);
+    }
+
+    @Test
+    void rapidFirePowerUpsMoveCleanUpAndActivateOnCollection() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Alien> aliens = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        RapidFirePowerUp falling = new RapidFirePowerUp(100, 100);
+        RapidFirePowerUp offscreen = new RapidFirePowerUp(100, GameConstants.PANEL_HEIGHT + 1);
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null
+        );
+        startPlaying(controller);
+        aliens.clear();
+        powerUps.add(falling);
+        powerUps.add(offscreen);
+
+        controller.tick();
+
+        assertEquals(103, falling.getY());
+        assertEquals(1, powerUps.size());
+
+        powerUps.add(new RapidFirePowerUp(spaceship.getX(), spaceship.getY()));
+        controller.checkCollisionsWithRapidFirePowerUp();
+
+        assertTrue(controller.isRapidFireActive());
+        assertEquals(GameSession.RAPID_FIRE_DURATION_TICKS, controller.getRapidFireTicks());
+    }
+
+    @Test
+    void collectingAgainRefreshesRapidFireDuration() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            powerUps,
+            null
+        );
+        startPlaying(controller);
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+        controller.checkCollisionsWithRapidFirePowerUp();
+        controller.tick();
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+
+        controller.checkCollisionsWithRapidFirePowerUp();
+
+        assertEquals(GameSession.RAPID_FIRE_DURATION_TICKS, controller.getRapidFireTicks());
+    }
+
+    @Test
+    void heldSpaceUsesRapidFireCooldownThenReturnsToNormalAfterExpiration() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Missile> missiles = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null
+        );
+        startPlaying(controller);
+        aliens.clear();
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+        controller.checkCollisionsWithRapidFirePowerUp();
+
+        controller.handleKeyPressed(KeyEvent.VK_SPACE);
+        assertEquals(4, controller.getPlayerFireCooldownTicks());
+
+        for (int tick = 0; tick < GameSession.RAPID_FIRE_DURATION_TICKS; tick++) {
+            controller.tick();
+        }
+        controller.handleKeyReleased(KeyEvent.VK_SPACE);
+        for (int tick = 0; tick < 10; tick++) {
+            controller.tick();
+        }
+
+        controller.handleKeyPressed(KeyEvent.VK_SPACE);
+
+        assertEquals(10, controller.getPlayerFireCooldownTicks());
+    }
+
+    @Test
+    void rapidFireSurvivesWaveAdvanceButLifeLossAndRestartClearItAndDrops() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Alien> aliens = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null
+        );
+        startPlaying(controller);
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+        controller.checkCollisionsWithRapidFirePowerUp();
+        aliens.clear();
+        aliens.clear();
+        controller.tick();
+
+        assertTrue(controller.isRapidFireActive());
+        assertEquals(2, controller.getWave());
+
+        aliens.add(new Alien(startX(), startY()));
+        controller.checkCollisionsWithSpaceShip();
+
+        assertFalse(controller.isRapidFireActive());
+
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+        controller.checkCollisionsWithRapidFirePowerUp();
+        powerUps.add(new RapidFirePowerUp(100, 100));
+        enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertFalse(controller.isRapidFireActive());
+        assertEquals(0, powerUps.size());
+    }
+
+    @Test
+    void collectingRapidFireDoesNotShortenCurrentNormalCooldown() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            powerUps,
+            null
+        );
+        startPlaying(controller);
+        controller.handleKeyPressed(KeyEvent.VK_SPACE);
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+
+        controller.checkCollisionsWithRapidFirePowerUp();
+
+        assertTrue(controller.isRapidFireActive());
+        assertEquals(10, controller.getPlayerFireCooldownTicks());
+    }
+
+    @Test
+    void rapidFireTimerDoesNotAdvanceOutsidePlaying() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Alien> aliens = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null
+        );
+        startPlaying(controller);
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+        controller.checkCollisionsWithRapidFirePowerUp();
+        enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
+        int ticksAtGameOver = controller.getRapidFireTicks();
+
+        controller.tick();
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals(ticksAtGameOver, controller.getRapidFireTicks());
+    }
+
+    @Test
+    void consecutiveKillTicksIncreaseComboAndRefreshTimer() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(new Alien(100, 100, 0));
+        aliens.add(new Alien(500, 100, 0));
+        missiles.add(new Missile(100, 100));
+
+        controller.checkCollisionsWithMissile();
+        controller.tick();
+
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(GameSession.COMBO_DURATION_TICKS - 1, controller.getComboTicks());
+
+        missiles.add(new Missile(500, 100));
+        aliens.add(new Alien(800, 100, 0));
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(2, controller.getComboMultiplier());
+        assertEquals(GameSession.COMBO_DURATION_TICKS, controller.getComboTicks());
+        assertEquals(30, controller.getScore());
+    }
+
+    @Test
+    void sameTickMultiKillAdvancesComboOnceAndUsesSharedMultiplier() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        aliens.add(new Alien(900, 100));
+        controller.checkCollisionsWithMissile();
+
+        missiles.add(new Missile(200, 100));
+        missiles.add(new Missile(300, 100));
+        aliens.add(new Alien(200, 100));
+        aliens.add(new Alien(300, 100));
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(2, controller.getComboMultiplier());
+        assertEquals(50, controller.getScore());
+    }
+
+    @Test
+    void comboExpiresDuringPlayingTicksAndNextKillRestartsAtOne() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(new Alien(100, 100, 0));
+        aliens.add(new Alien(500, 100, 0));
+        missiles.add(new Missile(100, 100));
+        controller.checkCollisionsWithMissile();
+
+        for (int tick = 0; tick < GameSession.COMBO_DURATION_TICKS; tick++) {
+            controller.tick();
+        }
+
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(0, controller.getComboTicks());
+
+        missiles.add(new Missile(500, 100));
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(20, controller.getScore());
+    }
+
+    @Test
+    void missedShotDoesNotDirectlyResetCombo() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        aliens.add(new Alien(900, 100));
+        controller.checkCollisionsWithMissile();
+        missiles.add(new Missile(200, 100));
+        aliens.add(new Alien(200, 100));
+        controller.checkCollisionsWithMissile();
+        int comboTicks = controller.getComboTicks();
+        missiles.add(new Missile(500, -GameConstants.COMPONENT_SIZE - 1));
+
+        controller.cleanupOffscreenObjects();
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(2, controller.getComboMultiplier());
+        assertEquals(comboTicks, controller.getComboTicks());
+    }
+
+    @Test
+    void lifeLossAndWaveClearResetComboAfterScoring() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+        startPlaying(controller);
+        aliens.clear();
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        aliens.add(new Alien(200, 100));
+        controller.checkCollisionsWithMissile();
+        missiles.add(new Missile(200, 100));
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(30, controller.getScore());
+        assertEquals(2, controller.getComboMultiplier());
+
+        controller.tick();
+
+        assertEquals(2, controller.getWave());
+        assertEquals(30, controller.getScore());
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(0, controller.getComboTicks());
+
+        aliens.clear();
+        missiles.add(new Missile(300, 100));
+        aliens.add(new Alien(300, 100));
+        aliens.add(new Alien(startX(), startY()));
+        controller.checkCollisionsWithMissile();
+        missiles.add(new Missile(400, 100));
+        aliens.add(new Alien(400, 100));
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(2, controller.getComboMultiplier());
+
+        controller.checkCollisionsWithSpaceShip();
+
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(0, controller.getComboTicks());
+    }
+
+    @Test
+    void rapidFireDoesNotChangeComboProgressionRules() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null
+        );
+        startPlaying(controller);
+        powerUps.add(new RapidFirePowerUp(startX(), startY()));
+        controller.checkCollisionsWithRapidFirePowerUp();
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        controller.checkCollisionsWithMissile();
+
+        assertTrue(controller.isRapidFireActive());
+        assertEquals(1, controller.getComboMultiplier());
+
+        missiles.add(new Missile(200, 100));
+        missiles.add(new Missile(300, 100));
+        aliens.add(new Alien(200, 100));
+        aliens.add(new Alien(300, 100));
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(2, controller.getComboMultiplier());
+    }
+
+    @Test
+    void comboTimerPausesOutsidePlayingAndRestartClearsCombo() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        startPlaying(controller);
+        aliens.clear();
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        aliens.add(new Alien(200, 100));
+        controller.checkCollisionsWithMissile();
+        missiles.add(new Missile(200, 100));
+        controller.checkCollisionsWithMissile();
+        aliens.add(new Alien(100, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE));
+        controller.tick();
+        int comboTicksAtGameOver = controller.getComboTicks();
+
+        controller.tick();
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals(2, controller.getComboMultiplier());
+        assertEquals(comboTicksAtGameOver, controller.getComboTicks());
+
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(0, controller.getComboTicks());
+    }
+
     private GameController newController(List<Missile> missiles, List<Alien> aliens) {
         return new GameController(new Spaceship(500, 680), missiles, new ArrayList<>(), aliens, null);
     }
@@ -675,6 +1103,21 @@ class GameControllerTest {
         @Override
         public int nextInt(int bound) {
             return 0;
+        }
+    }
+
+    private static class CountingDropRandom extends Random {
+        private final double value;
+        private int doubleCalls;
+
+        private CountingDropRandom(double value) {
+            this.value = value;
+        }
+
+        @Override
+        public double nextDouble() {
+            doubleCalls++;
+            return value;
         }
     }
 }
