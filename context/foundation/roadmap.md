@@ -32,7 +32,7 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | ID | Change ID | Wynik (użytkownik może…) | Wymagania wstępne | Odnośniki PRD | Status |
 | --- | --- | --- | --- | --- | --- |
 | S-01 | rapid-fire-power-up | zebrać rapid-fire i odczuć jego pełny cykl działania | — | US-01, FR-003, FR-010 | done |
-| S-02 | skill-based-score-combo | budować combo punktowe zachowujące znaczenie umiejętności | S-01 | US-01, FR-004, FR-010 | proposed |
+| S-02 | skill-based-score-combo | budować combo punktowe zachowujące znaczenie umiejętności | S-01 | US-01, FR-004, FR-010 | done |
 | S-03 | distinct-alien-type | spotkać wyraźnie odmienny nowy typ obcego | S-02 | US-01, FR-005, FR-010 | blocked |
 | S-04 | visible-alien-explosion | zobaczyć eksplozję po zniszczeniu obcego | — | US-01, FR-006, FR-010 | ready |
 | S-05 | clear-hud-and-wave-message | odczytać czytelniejszy HUD i komunikat rozpoczęcia fali | S-04 | US-01, FR-007, FR-010 | proposed |
@@ -90,7 +90,11 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** Combo musi zostać ocenione razem z rapid-fire, aby power-up nie zastąpił umiejętności gracza.
-- **Status:** proposed
+- **Status:** done
+
+## Done
+
+- **S-02: Combo oparte na umiejętności** — Zarchiwizowano 2026-06-04 → `context/archive/2026-06-04-skill-based-score-combo/`. Lekcja: —.
 
 ### S-03: Wyraźnie odmienny nowy obcy
 

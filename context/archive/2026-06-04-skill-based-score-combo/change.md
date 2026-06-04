@@ -1,10 +1,10 @@
 ---
 change_id: skill-based-score-combo
 title: Skill based score combo
-status: implemented
+status: archived
 created: 2026-06-04
 updated: 2026-06-04
-archived_at: null
+archived_at: 2026-06-04T15:46:40Z
 ---
 
 ## Notes
