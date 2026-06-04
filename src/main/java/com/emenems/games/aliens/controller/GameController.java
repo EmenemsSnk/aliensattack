@@ -210,6 +210,7 @@ public class GameController implements ActionListener {
 
         updateHitFeedback();
         session.tickRapidFire();
+        session.tickCombo();
         updatePlayerFireCooldown();
         fireHeldPlayerMissileIfReady();
         moveSpaceshipFromPressedKeys();
@@ -366,6 +367,14 @@ public class GameController implements ActionListener {
         return session.getRapidFireTicks();
     }
 
+    int getComboMultiplier() {
+        return session.getComboMultiplier();
+    }
+
+    int getComboTicks() {
+        return session.getComboTicks();
+    }
+
     int getPlayerFireCooldownTicks() {
         return playerFireCooldownTicks;
     }
@@ -402,7 +411,9 @@ public class GameController implements ActionListener {
                 session.isHitFeedbackActive(),
                 session.getGameOverTitle(),
                 session.isRapidFireActive(),
-                session.getRapidFireTicks()
+                session.getRapidFireTicks(),
+                session.getComboMultiplier(),
+                session.getComboTicks()
             );
         }
     }

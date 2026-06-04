@@ -40,6 +40,8 @@ public class GamePanel extends JPanel {
     private String gameOverTitle = "GAME OVER";
     private boolean rapidFireActive;
     private int rapidFireTicks;
+    private int comboMultiplier = 1;
+    private int comboTicks;
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<AlienMissile> alienMissiles, List<Alien> aliens) {
         this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>());
@@ -68,7 +70,9 @@ public class GamePanel extends JPanel {
         boolean hitFeedbackActive,
         String gameOverTitle,
         boolean rapidFireActive,
-        int rapidFireTicks
+        int rapidFireTicks,
+        int comboMultiplier,
+        int comboTicks
     ) {
         this.score = score;
         this.wave = wave;
@@ -78,6 +82,8 @@ public class GamePanel extends JPanel {
         this.gameOverTitle = gameOverTitle;
         this.rapidFireActive = rapidFireActive;
         this.rapidFireTicks = rapidFireTicks;
+        this.comboMultiplier = comboMultiplier;
+        this.comboTicks = comboTicks;
     }
 
     private void initBoard() {
@@ -121,10 +127,26 @@ public class GamePanel extends JPanel {
             graphics.setColor(new Color(255, 230, 60));
             graphics.drawString("RAPID FIRE: " + rapidFireSecondsRemaining(rapidFireTicks) + "s", 20, 105);
         }
+        if (isComboVisible(comboMultiplier, comboTicks)) {
+            graphics.setColor(new Color(80, 220, 255));
+            graphics.drawString(
+                "COMBO x" + comboMultiplier + ": " + comboSecondsRemaining(comboTicks) + "s",
+                20,
+                130
+            );
+        }
     }
 
     static int rapidFireSecondsRemaining(int ticks) {
         return Math.ceilDiv(ticks, TICKS_PER_SECOND);
+    }
+
+    static int comboSecondsRemaining(int ticks) {
+        return Math.ceilDiv(ticks, TICKS_PER_SECOND);
+    }
+
+    static boolean isComboVisible(int multiplier, int ticks) {
+        return multiplier >= 2 && ticks > 0;
     }
 
     private void drawGameOver(Graphics graphics) {
