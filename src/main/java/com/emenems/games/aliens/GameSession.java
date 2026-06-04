@@ -3,6 +3,7 @@ package com.emenems.games.aliens;
 public final class GameSession {
     private static final int DEFAULT_LIVES = 3;
     private static final int HIT_FEEDBACK_TICKS = 18;
+    public static final int RAPID_FIRE_DURATION_TICKS = 180;
     private static final String DEFAULT_GAME_OVER_TITLE = "GAME OVER";
     private static final String ALIENS_WIN_TITLE = "ALIENS WIN";
 
@@ -11,6 +12,7 @@ public final class GameSession {
     private int lives = DEFAULT_LIVES;
     private GameState gameState = GameState.START_MENU;
     private int hitFeedbackTicks;
+    private int rapidFireTicks;
     private String gameOverTitle = DEFAULT_GAME_OVER_TITLE;
 
     public int getScore() {
@@ -37,12 +39,21 @@ public final class GameSession {
         return gameOverTitle;
     }
 
+    public boolean isRapidFireActive() {
+        return rapidFireTicks > 0;
+    }
+
+    public int getRapidFireTicks() {
+        return rapidFireTicks;
+    }
+
     public void startOrRestart() {
         score = 0;
         wave = 1;
         lives = DEFAULT_LIVES;
         gameState = GameState.PLAYING;
         hitFeedbackTicks = 0;
+        rapidFireTicks = 0;
         gameOverTitle = DEFAULT_GAME_OVER_TITLE;
     }
 
@@ -56,6 +67,7 @@ public final class GameSession {
 
     public void loseLife() {
         hitFeedbackTicks = HIT_FEEDBACK_TICKS;
+        rapidFireTicks = 0;
         lives--;
         if (lives <= 0) {
             lives = 0;
@@ -70,6 +82,16 @@ public final class GameSession {
     public void tickHitFeedback() {
         if (hitFeedbackTicks > 0) {
             hitFeedbackTicks--;
+        }
+    }
+
+    public void activateRapidFire() {
+        rapidFireTicks = RAPID_FIRE_DURATION_TICKS;
+    }
+
+    public void tickRapidFire() {
+        if (rapidFireTicks > 0) {
+            rapidFireTicks--;
         }
     }
 

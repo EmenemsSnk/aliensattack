@@ -5,6 +5,7 @@ import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
+import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,6 +13,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -19,6 +21,7 @@ import javax.swing.JPanel;
 public class GamePanel extends JPanel {
     private static final int ALIEN_MISSILE_RENDER_X_OFFSET = 17;
     private static final int ALIEN_MISSILE_RENDER_WIDTH = 8;
+    private static final int TICKS_PER_SECOND = 60;
 
     private Image space;
     private Image alienImage;
@@ -28,18 +31,32 @@ public class GamePanel extends JPanel {
     private List<Missile> missiles;
     private List<AlienMissile> alienMissiles;
     private List<Alien> aliens;
+    private List<RapidFirePowerUp> rapidFirePowerUps;
     private int score;
     private int wave = 1;
     private int lives = 3;
     private GameState gameState = GameState.PLAYING;
     private boolean hitFeedbackActive;
     private String gameOverTitle = "GAME OVER";
+    private boolean rapidFireActive;
+    private int rapidFireTicks;
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<AlienMissile> alienMissiles, List<Alien> aliens) {
+        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>());
+    }
+
+    public GamePanel(
+        Spaceship spaceship,
+        List<Missile> missiles,
+        List<AlienMissile> alienMissiles,
+        List<Alien> aliens,
+        List<RapidFirePowerUp> rapidFirePowerUps
+    ) {
         this.spaceship = spaceship;
         this.missiles = missiles;
         this.alienMissiles = alienMissiles;
         this.aliens = aliens;
+        this.rapidFirePowerUps = rapidFirePowerUps;
         initBoard();
     }
 
@@ -49,7 +66,9 @@ public class GamePanel extends JPanel {
         int lives,
         GameState gameState,
         boolean hitFeedbackActive,
-        String gameOverTitle
+        String gameOverTitle,
+        boolean rapidFireActive,
+        int rapidFireTicks
     ) {
         this.score = score;
         this.wave = wave;
@@ -57,6 +76,8 @@ public class GamePanel extends JPanel {
         this.gameState = gameState;
         this.hitFeedbackActive = hitFeedbackActive;
         this.gameOverTitle = gameOverTitle;
+        this.rapidFireActive = rapidFireActive;
+        this.rapidFireTicks = rapidFireTicks;
     }
 
     private void initBoard() {
@@ -82,6 +103,7 @@ public class GamePanel extends JPanel {
         drawAliens(g);
         drawMissiles(g);
         drawAlienMissiles(g);
+        drawRapidFirePowerUps(g);
         drawHud(g);
         drawHitFeedback(g);
         drawStartMenu(g);
@@ -95,6 +117,14 @@ public class GamePanel extends JPanel {
         graphics.drawString("Score: " + score, 20, 30);
         graphics.drawString("Wave: " + wave, 20, 55);
         graphics.drawString("Lives: " + lives, 20, 80);
+        if (rapidFireActive) {
+            graphics.setColor(new Color(255, 230, 60));
+            graphics.drawString("RAPID FIRE: " + rapidFireSecondsRemaining(rapidFireTicks) + "s", 20, 105);
+        }
+    }
+
+    static int rapidFireSecondsRemaining(int ticks) {
+        return Math.ceilDiv(ticks, TICKS_PER_SECOND);
     }
 
     private void drawGameOver(Graphics graphics) {
@@ -152,6 +182,18 @@ public class GamePanel extends JPanel {
                 ALIEN_MISSILE_RENDER_WIDTH,
                 GameConstants.COMPONENT_SIZE
             ));
+    }
+
+    private void drawRapidFirePowerUps(Graphics graphics) {
+        rapidFirePowerUps.forEach(powerUp -> {
+            int inset = 5;
+            int diameter = GameConstants.COMPONENT_SIZE - inset * 2;
+            graphics.setColor(new Color(255, 220, 35, 220));
+            graphics.fillOval(powerUp.getX() + inset, powerUp.getY() + inset, diameter, diameter);
+            graphics.setColor(new Color(255, 80, 20));
+            graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+            graphics.drawString("R", powerUp.getX() + 14, powerUp.getY() + 28);
+        });
     }
 
     private void drawHitFeedback(Graphics graphics) {

@@ -102,4 +102,50 @@ class GameSessionTest {
         assertEquals(GameState.GAME_OVER, session.getGameState());
         assertEquals("ALIENS WIN", session.getGameOverTitle());
     }
+
+    @Test
+    void rapidFireActivationRefreshesAndExpiresAfterConfiguredDuration() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+
+        session.activateRapidFire();
+
+        assertTrue(session.isRapidFireActive());
+        assertEquals(GameSession.RAPID_FIRE_DURATION_TICKS, session.getRapidFireTicks());
+
+        session.tickRapidFire();
+        session.activateRapidFire();
+
+        assertEquals(GameSession.RAPID_FIRE_DURATION_TICKS, session.getRapidFireTicks());
+
+        for (int tick = 0; tick < GameSession.RAPID_FIRE_DURATION_TICKS; tick++) {
+            session.tickRapidFire();
+        }
+
+        assertFalse(session.isRapidFireActive());
+        assertEquals(0, session.getRapidFireTicks());
+    }
+
+    @Test
+    void rapidFireSurvivesWaveAdvanceButLifeLossAndRestartClearIt() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+        session.activateRapidFire();
+
+        session.advanceWave();
+
+        assertTrue(session.isRapidFireActive());
+        assertEquals(GameSession.RAPID_FIRE_DURATION_TICKS, session.getRapidFireTicks());
+
+        session.loseLife();
+
+        assertFalse(session.isRapidFireActive());
+        assertEquals(0, session.getRapidFireTicks());
+
+        session.activateRapidFire();
+        session.startOrRestart();
+
+        assertFalse(session.isRapidFireActive());
+        assertEquals(0, session.getRapidFireTicks());
+    }
 }
