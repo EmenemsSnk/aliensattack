@@ -10,6 +10,7 @@ import com.emenems.games.aliens.GameSession;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
@@ -109,6 +110,94 @@ class GameControllerTest {
     }
 
     @Test
+    void firstHitOnSpecialAlienConsumesMissileWithoutKillSideEffects() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        List<RapidFirePowerUp> powerUps = new ArrayList<>();
+        Alien specialAlien = Alien.special(100, 100, 0);
+        missiles.add(new Missile(100, 100));
+        aliens.add(specialAlien);
+        CountingDropRandom random = new CountingDropRandom(0.0);
+        GameController controller = new GameController(
+            new Spaceship(500, 600),
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            powerUps,
+            null,
+            random,
+            new ArcadeSoundPlayer()
+        );
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(0, missiles.size());
+        assertEquals(1, aliens.size());
+        assertSame(specialAlien, aliens.getFirst());
+        assertTrue(specialAlien.isDamaged());
+        assertEquals(0, controller.getScore());
+        assertEquals(0, powerUps.size());
+        assertEquals(0, random.doubleCalls);
+    }
+
+    @Test
+    void secondHitOnSpecialAlienAppliesNormalKillEffectsOnce() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        Alien specialAlien = Alien.special(100, 100, 0);
+        missiles.add(new Missile(100, 100));
+        missiles.add(new Missile(100, 100));
+        aliens.add(specialAlien);
+        CountingDropRandom random = new CountingDropRandom(0.5);
+        GameController controller = new GameController(
+            new Spaceship(500, 600),
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            new ArrayList<>(),
+            null,
+            random,
+            new ArcadeSoundPlayer()
+        );
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(0, aliens.size());
+        assertEquals(10, controller.getScore());
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(1, random.doubleCalls);
+    }
+
+    @Test
+    void sameTickMultipleHitsDestroySpecialAlienOnlyOnce() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        Alien specialAlien = Alien.special(100, 100, 0);
+        missiles.add(new Missile(100, 100));
+        missiles.add(new Missile(100, 100));
+        missiles.add(new Missile(100, 100));
+        aliens.add(specialAlien);
+        CountingDropRandom random = new CountingDropRandom(0.5);
+        GameController controller = new GameController(
+            new Spaceship(500, 600),
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            new ArrayList<>(),
+            null,
+            random,
+            new ArcadeSoundPlayer()
+        );
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(0, aliens.size());
+        assertEquals(10, controller.getScore());
+        assertEquals(1, controller.getComboMultiplier());
+        assertEquals(1, random.doubleCalls);
+    }
+
+    @Test
     void oneMissileCannotRemoveMultipleAliensInOneTick() {
         List<Missile> missiles = new ArrayList<>();
         Missile missile = new Missile(100, 100);
@@ -175,6 +264,31 @@ class GameControllerTest {
 
         assertEquals(2, controller.getWave());
         assertEquals(6, aliens.size());
+    }
+
+    @Test
+    void waveOneHasOnlyStandardAliensAndWaveTwoHasExactlyOneSpecialAlien() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens, new Random(1));
+
+        startPlaying(controller);
+
+        assertEquals(6, aliens.size());
+        assertEquals(0, aliens.stream().filter(alien -> alien.getType() == AlienType.SPECIAL).count());
+
+        aliens.clear();
+        controller.tick();
+
+        assertEquals(2, controller.getWave());
+        assertEquals(6, aliens.size());
+        assertEquals(1, aliens.stream().filter(alien -> alien.getType() == AlienType.SPECIAL).count());
+
+        aliens.clear();
+        controller.tick();
+
+        assertEquals(3, controller.getWave());
+        assertEquals(0, aliens.stream().filter(alien -> alien.getType() == AlienType.SPECIAL).count());
     }
 
     @Test
@@ -368,7 +482,7 @@ class GameControllerTest {
 
         assertEquals(1, missiles.size());
 
-        for (int tick = 0; tick < 9; tick++) {
+        for (int tick = 0; tick < 13; tick++) {
             controller.tick();
         }
 
@@ -601,6 +715,139 @@ class GameControllerTest {
     }
 
     @Test
+    void specialAlienHasHigherWeightedChanceToBeSelectedAsShooter() {
+        List<AlienMissile> alienMissiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        Alien standardAlien = new Alien(100, 100, 0);
+        Alien specialAlien = Alien.special(200, 100, 0);
+        aliens.add(standardAlien);
+        aliens.add(specialAlien);
+        GameController controller = new GameController(
+            new Spaceship(500, 680),
+            new ArrayList<>(),
+            alienMissiles,
+            aliens,
+            null,
+            new ScriptedRandom(new double[] { 0.0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }),
+            new ArcadeSoundPlayer()
+        );
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(standardAlien);
+        aliens.add(specialAlien);
+
+        controller.fireAlienMissileIfReady();
+
+        assertEquals(1, alienMissiles.size());
+        assertEquals(specialAlien.getX(), alienMissiles.getFirst().getX());
+        assertEquals(specialAlien.getY() + GameConstants.COMPONENT_SIZE, alienMissiles.getFirst().getY());
+    }
+
+    @Test
+    void specialAlienMovementStaysInsidePanelDuringTick() {
+        List<Alien> aliens = new ArrayList<>();
+        Alien specialAlien = Alien.special(GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE, 100, 0);
+        aliens.add(specialAlien);
+        GameController controller = new GameController(
+            new Spaceship(500, 680),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            null,
+            new ScriptedRandom(new double[] { 0.0, 1.0 }, new int[] { 0 }),
+            new ArcadeSoundPlayer()
+        );
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(specialAlien);
+
+        controller.tick();
+
+        assertTrue(specialAlien.getX() >= 0);
+        assertTrue(specialAlien.getX() <= GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE);
+    }
+
+    @Test
+    void specialAlienReversesInsteadOfOverlappingAnotherAlien() {
+        List<Alien> aliens = new ArrayList<>();
+        Alien specialAlien = Alien.special(100, 100, 0);
+        Alien blockingAlien = new Alien(100 + GameConstants.COMPONENT_SIZE, 100, 0);
+        aliens.add(specialAlien);
+        aliens.add(blockingAlien);
+        GameController controller = new GameController(
+            new Spaceship(500, 680),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            null,
+            new ScriptedRandom(new double[] { 1.0, 1.0 }, new int[] { 0 }),
+            new ArcadeSoundPlayer()
+        );
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(specialAlien);
+        aliens.add(blockingAlien);
+
+        controller.tick();
+
+        assertEquals(100, specialAlien.getX());
+        controller.tick();
+        assertTrue(specialAlien.getX() < 100);
+    }
+
+    @Test
+    void specialAlienSeparatesWhenCatchingUpFromAbove() {
+        List<Alien> aliens = new ArrayList<>();
+        Alien specialAlien = Alien.special(100, 58, 5);
+        Alien blockingAlien = new Alien(100, 100, 0);
+        aliens.add(specialAlien);
+        aliens.add(blockingAlien);
+        GameController controller = new GameController(
+            new Spaceship(500, 680),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            null,
+            new ScriptedRandom(new double[] { 1.0, 1.0 }, new int[] { 0 }),
+            new ArcadeSoundPlayer()
+        );
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(specialAlien);
+        aliens.add(blockingAlien);
+
+        controller.tick();
+
+        assertTrue(specialAlien.getY() + GameConstants.COMPONENT_SIZE <= blockingAlien.getY());
+        assertTrue(Math.abs(specialAlien.getX() - blockingAlien.getX()) >= GameConstants.COMPONENT_SIZE);
+    }
+
+    @Test
+    void playingTickCreatesAtMostOneAlienMissile() {
+        List<AlienMissile> alienMissiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        aliens.add(new Alien(100, 100));
+        aliens.add(Alien.special(200, 100, 0));
+        GameController controller = new GameController(
+            new Spaceship(500, 680),
+            new ArrayList<>(),
+            alienMissiles,
+            aliens,
+            null,
+            new AlwaysFireRandom(),
+            new ArcadeSoundPlayer()
+        );
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(new Alien(100, 100));
+        aliens.add(Alien.special(200, 100, 0));
+
+        controller.tick();
+
+        assertEquals(1, alienMissiles.size());
+    }
+
+    @Test
     void restartClearsAlienMissiles() {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();
@@ -617,6 +864,34 @@ class GameControllerTest {
         assertEquals(GameState.PLAYING, controller.getGameState());
         assertEquals(0, alienMissiles.size());
         assertEquals(6, aliens.size());
+    }
+
+    @Test
+    void restartReturnsToWaveOneCompositionWithoutSpecialAlien() {
+        Spaceship spaceship = new Spaceship(500, 680);
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            null,
+            new Random(1),
+            new ArcadeSoundPlayer()
+        );
+        startPlaying(controller);
+
+        aliens.clear();
+        controller.tick();
+        assertEquals(2, controller.getWave());
+        assertEquals(1, aliens.stream().filter(alien -> alien.getType() == AlienType.SPECIAL).count());
+
+        enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(1, controller.getWave());
+        assertEquals(6, aliens.size());
+        assertEquals(0, aliens.stream().filter(alien -> alien.getType() == AlienType.SPECIAL).count());
     }
 
     @Test
@@ -745,7 +1020,7 @@ class GameControllerTest {
         controller.checkCollisionsWithRapidFirePowerUp();
 
         controller.handleKeyPressed(KeyEvent.VK_SPACE);
-        assertEquals(4, controller.getPlayerFireCooldownTicks());
+        assertEquals(7, controller.getPlayerFireCooldownTicks());
 
         for (int tick = 0; tick < GameSession.RAPID_FIRE_DURATION_TICKS; tick++) {
             controller.tick();
@@ -757,7 +1032,7 @@ class GameControllerTest {
 
         controller.handleKeyPressed(KeyEvent.VK_SPACE);
 
-        assertEquals(10, controller.getPlayerFireCooldownTicks());
+        assertEquals(14, controller.getPlayerFireCooldownTicks());
     }
 
     @Test
@@ -817,7 +1092,7 @@ class GameControllerTest {
         controller.checkCollisionsWithRapidFirePowerUp();
 
         assertTrue(controller.isRapidFireActive());
-        assertEquals(10, controller.getPlayerFireCooldownTicks());
+        assertEquals(14, controller.getPlayerFireCooldownTicks());
     }
 
     @Test
@@ -1118,6 +1393,34 @@ class GameControllerTest {
         public double nextDouble() {
             doubleCalls++;
             return value;
+        }
+    }
+
+    private static class ScriptedRandom extends Random {
+        private final double[] doubles;
+        private final int[] ints;
+        private int doubleIndex;
+        private int intIndex;
+
+        private ScriptedRandom(double[] doubles, int[] ints) {
+            this.doubles = doubles;
+            this.ints = ints;
+        }
+
+        @Override
+        public double nextDouble() {
+            if (doubleIndex >= doubles.length) {
+                return doubles[doubles.length - 1];
+            }
+            return doubles[doubleIndex++];
+        }
+
+        @Override
+        public int nextInt(int bound) {
+            if (intIndex >= ints.length) {
+                return 0;
+            }
+            return ints[intIndex++];
         }
     }
 }

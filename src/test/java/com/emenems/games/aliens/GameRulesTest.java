@@ -1,6 +1,7 @@
 package com.emenems.games.aliens;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -42,5 +43,17 @@ class GameRulesTest {
     @Test
     void alienSpeedNeverExceedsCap() {
         assertEquals(2.8, GameRules.alienSpeedForWave(20), 0.001);
+    }
+
+    @Test
+    void specialAlienRulesMatchPlannedTuning() {
+        assertTrue(GameRules.hasSpecialAlien(2));
+        assertFalse(GameRules.hasSpecialAlien(3));
+        assertTrue(GameRules.hasSpecialAlien(4));
+        assertEquals(1, GameRules.specialAlienCount(2, 6));
+        assertEquals(1.2, GameRules.specialAlienSpeedMultiplier(), 0.001);
+        assertEquals(0.02, GameRules.specialAlienDirectionChangeChance(), 0.0001);
+        assertEquals(2, GameRules.alienFiringWeight(true));
+        assertEquals(1, GameRules.alienFiringWeight(false));
     }
 }

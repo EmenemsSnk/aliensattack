@@ -3,6 +3,7 @@ package com.emenems.games.aliens.gui;
 import com.emenems.games.aliens.GameConstants;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
@@ -19,12 +20,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 public class GamePanel extends JPanel {
-    private static final int ALIEN_MISSILE_RENDER_X_OFFSET = 17;
-    private static final int ALIEN_MISSILE_RENDER_WIDTH = 8;
     private static final int TICKS_PER_SECOND = 60;
 
     private Image space;
     private Image alienImage;
+    private Image specialAlienImage;
+    private Image alienMissileImage;
     private Image missileImage;
     private Image spaceshipImage;
     private Spaceship spaceship;
@@ -97,6 +98,8 @@ public class GamePanel extends JPanel {
     private void loadImages() {
         space = new ImageIcon(getClass().getResource("/images/space.jpeg")).getImage();
         alienImage = new ImageIcon(getClass().getResource("/images/alien.png")).getImage();
+        specialAlienImage = new ImageIcon(getClass().getResource("/images/special-alien.png")).getImage();
+        alienMissileImage = new ImageIcon(getClass().getResource("/images/alien-missile.png")).getImage();
         missileImage = new ImageIcon(getClass().getResource("/images/missile.gif")).getImage();
         spaceshipImage = new ImageIcon(getClass().getResource("/images/spaceship.png")).getImage();
     }
@@ -196,13 +199,14 @@ public class GamePanel extends JPanel {
     }
 
     private void drawAlienMissiles(Graphics graphics) {
-        graphics.setColor(new Color(255, 80, 40));
         alienMissiles.forEach(missile ->
-            graphics.fillRect(
-                missile.getX() + ALIEN_MISSILE_RENDER_X_OFFSET,
+            graphics.drawImage(
+                alienMissileImage,
+                missile.getX(),
                 missile.getY(),
-                ALIEN_MISSILE_RENDER_WIDTH,
-                GameConstants.COMPONENT_SIZE
+                GameConstants.COMPONENT_SIZE,
+                GameConstants.COMPONENT_SIZE,
+                this
             ));
     }
 
@@ -231,8 +235,32 @@ public class GamePanel extends JPanel {
     }
 
     private void drawAliens(Graphics graphics) {
-        aliens.forEach(alien -> graphics.drawImage(alienImage, alien.getX(),
-            alien.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE, this));
+        aliens.forEach(alien -> {
+            graphics.drawImage(alienImageFor(alien), alien.getX(),
+                alien.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE, this);
+            if (isShieldedSpecialAlien(alien)) {
+                drawSpecialAlienShield(graphics, alien);
+            }
+        });
+    }
+
+    static boolean isShieldedSpecialAlien(Alien alien) {
+        return alien.getType() == AlienType.SPECIAL && !alien.isDamaged();
+    }
+
+    Image alienImageFor(Alien alien) {
+        return alien.getType() == AlienType.SPECIAL ? specialAlienImage : alienImage;
+    }
+
+    private void drawSpecialAlienShield(Graphics graphics, Alien alien) {
+        int x = alien.getX();
+        int y = alien.getY();
+        graphics.setColor(new Color(90, 240, 255, 70));
+        graphics.fillOval(x - 4, y - 4, GameConstants.COMPONENT_SIZE + 8, GameConstants.COMPONENT_SIZE + 8);
+        graphics.setColor(new Color(160, 250, 255, 180));
+        graphics.drawOval(x - 3, y - 3, GameConstants.COMPONENT_SIZE + 6, GameConstants.COMPONENT_SIZE + 6);
+        graphics.setColor(new Color(255, 255, 255, 180));
+        graphics.drawArc(x - 1, y - 5, GameConstants.COMPONENT_SIZE + 2, GameConstants.COMPONENT_SIZE + 2, 25, 120);
     }
 
     private void drawSpaceship(Graphics graphics) {
