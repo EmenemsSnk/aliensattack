@@ -2,7 +2,7 @@
 project: "Aliens Attack"
 version: 1
 status: draft
-created: 2026-05-31
+created: 2026-06-04
 context_type: brownfield
 product_type: desktop
 target_scale:
@@ -10,111 +10,140 @@ target_scale:
   qps: low
   data_volume: small
 timeline_budget:
-  delivery_weeks: 1
+  delivery_weeks: 6
   hard_deadline: null
   after_hours_only: true
 ---
 
-# Aliens Attack Refactor Pack PRD
-
 ## Current System Overview
 
-Aliens Attack is an existing Java 21 + Maven + Swing desktop arcade game.
+Aliens Attack is an existing single-process 2D desktop arcade game built with Java 21, Maven, and Java Swing. MVP version 1.0.0 provides a complete playable loop: start menu, gameplay, waves, score, lives, Game Over, restart, audio feedback, and aliens that shoot.
 
-The current architecture is a single-process Swing application. Version 1.0.0 is a playable MVP with a complete loop: start menu, gameplay, waves, score, lives, Game Over, restart, basic audio feedback, and shooting aliens. `GameController` is the central node for input, ticks, collision logic, waves, scoring, lives, missiles, audio, and game state. `GamePanel` renders the game, and the controller pushes scalar HUD/game-state values into it each tick. Runtime dependencies remain limited to the JDK standard library.
-
-Current users are players of the local desktop game. For this change, the primary affected persona is the developer/maintainer extending the game after the MVP.
+The game is used locally by its author. It has no external runtime dependencies.
 
 ## Problem Statement & Motivation
 
-The next change is an architecture improvement without visible gameplay changes. The immediate pain is that `GameController` was pragmatic for shipping the MVP, but its current scope makes future mechanics riskier and more expensive to add.
+The earlier MVP intentionally focused on delivering a simple, complete game. The next change expands it through three equally important feature packs: Replayability, Polish, and High Scores.
 
-The motivation is to prepare the codebase for later Replayability Pack work by extracting a cleaner gameplay foundation first. This PRD should not add power-ups, new aliens, polish, high scores, or distribution work.
+The packs will be delivered as three independent playable releases. Each release must add its intended value without changing the game's genre or breaking the existing controls and general playability.
 
-The current workaround is to keep adding behavior directly to `GameController`, which increases regression risk and makes focused tests harder as the next gameplay iteration approaches.
+# TODO: current workaround and its cost — see Open Questions
 
 ## User & Persona
 
-Primary persona: developer/maintainer continuing development of Aliens Attack after the MVP.
+The primary persona is the author playing Aliens Attack locally.
 
-The moment they feel the pain is when planning the next gameplay iteration, especially Replayability Pack mechanics, and seeing that adding more behavior directly to `GameController` would increase regression risk and make focused tests harder.
-
-Players remain affected indirectly because their existing game experience must not change during this refactor.
+The author reaches for the game for a complete arcade session and should gain, across the three independent releases, less predictable gameplay, a more finished game feel, and a persistent reason to improve previous results.
 
 ## Success Criteria
 
 ### Primary
 
-- Developer/maintainer can extract `GameSession` and `GameRules` from `GameController` while preserving visible gameplay behavior.
-- The game still supports the existing player-visible loop: start, movement, shooting, wave progression, scoring, lives, Game Over, and restart.
+- Replayability release: the player can build a score combo, collect a temporary rapid-fire power-up, and encounter a new alien type while completing a playable arcade session.
+- Polish release: the player sees explosions, a clearer HUD, and wave-start messages during a playable arcade session.
+- High Scores release: the player can select or create a local profile, and the profile's best score is saved and displayed after Game Over.
 
 ### Secondary
 
-- The extracted foundation makes the later Replayability Pack easier to add.
+- The player can pause and resume gameplay.
+- Losing a life produces a distinct sound.
 
 ### Guardrails
 
-- Zero visible gameplay behavior changes.
-- Keep the blast radius focused on `GameController`, controller tests, and session/reset/scoring/wave flow.
-- Existing tests continue to pass.
-- The game remains responsive to player input at the same perceived level as before the refactor.
-- The runtime remains JDK-only with no new external runtime dependencies.
+- Existing controls continue to work.
+- Scoring, waves, and difficulty scaling continue to work.
+- Lives, Game Over, and restart continue to work.
+- Gameplay continues safely when audio is unavailable.
+- Each release remains independently playable.
 
 ## User Stories
 
-### US-01: Developer extracts gameplay foundation without changing player-visible behavior
+### US-01: Complete enhanced game session
 
-- **Given** the existing Aliens Attack MVP with `GameController` owning session state and gameplay rules
-- **When** the developer/maintainer performs the refactor
-- **Then** session state and game-rule calculations are available through focused classes while the player-visible game loop remains unchanged
+- **Given** the player has selected or created a local profile
+- **When** the player completes a full session using the new Replayability mechanics and Polish elements
+- **Then** the player can finish the session without regressions, and the profile's best score is saved and displayed after Game Over
 
 #### Acceptance Criteria
 
-- Score, wave, lives, game state, and reset behavior are represented outside the monolithic controller.
-- Scoring and wave-speed calculations are represented as focused game-rule behavior.
-- The game still supports start, movement, shooting, wave progression, scoring, lives, Game Over, and restart.
-- Existing tests continue to pass.
+- The existing controls and arcade loop remain usable throughout the session.
+- Replayability and Polish features are observable during the session.
+- The selected profile's best score is saved and displayed after Game Over.
 
 ## Scope of Change
 
-- [new] FR-001: Developer/maintainer can work with an extracted game session model covering score, wave, lives, game state, and reset. Priority: must-have.
-  > Socratic: Considered counterargument: extracting session state may split the simple reset and game-state flow across too many places. Resolution: keep the FR, but the extraction must preserve a clear single reset/session boundary rather than scatter state ownership.
-- [new] FR-002: Developer/maintainer can work with extracted game rules for scoring and wave scaling. Priority: must-have.
-  > Socratic: Considered counterargument: extracting scoring and wave-scaling rules could make later balancing harder if rules are locked behind a rigid abstraction too early. Resolution: keep the FR, but the extracted rules should stay small and focused on current behavior rather than over-designing for future mechanics.
-- [preserved] FR-003: Player can play Aliens Attack with the same visible behavior as before the refactor. Priority: must-have.
-  > Socratic: No counterargument; remains as written.
-- [preserved] FR-004: Developer/maintainer can run the existing test suite and confirm no regression. Priority: must-have.
-  > Socratic: Considered counterargument: the existing tests may not cover every player-visible behavior. Resolution: keep the FR, but do not treat green tests as the only confidence signal; a short manual smoke check remains necessary.
+### Local Profiles and High Scores
+
+- [new] FR-001: The player can select or create an unprotected local profile from the start screen. Priority: must-have.
+  > Socrates: Considered counterargument: profile names or data may be invalid and require additional error handling. Resolution: retained; invalid profile input or data must not prevent the game from starting.
+- [new] FR-002: The player can have the selected profile's best score saved and displayed. Priority: must-have.
+  > Socrates: No counterargument selected; remains as written.
+
+### Replayability
+
+- [new] FR-003: The player can collect a temporary rapid-fire power-up during gameplay. Priority: must-have.
+  > Socrates: No counterargument selected; remains as written.
+- [new] FR-004: The player can build a score combo during gameplay. Priority: must-have.
+  > Socrates: Considered counterargument: rapid-fire may reward the power-up more than player skill. Resolution: retained; combo behavior must preserve a meaningful skill component.
+- [new] FR-005: The player can encounter a new alien type during gameplay. Priority: must-have.
+  > Socrates: No counterargument selected; remains as written.
+
+### Polish
+
+- [new] FR-006: The player can see an explosion after destroying an alien. Priority: must-have.
+  > Socrates: No counterargument selected; remains as written.
+- [modified] FR-007: The player can see a clearer HUD and a message when a wave starts. Priority: must-have.
+  > Socrates: No counterargument selected; remains as written.
+- [new] FR-008: The player can pause and resume gameplay. Priority: nice-to-have.
+  > Socrates: Considered counterargument: pause may be unnecessary for short sessions. Resolution: lowered to nice-to-have.
+- [new] FR-009: The player can hear a distinct sound when losing a life. Priority: nice-to-have.
+  > Socrates: Considered counterargument: an additional sound may add little beyond existing feedback. Resolution: lowered to nice-to-have.
+
+### Preserved Gameplay
+
+- [preserved] FR-010: The player can continue using the existing controls and complete the existing arcade loop with scoring, waves, difficulty scaling, lives, Game Over, restart, and safe behavior when audio is unavailable, except where a new FR deliberately changes a named rule. Priority: must-have.
+  > Socrates: Considered counterargument: a broad guardrail could prevent deliberate improvements to existing rules. Resolution: retained with an explicit exception for changes required by new FRs.
 
 ## Constraints & Compatibility
 
-- Preserve the existing presentation layer.
-- Preserve the current launch path and local desktop game model.
-- Preserve the zero external runtime dependency posture.
-- Preserve existing player-visible behavior: start, movement, shooting, wave progression, scoring, lives, Game Over, and restart.
-- Preserve current test confidence and supplement it with a short manual smoke check because existing tests may not cover every visible behavior.
-- No migration of player data is required for this refactor.
-- No changes to external integrations are required; the game has no external runtime service integration.
+- Existing controls must continue to work.
+- The game must remain playable after each independent release.
+- Existing scoring, waves, difficulty scaling, lives, Game Over, restart, and safe audio behavior must not regress.
+- The game remains a local desktop application.
+- Valid local profile and best-score data remains available after restarting the game.
+- Missing or corrupted profile data does not prevent the game from starting; the player can continue with an empty profile state.
+- A failure to save profile or score data does not interrupt an active game session.
+- The game remains playable when audio is unavailable.
+
+# TODO: data migration and rollback needs — see Open Questions
+
+# TODO: existing integrations that must remain compatible — see Open Questions
 
 ## Business Logic Changes
 
-The system preserves the existing arcade-session rules: score depends on wave, wave difficulty scales alien speed, and losing all lives or allowing invasion ends the session without changing visible gameplay.
+Destroyed aliens have a small random chance to drop a rapid-fire power-up; ship contact activates it, and the effect expires after a fixed number of ticks.
 
-This change reorganizes where the existing rules live; it does not add a new player-facing domain rule. The relevant inputs are the same player-visible session events as before: alien destruction, wave progression, life loss, reset, and Game Over triggers. The output remains the same score, wave, lives, and game-state behavior the player already sees.
+Quick consecutive hits increase the score multiplier. A delay between hits or losing a life resets the combo.
+
+The exact rule for the new alien type and the condition for replacing a profile's stored best score remain open.
 
 ## Access Control Changes
 
-No access control changes are planned.
+The current game has no authentication or roles. This change adds unprotected local player profiles: on the start screen, a player can select an existing profile or create a new one.
 
-Current model preserved: Aliens Attack is a local single-player desktop game with no login, no accounts, and no role separation.
+Any local player can select any profile. Profiles have no password or PIN and separate only each player's best score.
 
 ## Non-Goals
 
-- No power-ups or new alien types in this PRD; those belong to the later Replayability Pack.
-- No presentation rendering rewrite; this PRD focuses on gameplay foundation extraction, not presentation architecture.
-- No high scores, data persistence, playable artifact distribution, or release packaging; those remain deferred to a later version.
-- No gameplay balance changes; scoring, wave progression, lives, movement, shooting, and Game Over behavior should remain visibly unchanged.
+- No multiplayer or networking; the releases remain focused on local single-player play.
+- No online accounts, cloud synchronization, or global leaderboard; profiles and best scores remain local.
+- No additional power-up families, alien types, or bosses beyond the explicitly selected scope; this prevents mechanic expansion from delaying the three releases.
+- No rewrite of the existing game architecture and no change away from the desktop product surface; the work extends the shipped game.
 
 ## Open Questions
 
-- None.
+1. What behavior differentiates the new alien type from the standard alien? Owner: user. By: before planning the Replayability release.
+2. Under exactly what condition does a completed session replace the selected profile's stored best score? Owner: user. By: before planning the High Scores release.
+3. What is the current workaround for limited replayability, polish, and score persistence, and what does it cost the player? Owner: user. By: before PRD review.
+4. Does introducing persistent local profiles require migration or rollback behavior for any existing data? Owner: user. By: before planning the High Scores release.
+5. Are there existing integrations beyond local audio behavior that must remain compatible? Owner: user. By: before implementation planning.
