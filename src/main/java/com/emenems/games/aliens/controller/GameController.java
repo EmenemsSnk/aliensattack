@@ -6,6 +6,7 @@ import com.emenems.games.aliens.GameSession;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienExplosion;
 import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
@@ -41,6 +42,7 @@ public class GameController implements ActionListener {
     private final List<Missile> missiles;
     private final List<AlienMissile> alienMissiles;
     private final List<Alien> aliens;
+    private final List<AlienExplosion> alienExplosions;
     private final List<RapidFirePowerUp> rapidFirePowerUps;
     private final GamePanel gamePanel;
     private final Random random;
@@ -58,7 +60,7 @@ public class GameController implements ActionListener {
         List<Alien> aliens,
         GamePanel gamePanel
     ) {
-        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), gamePanel);
+        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), new ArrayList<>(), gamePanel);
     }
 
     public GameController(
@@ -69,7 +71,39 @@ public class GameController implements ActionListener {
         List<RapidFirePowerUp> rapidFirePowerUps,
         GamePanel gamePanel
     ) {
-        this(spaceship, missiles, alienMissiles, aliens, rapidFirePowerUps, gamePanel, new Random(), new ArcadeSoundPlayer());
+        this(
+            spaceship,
+            missiles,
+            alienMissiles,
+            aliens,
+            new ArrayList<>(),
+            rapidFirePowerUps,
+            gamePanel,
+            new Random(),
+            new ArcadeSoundPlayer()
+        );
+    }
+
+    public GameController(
+        Spaceship spaceship,
+        List<Missile> missiles,
+        List<AlienMissile> alienMissiles,
+        List<Alien> aliens,
+        List<AlienExplosion> alienExplosions,
+        List<RapidFirePowerUp> rapidFirePowerUps,
+        GamePanel gamePanel
+    ) {
+        this(
+            spaceship,
+            missiles,
+            alienMissiles,
+            aliens,
+            alienExplosions,
+            rapidFirePowerUps,
+            gamePanel,
+            new Random(),
+            new ArcadeSoundPlayer()
+        );
     }
 
     GameController(
@@ -81,7 +115,17 @@ public class GameController implements ActionListener {
         Random random,
         ArcadeSoundPlayer soundPlayer
     ) {
-        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), gamePanel, random, soundPlayer);
+        this(
+            spaceship,
+            missiles,
+            alienMissiles,
+            aliens,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            gamePanel,
+            random,
+            soundPlayer
+        );
     }
 
     GameController(
@@ -94,10 +138,35 @@ public class GameController implements ActionListener {
         Random random,
         ArcadeSoundPlayer soundPlayer
     ) {
+        this(
+            spaceship,
+            missiles,
+            alienMissiles,
+            aliens,
+            new ArrayList<>(),
+            rapidFirePowerUps,
+            gamePanel,
+            random,
+            soundPlayer
+        );
+    }
+
+    GameController(
+        Spaceship spaceship,
+        List<Missile> missiles,
+        List<AlienMissile> alienMissiles,
+        List<Alien> aliens,
+        List<AlienExplosion> alienExplosions,
+        List<RapidFirePowerUp> rapidFirePowerUps,
+        GamePanel gamePanel,
+        Random random,
+        ArcadeSoundPlayer soundPlayer
+    ) {
         this.spaceship = spaceship;
         this.missiles = missiles;
         this.alienMissiles = alienMissiles;
         this.aliens = aliens;
+        this.alienExplosions = alienExplosions;
         this.rapidFirePowerUps = rapidFirePowerUps;
         this.gamePanel = gamePanel;
         this.random = random;
@@ -217,6 +286,7 @@ public class GameController implements ActionListener {
         updatePlayerFireCooldown();
         fireHeldPlayerMissileIfReady();
         moveSpaceshipFromPressedKeys();
+        updateAlienExplosions();
         moveAliens();
         missiles.forEach(Missile::move);
         alienMissiles.forEach(AlienMissile::move);
@@ -288,6 +358,7 @@ public class GameController implements ActionListener {
         }
 
         missiles.removeAll(missilesToRemove);
+        spawnAlienExplosions(aliensToRemove);
         spawnRapidFirePowerUps(aliensToRemove);
         aliens.removeAll(aliensToRemove);
         session.addAlienKills(aliensToRemove.size());
@@ -449,6 +520,7 @@ public class GameController implements ActionListener {
         );
         missiles.clear();
         alienMissiles.clear();
+        alienExplosions.clear();
         rapidFirePowerUps.clear();
         pressedMovementKeys.clear();
         spacePressed = false;
@@ -521,6 +593,15 @@ public class GameController implements ActionListener {
                 rapidFirePowerUps.add(new RapidFirePowerUp(alien.getX(), alien.getY()));
             }
         }
+    }
+
+    private void spawnAlienExplosions(Set<Alien> destroyedAliens) {
+        destroyedAliens.forEach(alien -> alienExplosions.add(new AlienExplosion(alien.getX(), alien.getY())));
+    }
+
+    private void updateAlienExplosions() {
+        alienExplosions.forEach(AlienExplosion::tick);
+        alienExplosions.removeIf(AlienExplosion::isExpired);
     }
 
     private void loseLife() {

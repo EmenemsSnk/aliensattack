@@ -34,7 +34,7 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | S-01 | rapid-fire-power-up | zebrać rapid-fire i odczuć jego pełny cykl działania | — | US-01, FR-003, FR-010 | done |
 | S-02 | skill-based-score-combo | budować combo punktowe zachowujące znaczenie umiejętności | S-01 | US-01, FR-004, FR-010 | done |
 | S-03 | distinct-alien-type | spotkać wyraźnie odmienny nowy typ obcego | S-02 | US-01, FR-005, FR-010 | done |
-| S-04 | visible-alien-explosion | zobaczyć eksplozję po zniszczeniu obcego | — | US-01, FR-006, FR-010 | ready |
+| S-04 | visible-alien-explosion | zobaczyć eksplozję po zniszczeniu obcego | — | US-01, FR-006, FR-010 | done |
 | S-05 | clear-hud-and-wave-message | odczytać czytelniejszy HUD i komunikat rozpoczęcia fali | S-04 | US-01, FR-007, FR-010 | proposed |
 | S-06 | pause-and-resume | wstrzymać i wznowić rozgrywkę | S-05 | FR-008, FR-010 | proposed |
 | S-07 | life-loss-sound | usłyszeć osobny dźwięk utraty życia | S-05 | FR-009, FR-010 | proposed |
@@ -96,6 +96,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 
 - **S-02: Combo oparte na umiejętności** — Zarchiwizowano 2026-06-04 → `context/archive/2026-06-04-skill-based-score-combo/`. Lekcja: —.
 - **S-03: Gracz może spotkać nowy typ obcego, którego zachowanie jest czytelnie inne od zwykłego przeciwnika.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-04-distinct-alien-type/`. Lekcja: —.
+- **S-04: Gracz może zobaczyć krótką eksplozję po zniszczeniu obcego bez utraty czytelności rozgrywki.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-visible-alien-explosion/`. Lekcja: —.
 
 ### S-03: Wyraźnie odmienny nowy obcy
 
@@ -120,7 +121,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** Efekt czasowy nie może zasłaniać pocisków ani naruszać działającego renderowania.
-- **Status:** ready
+- **Status:** done
 
 ### S-05: Czytelniejszy HUD i komunikat fali
 

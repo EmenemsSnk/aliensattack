@@ -10,6 +10,7 @@ import com.emenems.games.aliens.GameSession;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienExplosion;
 import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
@@ -88,12 +89,16 @@ class GameControllerTest {
         List<Alien> aliens = new ArrayList<>();
         Alien alien = new Alien(100, 100);
         aliens.add(alien);
-        GameController controller = newController(missiles, aliens);
+        List<AlienExplosion> explosions = new ArrayList<>();
+        GameController controller = newController(missiles, aliens, explosions);
 
         controller.checkCollisionsWithMissile();
 
         assertEquals(0, missiles.size());
         assertEquals(0, aliens.size());
+        assertEquals(1, explosions.size());
+        assertEquals(100, explosions.getFirst().getX());
+        assertEquals(100, explosions.getFirst().getY());
     }
 
     @Test
@@ -113,6 +118,7 @@ class GameControllerTest {
     void firstHitOnSpecialAlienConsumesMissileWithoutKillSideEffects() {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
+        List<AlienExplosion> explosions = new ArrayList<>();
         List<RapidFirePowerUp> powerUps = new ArrayList<>();
         Alien specialAlien = Alien.special(100, 100, 0);
         missiles.add(new Missile(100, 100));
@@ -123,6 +129,7 @@ class GameControllerTest {
             missiles,
             new ArrayList<>(),
             aliens,
+            explosions,
             powerUps,
             null,
             random,
@@ -136,6 +143,7 @@ class GameControllerTest {
         assertSame(specialAlien, aliens.getFirst());
         assertTrue(specialAlien.isDamaged());
         assertEquals(0, controller.getScore());
+        assertEquals(0, explosions.size());
         assertEquals(0, powerUps.size());
         assertEquals(0, random.doubleCalls);
     }
@@ -144,6 +152,7 @@ class GameControllerTest {
     void secondHitOnSpecialAlienAppliesNormalKillEffectsOnce() {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
+        List<AlienExplosion> explosions = new ArrayList<>();
         Alien specialAlien = Alien.special(100, 100, 0);
         missiles.add(new Missile(100, 100));
         missiles.add(new Missile(100, 100));
@@ -154,6 +163,7 @@ class GameControllerTest {
             missiles,
             new ArrayList<>(),
             aliens,
+            explosions,
             new ArrayList<>(),
             null,
             random,
@@ -165,6 +175,7 @@ class GameControllerTest {
         assertEquals(0, aliens.size());
         assertEquals(10, controller.getScore());
         assertEquals(1, controller.getComboMultiplier());
+        assertEquals(1, explosions.size());
         assertEquals(1, random.doubleCalls);
     }
 
@@ -172,6 +183,7 @@ class GameControllerTest {
     void sameTickMultipleHitsDestroySpecialAlienOnlyOnce() {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
+        List<AlienExplosion> explosions = new ArrayList<>();
         Alien specialAlien = Alien.special(100, 100, 0);
         missiles.add(new Missile(100, 100));
         missiles.add(new Missile(100, 100));
@@ -183,6 +195,7 @@ class GameControllerTest {
             missiles,
             new ArrayList<>(),
             aliens,
+            explosions,
             new ArrayList<>(),
             null,
             random,
@@ -194,7 +207,49 @@ class GameControllerTest {
         assertEquals(0, aliens.size());
         assertEquals(10, controller.getScore());
         assertEquals(1, controller.getComboMultiplier());
+        assertEquals(1, explosions.size());
         assertEquals(1, random.doubleCalls);
+    }
+
+    @Test
+    void sameTickMultipleKillsCreateMultipleExplosions() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        List<AlienExplosion> explosions = new ArrayList<>();
+        missiles.add(new Missile(100, 100));
+        missiles.add(new Missile(200, 100));
+        aliens.add(new Alien(100, 100, 0));
+        aliens.add(new Alien(200, 100, 0));
+        GameController controller = newController(missiles, aliens, explosions);
+
+        controller.checkCollisionsWithMissile();
+
+        assertEquals(2, explosions.size());
+    }
+
+    @Test
+    void playingTicksExpireAlienExplosions() {
+        List<AlienExplosion> explosions = new ArrayList<>();
+        GameController controller = new GameController(
+            new Spaceship(500, 680),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            explosions,
+            new ArrayList<>(),
+            null
+        );
+        startPlaying(controller);
+        explosions.add(new AlienExplosion(100, 100));
+
+        for (int tick = 0; tick < 11; tick++) {
+            controller.tick();
+            assertEquals(1, explosions.size());
+        }
+
+        controller.tick();
+
+        assertEquals(0, explosions.size());
     }
 
     @Test
@@ -574,10 +629,20 @@ class GameControllerTest {
         List<Missile> missiles = new ArrayList<>();
         List<AlienMissile> alienMissiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, null);
+        List<AlienExplosion> explosions = new ArrayList<>();
+        GameController controller = new GameController(
+            spaceship,
+            missiles,
+            alienMissiles,
+            aliens,
+            explosions,
+            new ArrayList<>(),
+            null
+        );
         startPlaying(controller);
         missiles.add(new Missile(100, 100));
         alienMissiles.add(new AlienMissile(100, 100));
+        explosions.add(new AlienExplosion(120, 120));
 
         enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
         controller.handleKeyPressed(KeyEvent.VK_ENTER);
@@ -585,6 +650,7 @@ class GameControllerTest {
         assertEquals(GameState.PLAYING, controller.getGameState());
         assertEquals(0, missiles.size());
         assertEquals(0, alienMissiles.size());
+        assertEquals(0, explosions.size());
         assertEquals(6, aliens.size());
     }
 
@@ -1321,7 +1387,19 @@ class GameControllerTest {
     }
 
     private GameController newController(List<Missile> missiles, List<Alien> aliens) {
-        return new GameController(new Spaceship(500, 680), missiles, new ArrayList<>(), aliens, null);
+        return newController(missiles, aliens, new ArrayList<>());
+    }
+
+    private GameController newController(List<Missile> missiles, List<Alien> aliens, List<AlienExplosion> explosions) {
+        return new GameController(
+            new Spaceship(500, 680),
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            explosions,
+            new ArrayList<>(),
+            null
+        );
     }
 
     private GameController newController(List<Missile> missiles, List<Alien> aliens, Random random) {
