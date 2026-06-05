@@ -1,10 +1,10 @@
 ---
 change_id: clear-hud-and-wave-message
 title: Clear hud and wave message
-status: planned
+status: archived
 created: 2026-06-05
 updated: 2026-06-05
-archived_at: null
+archived_at: 2026-06-05T11:55:00Z
 ---
 
 ## Notes
