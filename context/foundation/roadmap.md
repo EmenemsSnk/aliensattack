@@ -35,11 +35,12 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | S-02 | skill-based-score-combo | budować combo punktowe zachowujące znaczenie umiejętności | S-01 | US-01, FR-004, FR-010 | done |
 | S-03 | distinct-alien-type | spotkać wyraźnie odmienny nowy typ obcego | S-02 | US-01, FR-005, FR-010 | done |
 | S-04 | visible-alien-explosion | zobaczyć eksplozję po zniszczeniu obcego | — | US-01, FR-006, FR-010 | done |
-| S-05 | clear-hud-and-wave-message | odczytać czytelniejszy HUD i komunikat rozpoczęcia fali | S-04 | US-01, FR-007, FR-010 | proposed |
+| S-05 | clear-hud-and-wave-message | odczytać czytelniejszy HUD i komunikat rozpoczęcia fali | S-04 | US-01, FR-007, FR-010 | done |
 | S-06 | pause-and-resume | wstrzymać i wznowić rozgrywkę | S-05 | FR-008, FR-010 | proposed |
 | S-07 | life-loss-sound | usłyszeć osobny dźwięk utraty życia | S-05 | FR-009, FR-010 | proposed |
 | S-08 | local-player-profiles | utworzyć lub wybrać lokalny profil bez blokowania startu gry | — | US-01, FR-001, FR-010 | ready |
 | S-09 | persistent-profile-best-score | zobaczyć zapisany najlepszy wynik wybranego profilu po Game Over | S-08 | US-01, FR-002, FR-010 | blocked |
+| S-10 | support-drops-and-boss-wave | zebrać rzadki drop życia, tarczę lub przyspieszenie i zmierzyć się z bossem co 5 fal | S-01, S-05 | US-01, FR-010 | proposed |
 
 ## Strumienie
 
@@ -50,6 +51,7 @@ Pomoc nawigacyjna — grupuje elementy, które współdzielą łańcuch wymagań
 | A | Regrywalność | `S-01` → `S-02` → `S-03` | Zaczyna od gwiazdy przewodniej i odkłada nowego obcego do rozstrzygnięcia jego reguły. |
 | B | Odczucie jakości | `S-04` → `S-05` → `S-06` / `S-07` | Najpierw dostarcza konieczne elementy Polish, potem niezależne dodatki drugorzędne. |
 | C | Profile i wyniki | `S-08` → `S-09` | Wprowadza trwałość pionowo z profilem, a rekord czeka na decyzję o regule aktualizacji. |
+| D | Zaawansowane fale i wsparcie | `S-01` + `S-05` → `S-10` | Rozszerza system dropów o przeżywalność i mobilność, a cykliczny boss wykorzystuje czytelny HUD. |
 
 ## Baza
 
@@ -97,6 +99,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **S-02: Combo oparte na umiejętności** — Zarchiwizowano 2026-06-04 → `context/archive/2026-06-04-skill-based-score-combo/`. Lekcja: —.
 - **S-03: Gracz może spotkać nowy typ obcego, którego zachowanie jest czytelnie inne od zwykłego przeciwnika.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-04-distinct-alien-type/`. Lekcja: —.
 - **S-04: Gracz może zobaczyć krótką eksplozję po zniszczeniu obcego bez utraty czytelności rozgrywki.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-visible-alien-explosion/`. Lekcja: —.
+- **S-05: Gracz może łatwo odczytać stan sesji i zobaczyć komunikat rozpoczęcia nowej fali.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-clear-hud-and-wave-message/`. Lekcja: —.
 
 ### S-03: Wyraźnie odmienny nowy obcy
 
@@ -133,7 +136,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** Zmiany prezentacji muszą zachować czytelność na obecnym rozmiarze okna i nie zasłaniać akcji.
-- **Status:** proposed
+- **Status:** done
 
 ### S-06: Pauza i wznowienie
 
@@ -185,6 +188,18 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Ryzyko:** Bez jawnej reguły aktualizacji rekord może zachowywać się nieprzewidywalnie lub nadpisywać poprawne dane.
 - **Status:** blocked
 
+### S-10: Dropy wsparcia i boss co 5 fal
+
+- **Wynik:** Gracz może rzadko zdobyć dodatkowe życie, tarczę chroniącą przed pociskami albo przyspieszenie statku, a co piątą falę zmierzyć się z bossem mającym pasek życia.
+- **Change ID:** support-drops-and-boss-wave
+- **Odnośniki PRD:** US-01, FR-010
+- **Wymagania wstępne:** S-01, S-05
+- **Równolegle z:** S-06, S-07, S-09
+- **Blokady:** —
+- **Niewiadome:** —
+- **Ryzyko:** Wycinek łączy trzy nowe efekty sesyjne z nowym typem starcia okresowego; największe ryzyko to balans dropów, czytelność aktywnych efektów oraz to, by boss-wave nie łamał tempa zwykłych fal.
+- **Status:** proposed
+
 ## Przekazanie backlogu
 
 | ID mapy drogowej | Change ID | Sugerowany tytuł problemu | Gotowe do `/10x-plan` | Uwagi |
@@ -198,6 +213,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 | S-07 | life-loss-sound | Dodaj osobny dźwięk utraty życia | no | Wymaga S-05; nice-to-have. |
 | S-08 | local-player-profiles | Dodaj odporne lokalne profile graczy | yes | Pierwszy pionowy wycinek trwałych danych. |
 | S-09 | persistent-profile-best-score | Zapisuj najlepszy wynik profilu | no | Blokuje brak reguły aktualizacji wyniku. |
+| S-10 | support-drops-and-boss-wave | Dodaj drop życia, tarczę, przyspieszenie i bossa co 5 fal | no | Wymaga S-01 i S-05; duży wycinek replayability po stronie walki. |
 
 ## Otwarte pytania dotyczące mapy drogowej
 
@@ -211,7 +227,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 
 - **Tryb wieloosobowy i funkcje sieciowe** — Zaparkowane zgodnie z PRD §Non-Goals; wydania pozostają lokalną grą jednoosobową.
 - **Konta online, synchronizacja chmurowa i globalna tabela wyników** — Zaparkowane zgodnie z PRD §Non-Goals; profile i rekordy pozostają lokalne.
-- **Dodatkowe rodziny power-upów, typy obcych i bossowie** — Zaparkowane, aby nie rozszerzać mechanik poza jawnie wybrany zakres.
+- **Dodatkowe rodziny power-upów, typy obcych i bossowie poza zdefiniowanym pakietem S-10** — Zaparkowane, aby nie rozszerzać mechanik poza jawnie wybrany zakres.
 - **Przepisanie architektury lub zmiana platformy desktopowej** — Zaparkowane; mapa rozszerza działającą grę bez przebudowy produktu.
 
 ## Zrobione
