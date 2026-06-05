@@ -161,17 +161,17 @@ No persistent data exists. The only asset migration is adding `src/main/resource
 
 #### Automated
 
-- [x] 1.1 Explosion model tests pass: `./mvnw test -Dtest=AlienExplosionTest`
-- [x] 1.2 Controller regression tests pass: `./mvnw test -Dtest=GameControllerTest`
-- [x] 1.3 Panel/resource tests pass: `./mvnw test -Dtest=GamePanelTest`
-- [x] 1.4 Full test suite passes: `./mvnw test`
-- [x] 1.5 Clean compilation passes: `./mvnw clean compile`
-- [x] 1.6 Explosion asset exists: `test -f src/main/resources/images/explosion.png`
+- [x] 1.1 Explosion model tests pass: `./mvnw test -Dtest=AlienExplosionTest` — c0e2e30
+- [x] 1.2 Controller regression tests pass: `./mvnw test -Dtest=GameControllerTest` — c0e2e30
+- [x] 1.3 Panel/resource tests pass: `./mvnw test -Dtest=GamePanelTest` — c0e2e30
+- [x] 1.4 Full test suite passes: `./mvnw test` — c0e2e30
+- [x] 1.5 Clean compilation passes: `./mvnw clean compile` — c0e2e30
+- [x] 1.6 Explosion asset exists: `test -f src/main/resources/images/explosion.png` — c0e2e30
 
 #### Manual
 
-- [x] 1.7 In the running game, destroying a standard alien shows a visible explosion where the alien disappeared
-- [x] 1.8 Destroying the special alien on its second hit shows one explosion, while its first hit does not
-- [x] 1.9 Rapid fire or same-tick multiple kills can show multiple simultaneous explosions
-- [x] 1.10 Explosions disappear quickly and do not persist after restart or Game Over/restart
-- [x] 1.11 Existing HUD, hit feedback, rapid fire, combo, wave advancement, sound, and restart behavior show no visible regression
+- [x] 1.7 In the running game, destroying a standard alien shows a visible explosion where the alien disappeared — c0e2e30
+- [x] 1.8 Destroying the special alien on its second hit shows one explosion, while its first hit does not — c0e2e30
+- [x] 1.9 Rapid fire or same-tick multiple kills can show multiple simultaneous explosions — c0e2e30
+- [x] 1.10 Explosions disappear quickly and do not persist after restart or Game Over/restart — c0e2e30
+- [x] 1.11 Existing HUD, hit feedback, rapid fire, combo, wave advancement, sound, and restart behavior show no visible regression — c0e2e30
