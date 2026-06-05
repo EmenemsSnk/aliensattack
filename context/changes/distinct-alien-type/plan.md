@@ -295,40 +295,40 @@ No persisted data or schema exists. Existing `Alien` constructors must remain co
 
 #### Automated
 
-- [x] 1.1 Special and standard alien model tests pass
-- [x] 1.2 Existing domain tests remain green
-- [x] 1.3 Project compiles
+- [x] 1.1 Special and standard alien model tests pass — 5bb8ea1
+- [x] 1.2 Existing domain tests remain green — 5bb8ea1
+- [x] 1.3 Project compiles — 5bb8ea1
 
 #### Manual
 
-- [x] 1.4 Model constants and naming make the special alien behavior understandable
-- [x] 1.5 Special alien remains a bounded two-hit non-boss enemy
+- [x] 1.4 Model constants and naming make the special alien behavior understandable — 5bb8ea1
+- [x] 1.5 Special alien remains a bounded two-hit non-boss enemy — 5bb8ea1
 
 ### Phase 2: Wave, Combat, and Firing Integration
 
 #### Automated
 
-- [x] 2.1 Rule tests pass
-- [x] 2.2 Controller integration tests pass
-- [x] 2.3 Project compiles
+- [x] 2.1 Rule tests pass — 5bb8ea1
+- [x] 2.2 Controller integration tests pass — 5bb8ea1
+- [x] 2.3 Project compiles — 5bb8ea1
 
 #### Manual
 
-- [x] 2.4 Wave 2 introduces exactly one special alien without interrupting progression
-- [x] 2.5 Combat, combo, drop, collision, invasion, and restart contracts are preserved
-- [x] 2.6 Five-projectile cap and special firing pressure remain fair
+- [x] 2.4 Wave 2 introduces exactly one special alien without interrupting progression — 5bb8ea1
+- [x] 2.5 Combat, combo, drop, collision, invasion, and restart contracts are preserved — 5bb8ea1
+- [x] 2.6 Five-projectile cap and special firing pressure remain fair — 5bb8ea1
 
 ### Phase 3: Distinct Rendering and Full Regression
 
 #### Automated
 
-- [x] 3.1 Presentation tests pass
-- [x] 3.2 Full test suite passes
-- [x] 3.3 Clean compilation passes
-- [x] 3.4 Standard and special alien image assets exist
+- [x] 3.1 Presentation tests pass — 5bb8ea1
+- [x] 3.2 Full test suite passes — 5bb8ea1
+- [x] 3.3 Clean compilation passes — 5bb8ea1
+- [x] 3.4 Standard and special alien image assets exist — 5bb8ea1
 
 #### Manual
 
-- [x] 3.5 Special identity and damaged state are immediately readable
-- [x] 3.6 Special behavior is challenging but not boss-like
-- [x] 3.7 Complete arcade session shows no regressions
+- [x] 3.5 Special identity and damaged state are immediately readable — 5bb8ea1
+- [x] 3.6 Special behavior is challenging but not boss-like — 5bb8ea1
+- [x] 3.7 Complete arcade session shows no regressions — 5bb8ea1
