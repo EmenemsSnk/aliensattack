@@ -2,6 +2,7 @@ package com.emenems.games.aliens;
 
 import com.emenems.games.aliens.controller.GameController;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienExplosion;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
@@ -21,8 +22,16 @@ public class Main {
         List<Missile> missiles = new ArrayList<>();
         List<AlienMissile> alienMissiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
+        List<AlienExplosion> alienExplosions = new ArrayList<>();
         List<RapidFirePowerUp> rapidFirePowerUps = new ArrayList<>();
-        GamePanel gamePanel = new GamePanel(spaceship, missiles, alienMissiles, aliens, rapidFirePowerUps);
+        GamePanel gamePanel = new GamePanel(
+            spaceship,
+            missiles,
+            alienMissiles,
+            aliens,
+            alienExplosions,
+            rapidFirePowerUps
+        );
 
         EventQueue.invokeLater(() -> {
             WindowFrame windowFrame = new WindowFrame(gamePanel);
@@ -31,6 +40,7 @@ public class Main {
                 missiles,
                 alienMissiles,
                 aliens,
+                alienExplosions,
                 rapidFirePowerUps,
                 gamePanel
             );

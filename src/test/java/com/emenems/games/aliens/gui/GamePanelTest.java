@@ -8,6 +8,10 @@ import com.emenems.games.aliens.gamemachines.Alien;
 import org.junit.jupiter.api.Test;
 
 class GamePanelTest {
+    @Test
+    void explosionSpriteResourceExists() {
+        assertTrue(GamePanel.hasExplosionSprite());
+    }
 
     @Test
     void rapidFireSecondsUseCeilingAndNeverShowZeroWhileActive() {

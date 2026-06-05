@@ -3,6 +3,7 @@ package com.emenems.games.aliens.gui;
 import com.emenems.games.aliens.GameConstants;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienExplosion;
 import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
@@ -28,10 +29,12 @@ public class GamePanel extends JPanel {
     private Image alienMissileImage;
     private Image missileImage;
     private Image spaceshipImage;
+    private Image explosionImage;
     private Spaceship spaceship;
     private List<Missile> missiles;
     private List<AlienMissile> alienMissiles;
     private List<Alien> aliens;
+    private List<AlienExplosion> alienExplosions;
     private List<RapidFirePowerUp> rapidFirePowerUps;
     private int score;
     private int wave = 1;
@@ -45,7 +48,24 @@ public class GamePanel extends JPanel {
     private int comboTicks;
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<AlienMissile> alienMissiles, List<Alien> aliens) {
-        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>());
+        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), new ArrayList<>());
+    }
+
+    public GamePanel(
+        Spaceship spaceship,
+        List<Missile> missiles,
+        List<AlienMissile> alienMissiles,
+        List<Alien> aliens,
+        List<AlienExplosion> alienExplosions,
+        List<RapidFirePowerUp> rapidFirePowerUps
+    ) {
+        this.spaceship = spaceship;
+        this.missiles = missiles;
+        this.alienMissiles = alienMissiles;
+        this.aliens = aliens;
+        this.alienExplosions = alienExplosions;
+        this.rapidFirePowerUps = rapidFirePowerUps;
+        initBoard();
     }
 
     public GamePanel(
@@ -55,12 +75,7 @@ public class GamePanel extends JPanel {
         List<Alien> aliens,
         List<RapidFirePowerUp> rapidFirePowerUps
     ) {
-        this.spaceship = spaceship;
-        this.missiles = missiles;
-        this.alienMissiles = alienMissiles;
-        this.aliens = aliens;
-        this.rapidFirePowerUps = rapidFirePowerUps;
-        initBoard();
+        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), rapidFirePowerUps);
     }
 
     public void updateGameState(
@@ -102,6 +117,7 @@ public class GamePanel extends JPanel {
         alienMissileImage = new ImageIcon(getClass().getResource("/images/alien-missile.png")).getImage();
         missileImage = new ImageIcon(getClass().getResource("/images/missile.gif")).getImage();
         spaceshipImage = new ImageIcon(getClass().getResource("/images/spaceship.png")).getImage();
+        explosionImage = new ImageIcon(getClass().getResource("/images/explosion.png")).getImage();
     }
 
     @Override
@@ -112,6 +128,7 @@ public class GamePanel extends JPanel {
         drawAliens(g);
         drawMissiles(g);
         drawAlienMissiles(g);
+        drawAlienExplosions(g);
         drawRapidFirePowerUps(g);
         drawHud(g);
         drawHitFeedback(g);
@@ -222,6 +239,18 @@ public class GamePanel extends JPanel {
         });
     }
 
+    private void drawAlienExplosions(Graphics graphics) {
+        alienExplosions.forEach(explosion ->
+            graphics.drawImage(
+                explosionImage,
+                explosion.getX(),
+                explosion.getY(),
+                GameConstants.COMPONENT_SIZE,
+                GameConstants.COMPONENT_SIZE,
+                this
+            ));
+    }
+
     private void drawHitFeedback(Graphics graphics) {
         if (!hitFeedbackActive) {
             return;
@@ -250,6 +279,10 @@ public class GamePanel extends JPanel {
 
     Image alienImageFor(Alien alien) {
         return alien.getType() == AlienType.SPECIAL ? specialAlienImage : alienImage;
+    }
+
+    static boolean hasExplosionSprite() {
+        return GamePanel.class.getResource("/images/explosion.png") != null;
     }
 
     private void drawSpecialAlienShield(Graphics graphics, Alien alien) {
