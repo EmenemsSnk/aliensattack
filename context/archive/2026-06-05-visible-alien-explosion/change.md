@@ -1,10 +1,10 @@
 ---
 change_id: visible-alien-explosion
 title: Visible alien explosion
-status: implemented
+status: archived
 created: 2026-06-05
 updated: 2026-06-05
-archived_at: null
+archived_at: 2026-06-05T10:34:44Z
 ---
 
 ## Notes
