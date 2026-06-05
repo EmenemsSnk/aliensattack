@@ -22,6 +22,13 @@ import javax.swing.JPanel;
 
 public class GamePanel extends JPanel {
     private static final int TICKS_PER_SECOND = 60;
+    private static final int HUD_X = 16;
+    private static final int HUD_Y = 16;
+    private static final int HUD_WIDTH = 220;
+    private static final int HUD_ROW_HEIGHT = 24;
+    private static final int HUD_PADDING = 14;
+    private static final int HUD_ARC = 18;
+    private static final int WAVE_BANNER_Y = 78;
 
     private Image space;
     private Image alienImage;
@@ -42,6 +49,8 @@ public class GamePanel extends JPanel {
     private GameState gameState = GameState.PLAYING;
     private boolean hitFeedbackActive;
     private String gameOverTitle = "GAME OVER";
+    private boolean waveMessageActive;
+    private int waveMessageTicks;
     private boolean rapidFireActive;
     private int rapidFireTicks;
     private int comboMultiplier = 1;
@@ -85,6 +94,8 @@ public class GamePanel extends JPanel {
         GameState gameState,
         boolean hitFeedbackActive,
         String gameOverTitle,
+        boolean waveMessageActive,
+        int waveMessageTicks,
         boolean rapidFireActive,
         int rapidFireTicks,
         int comboMultiplier,
@@ -96,6 +107,8 @@ public class GamePanel extends JPanel {
         this.gameState = gameState;
         this.hitFeedbackActive = hitFeedbackActive;
         this.gameOverTitle = gameOverTitle;
+        this.waveMessageActive = waveMessageActive;
+        this.waveMessageTicks = waveMessageTicks;
         this.rapidFireActive = rapidFireActive;
         this.rapidFireTicks = rapidFireTicks;
         this.comboMultiplier = comboMultiplier;
@@ -131,6 +144,7 @@ public class GamePanel extends JPanel {
         drawAlienExplosions(g);
         drawRapidFirePowerUps(g);
         drawHud(g);
+        drawWaveMessage(g);
         drawHitFeedback(g);
         drawStartMenu(g);
         drawGameOver(g);
@@ -138,23 +152,49 @@ public class GamePanel extends JPanel {
     }
 
     private void drawHud(Graphics graphics) {
+        int hudHeight = hudCardHeight(rapidFireActive, comboMultiplier, comboTicks);
+        graphics.setColor(new Color(7, 14, 32, 118));
+        graphics.fillRoundRect(HUD_X, HUD_Y, HUD_WIDTH, hudHeight, HUD_ARC, HUD_ARC);
+        graphics.setColor(new Color(120, 210, 255, 72));
+        graphics.drawRoundRect(HUD_X, HUD_Y, HUD_WIDTH, hudHeight, HUD_ARC, HUD_ARC);
+
+        int textX = HUD_X + HUD_PADDING;
+        int currentY = HUD_Y + HUD_PADDING + HUD_ROW_HEIGHT;
         graphics.setColor(Color.WHITE);
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
-        graphics.drawString("Score: " + score, 20, 30);
-        graphics.drawString("Wave: " + wave, 20, 55);
-        graphics.drawString("Lives: " + lives, 20, 80);
+        graphics.drawString("Score: " + score, textX, currentY);
+
+        currentY += HUD_ROW_HEIGHT;
+        graphics.drawString("Wave: " + wave, textX, currentY);
+
+        currentY += HUD_ROW_HEIGHT;
+        graphics.drawString("Lives: " + lives, textX, currentY);
+
         if (rapidFireActive) {
+            currentY += HUD_ROW_HEIGHT;
             graphics.setColor(new Color(255, 230, 60));
-            graphics.drawString("RAPID FIRE: " + rapidFireSecondsRemaining(rapidFireTicks) + "s", 20, 105);
+            graphics.drawString("RAPID FIRE: " + rapidFireSecondsRemaining(rapidFireTicks) + "s", textX, currentY);
         }
         if (isComboVisible(comboMultiplier, comboTicks)) {
+            currentY += HUD_ROW_HEIGHT;
             graphics.setColor(new Color(80, 220, 255));
             graphics.drawString(
                 "COMBO x" + comboMultiplier + ": " + comboSecondsRemaining(comboTicks) + "s",
-                20,
-                130
+                textX,
+                currentY
             );
         }
+    }
+
+    static int hudCardHeight(boolean rapidFireActive, int comboMultiplier, int comboTicks) {
+        int visibleRows = 3;
+        if (rapidFireActive) {
+            visibleRows++;
+        }
+        if (isComboVisible(comboMultiplier, comboTicks)) {
+            visibleRows++;
+        }
+        return HUD_PADDING * 2 + visibleRows * HUD_ROW_HEIGHT;
     }
 
     static int rapidFireSecondsRemaining(int ticks) {
@@ -167,6 +207,31 @@ public class GamePanel extends JPanel {
 
     static boolean isComboVisible(int multiplier, int ticks) {
         return multiplier >= 2 && ticks > 0;
+    }
+
+    static boolean isWaveMessageVisible(GameState gameState, boolean active, int ticks) {
+        return gameState == GameState.PLAYING && active && ticks > 0;
+    }
+
+    private void drawWaveMessage(Graphics graphics) {
+        if (!isWaveMessageVisible(gameState, waveMessageActive, waveMessageTicks)) {
+            return;
+        }
+
+        String text = "WAVE " + wave;
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        int textWidth = graphics.getFontMetrics().stringWidth(text);
+        int bannerWidth = textWidth + 36;
+        int bannerHeight = 34;
+        int bannerX = (GameConstants.PANEL_WIDTH - bannerWidth) / 2;
+        int bannerY = WAVE_BANNER_Y - 24;
+
+        graphics.setColor(new Color(8, 18, 48, 82));
+        graphics.fillRoundRect(bannerX, bannerY, bannerWidth, bannerHeight, 20, 20);
+        graphics.setColor(new Color(255, 214, 92, 70));
+        graphics.drawRoundRect(bannerX, bannerY, bannerWidth, bannerHeight, 20, 20);
+        graphics.setColor(new Color(255, 244, 196, 185));
+        drawCenteredString(graphics, text, WAVE_BANNER_Y);
     }
 
     private void drawGameOver(Graphics graphics) {

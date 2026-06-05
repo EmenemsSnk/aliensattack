@@ -3,6 +3,7 @@ package com.emenems.games.aliens;
 public final class GameSession {
     private static final int DEFAULT_LIVES = 3;
     private static final int HIT_FEEDBACK_TICKS = 18;
+    public static final int WAVE_MESSAGE_DURATION_TICKS = 72;
     public static final int RAPID_FIRE_DURATION_TICKS = 180;
     public static final int COMBO_DURATION_TICKS = 90;
     private static final String DEFAULT_GAME_OVER_TITLE = "GAME OVER";
@@ -13,6 +14,7 @@ public final class GameSession {
     private int lives = DEFAULT_LIVES;
     private GameState gameState = GameState.START_MENU;
     private int hitFeedbackTicks;
+    private int waveMessageTicks;
     private int rapidFireTicks;
     private int comboMultiplier = 1;
     private int comboTicks;
@@ -36,6 +38,14 @@ public final class GameSession {
 
     public boolean isHitFeedbackActive() {
         return hitFeedbackTicks > 0;
+    }
+
+    public boolean isWaveMessageActive() {
+        return waveMessageTicks > 0;
+    }
+
+    public int getWaveMessageTicks() {
+        return waveMessageTicks;
     }
 
     public String getGameOverTitle() {
@@ -68,6 +78,7 @@ public final class GameSession {
         lives = DEFAULT_LIVES;
         gameState = GameState.PLAYING;
         hitFeedbackTicks = 0;
+        waveMessageTicks = WAVE_MESSAGE_DURATION_TICKS;
         rapidFireTicks = 0;
         resetCombo();
         gameOverTitle = DEFAULT_GAME_OVER_TITLE;
@@ -90,6 +101,7 @@ public final class GameSession {
     public void advanceWave() {
         wave++;
         resetCombo();
+        waveMessageTicks = WAVE_MESSAGE_DURATION_TICKS;
     }
 
     public void loseLife() {
@@ -115,6 +127,12 @@ public final class GameSession {
 
     public void activateRapidFire() {
         rapidFireTicks = RAPID_FIRE_DURATION_TICKS;
+    }
+
+    public void tickWaveMessage() {
+        if (waveMessageTicks > 0) {
+            waveMessageTicks--;
+        }
     }
 
     public void tickRapidFire() {

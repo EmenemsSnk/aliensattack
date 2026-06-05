@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,24 @@ class GamePanelTest {
         assertFalse(GamePanel.isComboVisible(2, 0));
         assertTrue(GamePanel.isComboVisible(2, 1));
         assertTrue(GamePanel.isComboVisible(5, 90));
+    }
+
+    @Test
+    void hudCardHeightGrowsOnlyForVisibleEffectRows() {
+        int baseHeight = GamePanel.hudCardHeight(false, 1, 0);
+
+        assertEquals(baseHeight + 24, GamePanel.hudCardHeight(true, 1, 0));
+        assertEquals(baseHeight + 24, GamePanel.hudCardHeight(false, 2, 60));
+        assertEquals(baseHeight + 48, GamePanel.hudCardHeight(true, 2, 60));
+    }
+
+    @Test
+    void waveMessageIsVisibleOnlyWhilePlayingAndTicksRemain() {
+        assertTrue(GamePanel.isWaveMessageVisible(GameState.PLAYING, true, 1));
+        assertFalse(GamePanel.isWaveMessageVisible(GameState.START_MENU, true, 10));
+        assertFalse(GamePanel.isWaveMessageVisible(GameState.GAME_OVER, true, 10));
+        assertFalse(GamePanel.isWaveMessageVisible(GameState.PLAYING, false, 10));
+        assertFalse(GamePanel.isWaveMessageVisible(GameState.PLAYING, true, 0));
     }
 
     @Test
