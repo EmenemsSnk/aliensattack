@@ -205,26 +205,26 @@ No data migration or compatibility work is required. This is an in-memory presen
 
 #### Automated
 
-- [x] 1.1 `GameSessionTest` covers wave-message activation on start/restart and wave advancement.
-- [x] 1.2 `GameControllerTest` covers `PLAYING`-tick countdown behavior and cleared-wave activation.
-- [x] 1.3 `./mvnw test`
+- [x] 1.1 `GameSessionTest` covers wave-message activation on start/restart and wave advancement. — 54ae300
+- [x] 1.2 `GameControllerTest` covers `PLAYING`-tick countdown behavior and cleared-wave activation. — 54ae300
+- [x] 1.3 `./mvnw test` — 54ae300
 
 #### Manual
 
-- [x] 1.4 Starting the game from the menu visibly triggers a wave-1 banner once play begins.
-- [x] 1.5 Clearing a wave triggers the next-wave banner without pausing movement or firing.
+- [x] 1.4 Starting the game from the menu visibly triggers a wave-1 banner once play begins. — 54ae300
+- [x] 1.5 Clearing a wave triggers the next-wave banner without pausing movement or firing. — 54ae300
 
 ### Phase 2: HUD cleanup and wave banner rendering
 
 #### Automated
 
-- [x] 2.1 `GamePanelTest` covers new helper behavior introduced for the HUD/banner presentation.
-- [x] 2.2 Existing session, controller, and panel tests remain green with the new panel state signature.
-- [x] 2.3 `./mvnw clean compile`
-- [x] 2.4 `./mvnw test`
+- [x] 2.1 `GamePanelTest` covers new helper behavior introduced for the HUD/banner presentation. — 54ae300
+- [x] 2.2 Existing session, controller, and panel tests remain green with the new panel state signature. — 54ae300
+- [x] 2.3 `./mvnw clean compile` — 54ae300
+- [x] 2.4 `./mvnw test` — 54ae300
 
 #### Manual
 
-- [x] 2.5 The HUD is easier to read at a glance and still shows score, wave, lives, rapid-fire, and combo status correctly.
-- [x] 2.6 The wave banner appears near the top center for wave 1 and later waves, then disappears on its own while gameplay continues.
-- [x] 2.7 The new presentation does not cover critical action during normal firing, alien movement, rapid fire, hit feedback, Game Over, or restart flows.
+- [x] 2.5 The HUD is easier to read at a glance and still shows score, wave, lives, rapid-fire, and combo status correctly. — 54ae300
+- [x] 2.6 The wave banner appears near the top center for wave 1 and later waves, then disappears on its own while gameplay continues. — 54ae300
+- [x] 2.7 The new presentation does not cover critical action during normal firing, alien movement, rapid fire, hit feedback, Game Over, or restart flows. — 54ae300
