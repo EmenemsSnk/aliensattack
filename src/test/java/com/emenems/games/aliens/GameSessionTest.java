@@ -17,6 +17,8 @@ class GameSessionTest {
         assertEquals(3, session.getLives());
         assertEquals(GameState.START_MENU, session.getGameState());
         assertFalse(session.isHitFeedbackActive());
+        assertFalse(session.isWaveMessageActive());
+        assertEquals(0, session.getWaveMessageTicks());
         assertEquals("GAME OVER", session.getGameOverTitle());
         assertEquals(1, session.getComboMultiplier());
         assertEquals(0, session.getComboTicks());
@@ -38,6 +40,8 @@ class GameSessionTest {
         assertEquals(3, session.getLives());
         assertEquals(GameState.PLAYING, session.getGameState());
         assertFalse(session.isHitFeedbackActive());
+        assertTrue(session.isWaveMessageActive());
+        assertEquals(GameSession.WAVE_MESSAGE_DURATION_TICKS, session.getWaveMessageTicks());
         assertEquals("GAME OVER", session.getGameOverTitle());
         assertEquals(1, session.getComboMultiplier());
         assertEquals(0, session.getComboTicks());
@@ -62,6 +66,26 @@ class GameSessionTest {
         session.advanceWave();
 
         assertEquals(2, session.getWave());
+        assertTrue(session.isWaveMessageActive());
+        assertEquals(GameSession.WAVE_MESSAGE_DURATION_TICKS, session.getWaveMessageTicks());
+    }
+
+    @Test
+    void waveMessageExpiresAfterConfiguredDuration() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+
+        for (int tick = 0; tick < GameSession.WAVE_MESSAGE_DURATION_TICKS - 1; tick++) {
+            session.tickWaveMessage();
+        }
+
+        assertTrue(session.isWaveMessageActive());
+        assertEquals(1, session.getWaveMessageTicks());
+
+        session.tickWaveMessage();
+
+        assertFalse(session.isWaveMessageActive());
+        assertEquals(0, session.getWaveMessageTicks());
     }
 
     @Test

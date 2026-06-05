@@ -322,6 +322,47 @@ class GameControllerTest {
     }
 
     @Test
+    void startingPlayActivatesWaveOneMessage() {
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>());
+
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertTrue(controller.isWaveMessageActive());
+        assertEquals(GameSession.WAVE_MESSAGE_DURATION_TICKS, controller.getWaveMessageTicks());
+    }
+
+    @Test
+    void playingTicksAdvanceWaveMessageCountdown() {
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>());
+
+        startPlaying(controller);
+        int startingTicks = controller.getWaveMessageTicks();
+        controller.tick();
+
+        assertEquals(startingTicks - 1, controller.getWaveMessageTicks());
+    }
+
+    @Test
+    void clearingWaveRefreshesWaveMessageForNextWave() {
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        GameController controller = newController(missiles, aliens);
+        startPlaying(controller);
+
+        for (int tick = 0; tick < 10; tick++) {
+            controller.tick();
+        }
+        assertTrue(controller.getWaveMessageTicks() < GameSession.WAVE_MESSAGE_DURATION_TICKS);
+
+        aliens.clear();
+        controller.tick();
+
+        assertEquals(2, controller.getWave());
+        assertTrue(controller.isWaveMessageActive());
+        assertEquals(GameSession.WAVE_MESSAGE_DURATION_TICKS, controller.getWaveMessageTicks());
+    }
+
+    @Test
     void waveOneHasOnlyStandardAliensAndWaveTwoHasExactlyOneSpecialAlien() {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();

@@ -281,6 +281,7 @@ public class GameController implements ActionListener {
         }
 
         updateHitFeedback();
+        session.tickWaveMessage();
         session.tickRapidFire();
         session.tickCombo();
         updatePlayerFireCooldown();
@@ -439,6 +440,14 @@ public class GameController implements ActionListener {
         return session.isRapidFireActive();
     }
 
+    boolean isWaveMessageActive() {
+        return session.isWaveMessageActive();
+    }
+
+    int getWaveMessageTicks() {
+        return session.getWaveMessageTicks();
+    }
+
     int getRapidFireTicks() {
         return session.getRapidFireTicks();
     }
@@ -486,6 +495,8 @@ public class GameController implements ActionListener {
                 session.getGameState(),
                 session.isHitFeedbackActive(),
                 session.getGameOverTitle(),
+                session.isWaveMessageActive(),
+                session.getWaveMessageTicks(),
                 session.isRapidFireActive(),
                 session.getRapidFireTicks(),
                 session.getComboMultiplier(),
