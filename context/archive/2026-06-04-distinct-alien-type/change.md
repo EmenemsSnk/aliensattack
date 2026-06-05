@@ -1,10 +1,10 @@
 ---
 change_id: distinct-alien-type
 title: Distinct alien type
-status: implemented
+status: archived
 created: 2026-06-04
-updated: 2026-06-04
-archived_at: null
+updated: 2026-06-05
+archived_at: 2026-06-05T08:22:35Z
 ---
 
 ## Notes
