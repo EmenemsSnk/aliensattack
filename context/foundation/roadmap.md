@@ -3,7 +3,7 @@ project: "Aliens Attack"
 version: 1
 status: draft
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-05
 prd_version: 1
 main_goal: quality
 top_blocker: decisions
@@ -33,7 +33,7 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | --- | --- | --- | --- | --- | --- |
 | S-01 | rapid-fire-power-up | zebrać rapid-fire i odczuć jego pełny cykl działania | — | US-01, FR-003, FR-010 | done |
 | S-02 | skill-based-score-combo | budować combo punktowe zachowujące znaczenie umiejętności | S-01 | US-01, FR-004, FR-010 | done |
-| S-03 | distinct-alien-type | spotkać wyraźnie odmienny nowy typ obcego | S-02 | US-01, FR-005, FR-010 | blocked |
+| S-03 | distinct-alien-type | spotkać wyraźnie odmienny nowy typ obcego | S-02 | US-01, FR-005, FR-010 | done |
 | S-04 | visible-alien-explosion | zobaczyć eksplozję po zniszczeniu obcego | — | US-01, FR-006, FR-010 | ready |
 | S-05 | clear-hud-and-wave-message | odczytać czytelniejszy HUD i komunikat rozpoczęcia fali | S-04 | US-01, FR-007, FR-010 | proposed |
 | S-06 | pause-and-resume | wstrzymać i wznowić rozgrywkę | S-05 | FR-008, FR-010 | proposed |
@@ -95,6 +95,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 ## Done
 
 - **S-02: Combo oparte na umiejętności** — Zarchiwizowano 2026-06-04 → `context/archive/2026-06-04-skill-based-score-combo/`. Lekcja: —.
+- **S-03: Gracz może spotkać nowy typ obcego, którego zachowanie jest czytelnie inne od zwykłego przeciwnika.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-04-distinct-alien-type/`. Lekcja: —.
 
 ### S-03: Wyraźnie odmienny nowy obcy
 
@@ -107,7 +108,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Niewiadome:**
   - Jakie zachowanie odróżnia nowego obcego od zwykłego? — Właściciel: użytkownik. Blokuje: tak.
 - **Ryzyko:** Planowanie bez reguły różnicującej wymusiłoby arbitralną decyzję o mechanice i balansie.
-- **Status:** blocked
+- **Status:** done
 
 ### S-04: Widoczna eksplozja obcego
 

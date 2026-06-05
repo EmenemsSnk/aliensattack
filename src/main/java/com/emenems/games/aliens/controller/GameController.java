@@ -6,6 +6,7 @@ import com.emenems.games.aliens.GameSession;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.audio.ArcadeSoundPlayer;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
@@ -29,10 +30,9 @@ public class GameController implements ActionListener {
     private static final int ALIEN_START_MIN_Y = 30;
     private static final int ALIEN_START_X_JITTER = 20;
     private static final int ALIEN_START_Y_JITTER = 90;
-    static final int MAX_ALIEN_MISSILES = 2;
-    private static final double ALIEN_FIRE_CHANCE = 0.008;
-    private static final int PLAYER_FIRE_COOLDOWN_TICKS = 10;
-    private static final int RAPID_FIRE_COOLDOWN_TICKS = 4;
+    static final int MAX_ALIEN_MISSILES = 5;
+    private static final int PLAYER_FIRE_COOLDOWN_TICKS = 14;
+    private static final int RAPID_FIRE_COOLDOWN_TICKS = 7;
     private static final double RAPID_FIRE_DROP_CHANCE = 0.12;
     private static final int ALIEN_MISSILE_HITBOX_X_OFFSET = 9;
     private static final int ALIEN_MISSILE_HITBOX_WIDTH = 7;
@@ -126,11 +126,14 @@ public class GameController implements ActionListener {
         aliens.clear();
         double alienSpeed = GameRules.alienSpeedForWave(session.getWave());
         int laneSpacing = (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / ALIEN_COUNT;
+        int specialIndex = GameRules.hasSpecialAlien(session.getWave()) ? random.nextInt(ALIEN_COUNT) : -1;
         for (int index = 0; index < ALIEN_COUNT; index++) {
             int laneX = index * laneSpacing + (laneSpacing - GameConstants.COMPONENT_SIZE) / 2;
             int x = laneX + random.nextInt(ALIEN_START_X_JITTER * 2 + 1) - ALIEN_START_X_JITTER;
             int y = ALIEN_START_MIN_Y + random.nextInt(ALIEN_START_Y_JITTER + 1);
-            aliens.add(new Alien(x, y, alienSpeed));
+            aliens.add(index == specialIndex
+                ? Alien.special(x, y, alienSpeed)
+                : new Alien(x, y, alienSpeed));
         }
     }
 
@@ -214,7 +217,7 @@ public class GameController implements ActionListener {
         updatePlayerFireCooldown();
         fireHeldPlayerMissileIfReady();
         moveSpaceshipFromPressedKeys();
-        aliens.forEach(Alien::move);
+        moveAliens();
         missiles.forEach(Missile::move);
         alienMissiles.forEach(AlienMissile::move);
         rapidFirePowerUps.forEach(RapidFirePowerUp::move);
@@ -276,7 +279,9 @@ public class GameController implements ActionListener {
                 Rectangle alienArea = objectArea(alien.getX(), alien.getY());
                 if (alienArea.intersects(missileArea)) {
                     missilesToRemove.add(missile);
-                    aliensToRemove.add(alien);
+                    if (alien.takeHit()) {
+                        aliensToRemove.add(alien);
+                    }
                     break;
                 }
             }
@@ -500,11 +505,11 @@ public class GameController implements ActionListener {
         if (aliens.isEmpty() || alienMissiles.size() >= MAX_ALIEN_MISSILES) {
             return;
         }
-        if (random.nextDouble() > ALIEN_FIRE_CHANCE) {
+        if (random.nextDouble() > GameRules.alienFireChanceForWave(session.getWave(), aliens.size())) {
             return;
         }
 
-        Alien alien = aliens.get(random.nextInt(aliens.size()));
+        Alien alien = selectAlienShooter();
         int missileX = alien.getX();
         int missileY = alien.getY() + GameConstants.COMPONENT_SIZE;
         alienMissiles.add(new AlienMissile(missileX, missileY));
@@ -523,5 +528,40 @@ public class GameController implements ActionListener {
         if (session.getGameState() == GameState.GAME_OVER) {
             clearInputAndStopMusic();
         }
+    }
+
+    private void moveAliens() {
+        int minX = 0;
+        int maxX = GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE;
+        aliens.forEach(alien -> {
+            alien.move(random, minX, maxX);
+            Alien collidingAlien = findCollidingAlien(alien);
+            if (alien.isSpecial() && collidingAlien != null) {
+                alien.separateFrom(collidingAlien, minX, maxX);
+            }
+        });
+    }
+
+    private Alien selectAlienShooter() {
+        int totalWeight = aliens.stream()
+            .mapToInt(alien -> GameRules.alienFiringWeight(alien.getType() == AlienType.SPECIAL))
+            .sum();
+        int roll = random.nextInt(totalWeight);
+        for (Alien alien : aliens) {
+            roll -= GameRules.alienFiringWeight(alien.getType() == AlienType.SPECIAL);
+            if (roll < 0) {
+                return alien;
+            }
+        }
+        return aliens.getFirst();
+    }
+
+    private Alien findCollidingAlien(Alien alien) {
+        Rectangle alienArea = objectArea(alien.getX(), alien.getY());
+        return aliens.stream()
+            .filter(otherAlien -> otherAlien != alien)
+            .filter(otherAlien -> alienArea.intersects(objectArea(otherAlien.getX(), otherAlien.getY())))
+            .findFirst()
+            .orElse(null);
     }
 }
