@@ -230,6 +230,14 @@ public class GamePanel extends JPanel {
         return profileMenuState.saveFailed();
     }
 
+    static boolean isLeaderboardVisible(ProfileMenuState profileMenuState) {
+        return !profileMenuState.topProfiles().isEmpty();
+    }
+
+    static String leaderboardRowText(ProfileMenuState.LeaderboardEntry entry) {
+        return entry.rank() + ". " + entry.name() + "  " + entry.bestScore();
+    }
+
     private void drawPausedOverlay(Graphics graphics) {
         if (!isPausedOverlayVisible(gameState)) {
             return;
@@ -277,28 +285,49 @@ public class GamePanel extends JPanel {
 
         graphics.setColor(Color.WHITE);
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
-        drawCenteredString(graphics, gameOverTitle, GameConstants.PANEL_HEIGHT / 2 - 60);
+        drawCenteredString(graphics, gameOverTitle, 170);
 
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
-        drawCenteredString(graphics, "Final Score: " + score, GameConstants.PANEL_HEIGHT / 2);
+        drawCenteredString(graphics, "Final Score: " + score, 230);
         if (profileMenuState.hasSelectedProfile()) {
             drawCenteredString(
                 graphics,
                 "Profile: " + profileMenuState.selectedProfileName() + "    " + profileMenuState.bestScoreText(),
-                GameConstants.PANEL_HEIGHT / 2 + 36
+                264
             );
         }
+        int currentY = 296;
         if (isNewBestScoreVisible(profileMenuState)) {
             graphics.setColor(new Color(255, 230, 60));
-            drawCenteredString(graphics, "New Best Score!", GameConstants.PANEL_HEIGHT / 2 + 72);
+            drawCenteredString(graphics, "New Best Score!", currentY);
             graphics.setColor(Color.WHITE);
+            currentY += 30;
         }
         if (isSaveWarningVisible(profileMenuState)) {
             graphics.setColor(new Color(255, 150, 100));
-            drawCenteredString(graphics, "Profile save failed", GameConstants.PANEL_HEIGHT / 2 + 104);
+            drawCenteredString(graphics, "Profile save failed", currentY);
             graphics.setColor(Color.WHITE);
+            currentY += 30;
         }
-        drawCenteredString(graphics, "Press ENTER to Restart", GameConstants.PANEL_HEIGHT / 2 + 136);
+        drawLeaderboard(graphics, Math.max(currentY + 12, 326));
+        drawCenteredString(graphics, "Press ENTER to Restart", 560);
+    }
+
+    private void drawLeaderboard(Graphics graphics, int startY) {
+        if (!isLeaderboardVisible(profileMenuState)) {
+            return;
+        }
+
+        graphics.setColor(new Color(255, 230, 120));
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 20));
+        drawCenteredString(graphics, "TOP 5", startY);
+        graphics.setColor(Color.WHITE);
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
+        int rowY = startY + 28;
+        for (ProfileMenuState.LeaderboardEntry entry : profileMenuState.topProfiles()) {
+            drawCenteredString(graphics, leaderboardRowText(entry), rowY);
+            rowY += 24;
+        }
     }
 
     private void drawStartMenu(Graphics graphics) {

@@ -39,7 +39,7 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | S-06 | pause-and-resume | wstrzymać i wznowić rozgrywkę | S-05 | FR-008, FR-010 | done |
 | S-07 | life-loss-sound | usłyszeć osobny dźwięk utraty życia | S-05 | FR-009, FR-010 | proposed |
 | S-08 | local-player-profiles | utworzyć lub wybrać lokalny profil bez blokowania startu gry | — | US-01, FR-001, FR-010 | done |
-| S-09 | persistent-profile-best-score | zobaczyć zapisany najlepszy wynik wybranego profilu po Game Over | S-08 | US-01, FR-002, FR-010 | blocked |
+| S-09 | persistent-profile-best-score | zobaczyć zapisany najlepszy wynik wybranego profilu po Game Over | S-08 | US-01, FR-002, FR-010 | done |
 | S-10 | support-drops-and-boss-wave | zebrać rzadki drop życia, tarczę lub przyspieszenie i zmierzyć się z bossem co 5 fal | S-01, S-05 | US-01, FR-010 | proposed |
 
 ## Strumienie
@@ -50,7 +50,7 @@ Pomoc nawigacyjna — grupuje elementy, które współdzielą łańcuch wymagań
 | --- | --- | --- | --- |
 | A | Regrywalność | `S-01` → `S-02` → `S-03` | Zaczyna od gwiazdy przewodniej i odkłada nowego obcego do rozstrzygnięcia jego reguły. |
 | B | Odczucie jakości | `S-04` → `S-05` → `S-06` / `S-07` | Najpierw dostarcza konieczne elementy Polish, potem niezależne dodatki drugorzędne. |
-| C | Profile i wyniki | `S-08` → `S-09` | Wprowadza trwałość pionowo z profilem, a rekord czeka na decyzję o regule aktualizacji. |
+| C | Profile i wyniki | `S-08` → `S-09` | Wprowadza trwałość pionowo z profilem; rekord profilu aktualizuje się tylko po pobiciu dotychczasowego najlepszego wyniku. |
 | D | Zaawansowane fale i wsparcie | `S-01` + `S-05` → `S-10` | Rozszerza system dropów o przeżywalność i mobilność, a cykliczny boss wykorzystuje czytelny HUD. |
 
 ## Baza
@@ -102,6 +102,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **S-05: Gracz może łatwo odczytać stan sesji i zobaczyć komunikat rozpoczęcia nowej fali.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-clear-hud-and-wave-message/`. Lekcja: —.
 - **S-06: Gracz może wstrzymać rozgrywkę i wznowić ją bez zmiany stanu obiektów podczas pauzy.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-05-pause-and-resume/`. Lekcja: —.
 - **S-08: Gracz może utworzyć lub wybrać niezabezpieczony lokalny profil na ekranie startowym, a błędne dane nie blokują uruchomienia gry.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-06-local-player-profiles/`. Lekcja: —.
+- **S-09: Gracz może zobaczyć najlepszy wynik wybranego profilu po Game Over i po ponownym uruchomieniu gry.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-06-persistent-profile-best-score/`. Lekcja: —.
 
 ### S-03: Wyraźnie odmienny nowy obcy
 
@@ -185,10 +186,10 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Wymagania wstępne:** S-08
 - **Równolegle z:** S-06, S-07
 - **Blokady:** —
-- **Niewiadome:**
-  - Kiedy dokładnie wynik zakończonej sesji zastępuje zapisany najlepszy wynik profilu? — Właściciel: użytkownik. Blokuje: tak.
-- **Ryzyko:** Bez jawnej reguły aktualizacji rekord może zachowywać się nieprzewidywalnie lub nadpisywać poprawne dane.
-- **Status:** blocked
+- **Niewiadome:** —
+- **Decyzja:** Wynik zakończonej sesji zastępuje zapisany najlepszy wynik wybranego profilu tylko wtedy, gdy `finalScore > bestScore`; remisy i niższe wyniki nie nadpisują danych.
+- **Ryzyko:** Ranking lokalny musi pozostać pochodną zapisanych najlepszych wyników profili, bez wprowadzania osobnej historii sesji.
+- **Status:** done
 
 ### S-10: Dropy wsparcia i boss co 5 fal
 
@@ -214,16 +215,15 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 | S-06 | pause-and-resume | Dodaj pauzę i bezpieczne wznowienie | no | Wymaga S-05; nice-to-have. |
 | S-07 | life-loss-sound | Dodaj osobny dźwięk utraty życia | no | Wymaga S-05; nice-to-have. |
 | S-08 | local-player-profiles | Dodaj odporne lokalne profile graczy | yes | Pierwszy pionowy wycinek trwałych danych. |
-| S-09 | persistent-profile-best-score | Zapisuj najlepszy wynik profilu | no | Blokuje brak reguły aktualizacji wyniku. |
+| S-09 | persistent-profile-best-score | Zapisuj najlepszy wynik profilu | yes | Reguła aktualizacji jest rozstrzygnięta; aktywna implementacja dodaje także lokalny ranking Top 5 profili. |
 | S-10 | support-drops-and-boss-wave | Dodaj drop życia, tarczę, przyspieszenie i bossa co 5 fal | no | Wymaga S-01 i S-05; duży wycinek replayability po stronie walki. |
 
 ## Otwarte pytania dotyczące mapy drogowej
 
 1. **Jakie zachowanie odróżnia nowego obcego od zwykłego?** — Właściciel: użytkownik. Blokuje: S-03.
-2. **Pod jakim dokładnie warunkiem wynik zakończonej sesji zastępuje zapisany najlepszy wynik profilu?** — Właściciel: użytkownik. Blokuje: S-09.
-3. **Jakie jest obecne obejście ograniczonej regrywalności, jakości i trwałości wyników oraz jaki jest jego koszt dla gracza?** — Właściciel: użytkownik. Blokuje: roadmap-wide, nie.
-4. **Czy wprowadzenie trwałych profili lokalnych wymaga migracji lub zachowania ścieżki wycofania dla istniejących danych?** — Właściciel: użytkownik. Blokuje: roadmap-wide, nie.
-5. **Czy poza lokalnym audio istnieją integracje, które muszą pozostać kompatybilne?** — Właściciel: użytkownik. Blokuje: roadmap-wide, nie.
+2. **Jakie jest obecne obejście ograniczonej regrywalności, jakości i trwałości wyników oraz jaki jest jego koszt dla gracza?** — Właściciel: użytkownik. Blokuje: roadmap-wide, nie.
+3. **Czy wprowadzenie trwałych profili lokalnych wymaga migracji lub zachowania ścieżki wycofania dla istniejących danych?** — Właściciel: użytkownik. Blokuje: roadmap-wide, nie.
+4. **Czy poza lokalnym audio istnieją integracje, które muszą pozostać kompatybilne?** — Właściciel: użytkownik. Blokuje: roadmap-wide, nie.
 
 ## Zaparkowane
 

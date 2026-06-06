@@ -1,5 +1,8 @@
 package com.emenems.games.aliens.profiles;
 
+import java.util.List;
+import java.util.Objects;
+
 public record ProfileMenuState(
     String selectedProfileName,
     int selectedBestScore,
@@ -9,8 +12,38 @@ public record ProfileMenuState(
     String draftName,
     String message,
     boolean saveFailed,
-    boolean newBestScore
+    boolean newBestScore,
+    List<LeaderboardEntry> topProfiles
 ) {
+    public ProfileMenuState {
+        topProfiles = List.copyOf(Objects.requireNonNull(topProfiles, "topProfiles"));
+    }
+
+    public ProfileMenuState(
+        String selectedProfileName,
+        int selectedBestScore,
+        int profileCount,
+        int selectedIndex,
+        boolean inputMode,
+        String draftName,
+        String message,
+        boolean saveFailed,
+        boolean newBestScore
+    ) {
+        this(
+            selectedProfileName,
+            selectedBestScore,
+            profileCount,
+            selectedIndex,
+            inputMode,
+            draftName,
+            message,
+            saveFailed,
+            newBestScore,
+            List.of()
+        );
+    }
+
     public static ProfileMenuState empty() {
         return new ProfileMenuState("", 0, 0, -1, false, "", "Create a profile with N", false, false);
     }
@@ -32,5 +65,8 @@ public record ProfileMenuState(
 
     public String startPromptText() {
         return hasSelectedProfile() && !inputMode ? "Press ENTER to Start" : "Create a profile to start";
+    }
+
+    public record LeaderboardEntry(int rank, String name, int bestScore) {
     }
 }

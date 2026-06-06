@@ -23,6 +23,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -536,7 +537,8 @@ public class GameController implements ActionListener {
             profileDraftName,
             profileStatusMessage,
             profileSaveFailed,
-            newBestScore
+            newBestScore,
+            topProfiles()
         );
     }
 
@@ -856,6 +858,23 @@ public class GameController implements ActionListener {
             return null;
         }
         return profiles.get(selectedProfileIndex);
+    }
+
+    private List<ProfileMenuState.LeaderboardEntry> topProfiles() {
+        List<PlayerProfile> rankedProfiles = profiles.stream()
+            .sorted(
+                Comparator.comparingInt(PlayerProfile::bestScore)
+                    .reversed()
+                    .thenComparing(PlayerProfile::name)
+            )
+            .limit(5)
+            .toList();
+        List<ProfileMenuState.LeaderboardEntry> entries = new ArrayList<>();
+        for (int index = 0; index < rankedProfiles.size(); index++) {
+            PlayerProfile profile = rankedProfiles.get(index);
+            entries.add(new ProfileMenuState.LeaderboardEntry(index + 1, profile.name(), profile.bestScore()));
+        }
+        return entries;
     }
 
     private void handleGameOverScoreUpdate() {
