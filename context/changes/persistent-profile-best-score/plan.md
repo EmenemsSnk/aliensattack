@@ -241,42 +241,42 @@ No file migration is required. The ranking is derived from existing `profiles.ts
 
 #### Automated
 
-- [x] 1.1 `GameControllerTest` covers Top 5 ordering, tie ordering, list limit, and refresh after a new best score.
-- [x] 1.2 `./mvnw test -Dtest=GameControllerTest` passes.
-- [x] 1.3 `./mvnw clean compile` passes.
+- [x] 1.1 `GameControllerTest` covers Top 5 ordering, tie ordering, list limit, and refresh after a new best score. — f5c8070
+- [x] 1.2 `./mvnw test -Dtest=GameControllerTest` passes. — f5c8070
+- [x] 1.3 `./mvnw clean compile` passes. — f5c8070
 
 #### Manual
 
-- [x] 1.4 With more than five profiles in `profiles.tsv`, only the five highest best scores are shown after Game Over.
-- [x] 1.5 Equal scores appear in deterministic alphabetical order.
+- [x] 1.4 With more than five profiles in `profiles.tsv`, only the five highest best scores are shown after Game Over. — f5c8070
+- [x] 1.5 Equal scores appear in deterministic alphabetical order. — f5c8070
 
 ### Phase 2: Game Over Rendering and Documentation
 
 #### Automated
 
-- [x] 2.1 `GamePanelTest` covers any new ranking helper behavior.
-- [x] 2.2 `./mvnw test -Dtest=GamePanelTest` passes.
-- [x] 2.3 `./mvnw test` passes.
-- [x] 2.4 `./mvnw clean compile` passes.
+- [x] 2.1 `GamePanelTest` covers any new ranking helper behavior. — f5c8070
+- [x] 2.2 `./mvnw test -Dtest=GamePanelTest` passes. — f5c8070
+- [x] 2.3 `./mvnw test` passes. — f5c8070
+- [x] 2.4 `./mvnw clean compile` passes. — f5c8070
 
 #### Manual
 
-- [x] 2.5 Game Over shows final score, selected profile, best score, Top 5 ranking, and restart instruction without text overlap.
-- [x] 2.6 A new best score immediately appears in the ranking after Game Over.
-- [x] 2.7 Save-failure messaging remains visible and does not prevent restart.
+- [x] 2.5 Game Over shows final score, selected profile, best score, Top 5 ranking, and restart instruction without text overlap. — f5c8070
+- [x] 2.6 A new best score immediately appears in the ranking after Game Over. — f5c8070
+- [x] 2.7 Save-failure messaging remains visible and does not prevent restart. — f5c8070
 
 ### Phase 3: Roadmap Reconciliation and Final Verification
 
 #### Automated
 
-- [x] 3.1 `./mvnw test` passes.
-- [x] 3.2 `./mvnw clean compile` passes.
-- [x] 3.3 `context/foundation/roadmap.md` no longer marks S-09 as blocked by the resolved update-rule question.
+- [x] 3.1 `./mvnw test` passes. — f5c8070
+- [x] 3.2 `./mvnw clean compile` passes. — f5c8070
+- [x] 3.3 `context/foundation/roadmap.md` no longer marks S-09 as blocked by the resolved update-rule question. — f5c8070
 
 #### Manual
 
-- [x] 3.4 Top 5 ranking appears on Game Over and fits the fixed panel.
-- [x] 3.5 Ranking uses stored profile best scores, not individual session history.
-- [x] 3.6 New best score updates the selected profile and ranking immediately.
-- [x] 3.7 Relaunch preserves the same Top 5 from `profiles.tsv`.
-- [x] 3.8 Existing controls still work: arrows move during play, `SPACE` fires, `P` pauses/resumes, `ENTER` restarts on Game Over.
+- [x] 3.4 Top 5 ranking appears on Game Over and fits the fixed panel. — f5c8070
+- [x] 3.5 Ranking uses stored profile best scores, not individual session history. — f5c8070
+- [x] 3.6 New best score updates the selected profile and ranking immediately. — f5c8070
+- [x] 3.7 Relaunch preserves the same Top 5 from `profiles.tsv`. — f5c8070
+- [x] 3.8 Existing controls still work: arrows move during play, `SPACE` fires, `P` pauses/resumes, `ENTER` restarts on Game Over. — f5c8070
