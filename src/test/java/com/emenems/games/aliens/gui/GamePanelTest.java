@@ -49,9 +49,18 @@ class GamePanelTest {
     void waveMessageIsVisibleOnlyWhilePlayingAndTicksRemain() {
         assertTrue(GamePanel.isWaveMessageVisible(GameState.PLAYING, true, 1));
         assertFalse(GamePanel.isWaveMessageVisible(GameState.START_MENU, true, 10));
+        assertFalse(GamePanel.isWaveMessageVisible(GameState.PAUSED, true, 10));
         assertFalse(GamePanel.isWaveMessageVisible(GameState.GAME_OVER, true, 10));
         assertFalse(GamePanel.isWaveMessageVisible(GameState.PLAYING, false, 10));
         assertFalse(GamePanel.isWaveMessageVisible(GameState.PLAYING, true, 0));
+    }
+
+    @Test
+    void pausedOverlayIsVisibleOnlyWhilePaused() {
+        assertFalse(GamePanel.isPausedOverlayVisible(GameState.START_MENU));
+        assertFalse(GamePanel.isPausedOverlayVisible(GameState.PLAYING));
+        assertTrue(GamePanel.isPausedOverlayVisible(GameState.PAUSED));
+        assertFalse(GamePanel.isPausedOverlayVisible(GameState.GAME_OVER));
     }
 
     @Test

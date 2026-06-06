@@ -19,6 +19,7 @@ Take control of a spaceship and defend against waves of invading aliens. Move, h
 - **Arrow Keys**: Move the spaceship (Up, Down, Left, Right)
 - **Enter**: Start or restart
 - **Spacebar**: Hold to fire missiles
+- **P**: Pause or resume gameplay
 
 ## Requirements
 - Java 21

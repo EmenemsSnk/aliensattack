@@ -60,6 +60,75 @@ class GameSessionTest {
     }
 
     @Test
+    void pauseAndResumeOnlyTransitionBetweenPlayingAndPaused() {
+        GameSession session = new GameSession();
+
+        session.pause();
+
+        assertEquals(GameState.START_MENU, session.getGameState());
+
+        session.resume();
+
+        assertEquals(GameState.START_MENU, session.getGameState());
+
+        session.startOrRestart();
+        session.pause();
+
+        assertEquals(GameState.PAUSED, session.getGameState());
+
+        session.pause();
+
+        assertEquals(GameState.PAUSED, session.getGameState());
+
+        session.resume();
+
+        assertEquals(GameState.PLAYING, session.getGameState());
+
+        session.resume();
+
+        assertEquals(GameState.PLAYING, session.getGameState());
+    }
+
+    @Test
+    void pauseAndResumePreserveSessionScalarsAndTimers() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+        session.addAlienKills(1);
+        session.addAlienKills(1);
+        session.advanceWave();
+        session.activateRapidFire();
+        session.loseLife();
+        session.tickHitFeedback();
+        session.tickWaveMessage();
+        session.tickRapidFire();
+        session.tickCombo();
+
+        int score = session.getScore();
+        int wave = session.getWave();
+        int lives = session.getLives();
+        boolean hitFeedbackActive = session.isHitFeedbackActive();
+        int waveMessageTicks = session.getWaveMessageTicks();
+        int rapidFireTicks = session.getRapidFireTicks();
+        int comboMultiplier = session.getComboMultiplier();
+        int comboTicks = session.getComboTicks();
+        String gameOverTitle = session.getGameOverTitle();
+
+        session.pause();
+        session.resume();
+
+        assertEquals(GameState.PLAYING, session.getGameState());
+        assertEquals(score, session.getScore());
+        assertEquals(wave, session.getWave());
+        assertEquals(lives, session.getLives());
+        assertEquals(hitFeedbackActive, session.isHitFeedbackActive());
+        assertEquals(waveMessageTicks, session.getWaveMessageTicks());
+        assertEquals(rapidFireTicks, session.getRapidFireTicks());
+        assertEquals(comboMultiplier, session.getComboMultiplier());
+        assertEquals(comboTicks, session.getComboTicks());
+        assertEquals(gameOverTitle, session.getGameOverTitle());
+    }
+
+    @Test
     void advanceWaveIncrementsWave() {
         GameSession session = new GameSession();
 
