@@ -341,60 +341,60 @@ Rollback consists of removing the `profiles` package, profile fields from contro
 
 #### Automated
 
-- [x] 1.1 `ProfileNameValidatorTest` covers accepted and rejected profile names.
-- [x] 1.2 `ProfileStoreTest` covers missing, valid, malformed, and round-tripped `profiles.tsv` data.
-- [x] 1.3 `./mvnw test -Dtest=ProfileNameValidatorTest,ProfileStoreTest` passes.
-- [x] 1.4 `./mvnw clean compile` passes.
+- [x] 1.1 `ProfileNameValidatorTest` covers accepted and rejected profile names. — c2ab968
+- [x] 1.2 `ProfileStoreTest` covers missing, valid, malformed, and round-tripped `profiles.tsv` data. — c2ab968
+- [x] 1.3 `./mvnw test -Dtest=ProfileNameValidatorTest,ProfileStoreTest` passes. — c2ab968
+- [x] 1.4 `./mvnw clean compile` passes. — c2ab968
 
 #### Manual
 
-- [x] 1.5 A developer can inspect `profiles.tsv` and understand the profile names and best scores.
+- [x] 1.5 A developer can inspect `profiles.tsv` and understand the profile names and best scores. — c2ab968
 
 ### Phase 2: Controller and Session Integration
 
 #### Automated
 
-- [x] 2.1 Controller tests cover profile-gated start, create/select flow, invalid input, duplicate input, and left/right selection.
-- [x] 2.2 Controller tests cover one-time best-score update on `finalScore > bestScore`.
-- [x] 2.3 Controller tests cover no best-score update on equal or lower final score.
-- [x] 2.4 Controller tests cover save failure not preventing Game Over or restart.
-- [x] 2.5 `./mvnw test -Dtest=GameControllerTest` passes.
-- [x] 2.6 `./mvnw clean compile` passes.
+- [x] 2.1 Controller tests cover profile-gated start, create/select flow, invalid input, duplicate input, and left/right selection. — c2ab968
+- [x] 2.2 Controller tests cover one-time best-score update on `finalScore > bestScore`. — c2ab968
+- [x] 2.3 Controller tests cover no best-score update on equal or lower final score. — c2ab968
+- [x] 2.4 Controller tests cover save failure not preventing Game Over or restart. — c2ab968
+- [x] 2.5 `./mvnw test -Dtest=GameControllerTest` passes. — c2ab968
+- [x] 2.6 `./mvnw clean compile` passes. — c2ab968
 
 #### Manual
 
-- [x] 2.7 On a fresh working directory with no `profiles.tsv`, pressing `ENTER` on the start screen does not start gameplay and prompts profile creation.
-- [x] 2.8 Creating a valid profile selects it but does not auto-start until `ENTER` is pressed again.
-- [x] 2.9 Left/right profile switching works on the start screen and does not affect in-game movement behavior.
+- [x] 2.7 On a fresh working directory with no `profiles.tsv`, pressing `ENTER` on the start screen does not start gameplay and prompts profile creation. — c2ab968
+- [x] 2.8 Creating a valid profile selects it but does not auto-start until `ENTER` is pressed again. — c2ab968
+- [x] 2.9 Left/right profile switching works on the start screen and does not affect in-game movement behavior. — c2ab968
 
 ### Phase 3: Start Menu, Game Over UI, and Documentation
 
 #### Automated
 
-- [x] 3.1 `GamePanelTest` covers profile UI helper behavior added in this phase.
-- [x] 3.2 `./mvnw test -Dtest=GamePanelTest` passes.
-- [x] 3.3 `./mvnw test` passes.
-- [x] 3.4 `./mvnw clean compile` passes.
+- [x] 3.1 `GamePanelTest` covers profile UI helper behavior added in this phase. — c2ab968
+- [x] 3.2 `./mvnw test -Dtest=GamePanelTest` passes. — c2ab968
+- [x] 3.3 `./mvnw test` passes. — c2ab968
+- [x] 3.4 `./mvnw clean compile` passes. — c2ab968
 
 #### Manual
 
-- [x] 3.5 Start screen clearly communicates the required profile workflow when no profiles exist.
-- [x] 3.6 Start screen clearly shows selected profile and best score when profiles exist.
-- [x] 3.7 Game Over shows final score, selected profile, stored best score, and restart instruction.
-- [x] 3.8 Save-failure messaging is visible but does not prevent restart.
+- [x] 3.5 Start screen clearly communicates the required profile workflow when no profiles exist. — c2ab968
+- [x] 3.6 Start screen clearly shows selected profile and best score when profiles exist. — c2ab968
+- [x] 3.7 Game Over shows final score, selected profile, stored best score, and restart instruction. — c2ab968
+- [x] 3.8 Save-failure messaging is visible but does not prevent restart. — c2ab968
 
 ### Phase 4: Full Regression and Manual Verification
 
 #### Automated
 
-- [x] 4.1 `./mvnw clean compile` passes.
-- [x] 4.2 `./mvnw test` passes.
+- [x] 4.1 `./mvnw clean compile` passes. — c2ab968
+- [x] 4.2 `./mvnw test` passes. — c2ab968
 
 #### Manual
 
-- [x] 4.3 Fresh launch with no `profiles.tsv` requires profile creation before gameplay.
-- [x] 4.4 Relaunch after creating profiles shows persisted profiles from `profiles.tsv`.
-- [x] 4.5 A better completed score updates the selected profile's best score; equal or lower scores do not.
-- [x] 4.6 Malformed `profiles.tsv` logs an error and lets the player create a new profile.
-- [x] 4.7 Existing controls still work: arrows move during play, `SPACE` fires, `P` pauses/resumes, `ENTER` restarts on Game Over.
-- [x] 4.8 Audio-unavailable behavior remains safe.
+- [x] 4.3 Fresh launch with no `profiles.tsv` requires profile creation before gameplay. — c2ab968
+- [x] 4.4 Relaunch after creating profiles shows persisted profiles from `profiles.tsv`. — c2ab968
+- [x] 4.5 A better completed score updates the selected profile's best score; equal or lower scores do not. — c2ab968
+- [x] 4.6 Malformed `profiles.tsv` logs an error and lets the player create a new profile. — c2ab968
+- [x] 4.7 Existing controls still work: arrows move during play, `SPACE` fires, `P` pauses/resumes, `ENTER` restarts on Game Over. — c2ab968
+- [x] 4.8 Audio-unavailable behavior remains safe. — c2ab968
