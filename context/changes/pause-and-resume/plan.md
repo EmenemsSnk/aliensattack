@@ -252,45 +252,45 @@ No data migration is required. This is an in-memory state-machine and rendering 
 
 #### Automated
 
-- [x] 1.1 `GameSessionTest` covers pause only from `PLAYING`, resume only from `PAUSED`, and timer/scalar preservation across pause/resume.
-- [x] 1.2 `GameControllerTest` covers `P` toggling from `PLAYING` to `PAUSED` and back to `PLAYING`.
-- [x] 1.3 `GameControllerTest` covers `ENTER`, `SPACE`, and movement keys being ignored while paused.
-- [x] 1.4 `GameControllerTest` covers held movement/fire input and player fire cooldown being cleared on pause.
-- [x] 1.5 `GameControllerTest` covers gameplay objects and timers not advancing during paused ticks where applicable.
-- [x] 1.6 `./mvnw test`
+- [x] 1.1 `GameSessionTest` covers pause only from `PLAYING`, resume only from `PAUSED`, and timer/scalar preservation across pause/resume. — 6288bd4
+- [x] 1.2 `GameControllerTest` covers `P` toggling from `PLAYING` to `PAUSED` and back to `PLAYING`. — 6288bd4
+- [x] 1.3 `GameControllerTest` covers `ENTER`, `SPACE`, and movement keys being ignored while paused. — 6288bd4
+- [x] 1.4 `GameControllerTest` covers held movement/fire input and player fire cooldown being cleared on pause. — 6288bd4
+- [x] 1.5 `GameControllerTest` covers gameplay objects and timers not advancing during paused ticks where applicable. — 6288bd4
+- [x] 1.6 `./mvnw test` — 6288bd4
 
 #### Manual
 
-- [x] 1.7 Pressing `P` during gameplay pauses immediately.
-- [x] 1.8 Pressing arrows or holding space while paused does not move or fire.
-- [x] 1.9 Pressing `P` resumes the same session without a restart.
+- [x] 1.7 Pressing `P` during gameplay pauses immediately. — 6288bd4
+- [x] 1.8 Pressing arrows or holding space while paused does not move or fire. — 6288bd4
+- [x] 1.9 Pressing `P` resumes the same session without a restart. — 6288bd4
 
 ### Phase 2: Rendering and documentation
 
 #### Automated
 
-- [x] 2.1 `GamePanelTest` covers paused overlay visibility helper behavior if a helper is introduced.
-- [x] 2.2 `./mvnw clean compile`
-- [x] 2.3 `./mvnw test`
+- [x] 2.1 `GamePanelTest` covers paused overlay visibility helper behavior if a helper is introduced. — 6288bd4
+- [x] 2.2 `./mvnw clean compile` — 6288bd4
+- [x] 2.3 `./mvnw test` — 6288bd4
 
 #### Manual
 
-- [x] 2.4 Paused overlay is centered, readable, and clearly distinct from start menu and Game Over.
-- [x] 2.5 The frozen board remains visible enough for the player to understand what will resume.
-- [x] 2.6 README lists `P` as pause/resume.
+- [x] 2.4 Paused overlay is centered, readable, and clearly distinct from start menu and Game Over. — 6288bd4
+- [x] 2.5 The frozen board remains visible enough for the player to understand what will resume. — 6288bd4
+- [x] 2.6 README lists `P` as pause/resume. — 6288bd4
 
 ### Phase 3: Regression coverage
 
 #### Automated
 
-- [x] 3.1 `./mvnw clean compile`
-- [x] 3.2 `./mvnw test`
+- [x] 3.1 `./mvnw clean compile` — 6288bd4
+- [x] 3.2 `./mvnw test` — 6288bd4
 
 #### Manual
 
-- [x] 3.3 Start menu still starts with `ENTER`.
-- [x] 3.4 During play, `P` pauses and stops background music.
-- [x] 3.5 During pause, entities and all visible timers remain frozen across several seconds.
-- [x] 3.6 During pause, `ENTER`, arrows, and `SPACE` do not restart, move, or fire.
-- [x] 3.7 Pressing `P` resumes play and background music starts again.
-- [x] 3.8 Game Over still stops music and `ENTER` restart still works.
+- [x] 3.3 Start menu still starts with `ENTER`. — 6288bd4
+- [x] 3.4 During play, `P` pauses and stops background music. — 6288bd4
+- [x] 3.5 During pause, entities and all visible timers remain frozen across several seconds. — 6288bd4
+- [x] 3.6 During pause, `ENTER`, arrows, and `SPACE` do not restart, move, or fire. — 6288bd4
+- [x] 3.7 Pressing `P` resumes play and background music starts again. — 6288bd4
+- [x] 3.8 Game Over still stops music and `ENTER` restart still works. — 6288bd4
