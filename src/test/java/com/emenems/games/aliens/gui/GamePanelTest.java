@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.profiles.ProfileMenuState;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class GamePanelTest {
@@ -89,6 +90,30 @@ class GamePanelTest {
         assertTrue(GamePanel.isNewBestScoreVisible(newBestState));
         assertFalse(GamePanel.isSaveWarningVisible(newBestState));
         assertTrue(GamePanel.isSaveWarningVisible(saveFailedState));
+    }
+
+    @Test
+    void leaderboardHelpersFormatRankingRows() {
+        ProfileMenuState emptyState = ProfileMenuState.empty();
+        ProfileMenuState rankedState = new ProfileMenuState(
+            "Player",
+            120,
+            1,
+            0,
+            false,
+            "",
+            "",
+            false,
+            false,
+            List.of(new ProfileMenuState.LeaderboardEntry(1, "Player", 120))
+        );
+
+        assertFalse(GamePanel.isLeaderboardVisible(emptyState));
+        assertTrue(GamePanel.isLeaderboardVisible(rankedState));
+        assertEquals(
+            "1. Player  120",
+            GamePanel.leaderboardRowText(rankedState.topProfiles().getFirst())
+        );
     }
 
     @Test

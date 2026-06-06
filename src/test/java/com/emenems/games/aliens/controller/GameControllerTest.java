@@ -17,6 +17,7 @@ import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import com.emenems.games.aliens.profiles.PlayerProfile;
+import com.emenems.games.aliens.profiles.ProfileMenuState;
 import com.emenems.games.aliens.profiles.ProfileStore;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
@@ -688,6 +689,40 @@ class GameControllerTest {
     }
 
     @Test
+    void profileMenuStateExposesTopFiveProfilesByBestScoreWithNameTieBreak() {
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>());
+        controller.replaceProfilesForTesting(List.of(
+            new PlayerProfile("Delta", 20),
+            new PlayerProfile("Bravo", 50),
+            new PlayerProfile("Charlie", 50),
+            new PlayerProfile("Echo", 10),
+            new PlayerProfile("Alpha", 90),
+            new PlayerProfile("Foxtrot", 30)
+        ));
+
+        List<ProfileMenuState.LeaderboardEntry> topProfiles = controller.getProfileMenuState().topProfiles();
+
+        assertEquals(5, topProfiles.size());
+        assertEquals(new ProfileMenuState.LeaderboardEntry(1, "Alpha", 90), topProfiles.get(0));
+        assertEquals(new ProfileMenuState.LeaderboardEntry(2, "Bravo", 50), topProfiles.get(1));
+        assertEquals(new ProfileMenuState.LeaderboardEntry(3, "Charlie", 50), topProfiles.get(2));
+        assertEquals(new ProfileMenuState.LeaderboardEntry(4, "Foxtrot", 30), topProfiles.get(3));
+        assertEquals(new ProfileMenuState.LeaderboardEntry(5, "Delta", 20), topProfiles.get(4));
+    }
+
+    @Test
+    void profileMenuStateTopProfilesAreImmutable() {
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>());
+        controller.replaceProfilesForTesting(List.of(new PlayerProfile("Player", 10)));
+
+        List<ProfileMenuState.LeaderboardEntry> topProfiles = controller.getProfileMenuState().topProfiles();
+
+        assertThrowsUnsupportedOperation(() ->
+            topProfiles.add(new ProfileMenuState.LeaderboardEntry(2, "Other", 5))
+        );
+    }
+
+    @Test
     void gameOverUpdatesBestScoreOnlyWhenFinalScoreIsGreaterAndOnlyOnce() {
         Spaceship spaceship = new Spaceship(startX(), startY());
         List<Missile> missiles = new ArrayList<>();
@@ -726,6 +761,60 @@ class GameControllerTest {
         controller.tick();
 
         assertEquals(1, profileStore.saveCalls);
+    }
+
+    @Test
+    void gameOverNewBestScoreRefreshesTopProfilesImmediately() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        CountingProfileStore profileStore = new CountingProfileStore(List.of(
+            new PlayerProfile("Player", 0),
+            new PlayerProfile("Ace", 80),
+            new PlayerProfile("Blaze", 70),
+            new PlayerProfile("Comet", 60),
+            new PlayerProfile("Drift", 50),
+            new PlayerProfile("Echo", 40)
+        ), false);
+        GameController controller = new GameController(
+            spaceship,
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            null,
+            new Random(1),
+            new ArcadeSoundPlayer(),
+            profileStore
+        );
+        controller.replaceProfilesForTesting(profileStore.loadProfiles());
+        startPlaying(controller);
+        aliens.clear();
+        for (int index = 0; index < 9; index++) {
+            int coordinate = 80 + index * 40;
+            missiles.add(new Missile(coordinate, 100));
+            aliens.add(new Alien(coordinate, 100, 0));
+        }
+        controller.checkCollisionsWithMissile();
+
+        enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals(90, controller.getProfileMenuState().selectedBestScore());
+        assertEquals(
+            new ProfileMenuState.LeaderboardEntry(1, "Player", 90),
+            controller.getProfileMenuState().topProfiles().getFirst()
+        );
+    }
+
+    private void assertThrowsUnsupportedOperation(Runnable action) {
+        try {
+            action.run();
+        } catch (UnsupportedOperationException exception) {
+            return;
+        }
+        throw new AssertionError("Expected UnsupportedOperationException");
     }
 
     @Test

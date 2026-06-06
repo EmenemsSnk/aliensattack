@@ -23,7 +23,7 @@ Take control of a spaceship and defend against waves of invading aliens. Move, h
 - **Spacebar**: Hold to fire missiles
 - **P**: Pause or resume gameplay
 
-Local profiles are stored in `profiles.tsv` in the working directory. Each profile keeps its own best score.
+Local profiles are stored in `profiles.tsv` in the working directory. Each profile keeps its own best score, and Game Over shows a local Top 5 profile ranking.
 
 ## Requirements
 - Java 21
