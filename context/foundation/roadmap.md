@@ -3,7 +3,7 @@ project: "Aliens Attack"
 version: 1
 status: draft
 created: 2026-06-04
-updated: 2026-06-05
+updated: 2026-06-06
 prd_version: 1
 main_goal: quality
 top_blocker: decisions
@@ -36,7 +36,7 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | S-03 | distinct-alien-type | spotkać wyraźnie odmienny nowy typ obcego | S-02 | US-01, FR-005, FR-010 | done |
 | S-04 | visible-alien-explosion | zobaczyć eksplozję po zniszczeniu obcego | — | US-01, FR-006, FR-010 | done |
 | S-05 | clear-hud-and-wave-message | odczytać czytelniejszy HUD i komunikat rozpoczęcia fali | S-04 | US-01, FR-007, FR-010 | done |
-| S-06 | pause-and-resume | wstrzymać i wznowić rozgrywkę | S-05 | FR-008, FR-010 | proposed |
+| S-06 | pause-and-resume | wstrzymać i wznowić rozgrywkę | S-05 | FR-008, FR-010 | done |
 | S-07 | life-loss-sound | usłyszeć osobny dźwięk utraty życia | S-05 | FR-009, FR-010 | proposed |
 | S-08 | local-player-profiles | utworzyć lub wybrać lokalny profil bez blokowania startu gry | — | US-01, FR-001, FR-010 | ready |
 | S-09 | persistent-profile-best-score | zobaczyć zapisany najlepszy wynik wybranego profilu po Game Over | S-08 | US-01, FR-002, FR-010 | blocked |
@@ -100,6 +100,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **S-03: Gracz może spotkać nowy typ obcego, którego zachowanie jest czytelnie inne od zwykłego przeciwnika.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-04-distinct-alien-type/`. Lekcja: —.
 - **S-04: Gracz może zobaczyć krótką eksplozję po zniszczeniu obcego bez utraty czytelności rozgrywki.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-visible-alien-explosion/`. Lekcja: —.
 - **S-05: Gracz może łatwo odczytać stan sesji i zobaczyć komunikat rozpoczęcia nowej fali.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-clear-hud-and-wave-message/`. Lekcja: —.
+- **S-06: Gracz może wstrzymać rozgrywkę i wznowić ją bez zmiany stanu obiektów podczas pauzy.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-05-pause-and-resume/`. Lekcja: —.
 
 ### S-03: Wyraźnie odmienny nowy obcy
 
@@ -148,7 +149,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** Nowy stan gry może przypadkowo pozwolić na ruch, strzelanie lub zmianę timerów podczas pauzy.
-- **Status:** proposed
+- **Status:** done
 
 ### S-07: Dźwięk utraty życia
 

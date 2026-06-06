@@ -84,6 +84,18 @@ public final class GameSession {
         gameOverTitle = DEFAULT_GAME_OVER_TITLE;
     }
 
+    public void pause() {
+        if (gameState == GameState.PLAYING) {
+            gameState = GameState.PAUSED;
+        }
+    }
+
+    public void resume() {
+        if (gameState == GameState.PAUSED) {
+            gameState = GameState.PLAYING;
+        }
+    }
+
     public void addAlienKills(int count) {
         if (count <= 0) {
             return;

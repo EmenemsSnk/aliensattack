@@ -218,12 +218,19 @@ public class GameController implements ActionListener {
                     restartGame();
                 }
             }
+            case PAUSED -> {
+                if (keyCode == KeyEvent.VK_P) {
+                    resumeGame();
+                }
+            }
             case PLAYING -> handlePlayingKeyPressed(keyCode);
         }
     }
 
     private void handlePlayingKeyPressed(int keyCode) {
-        if (keyCode == KeyEvent.VK_SPACE) {
+        if (keyCode == KeyEvent.VK_P) {
+            pauseGame();
+        } else if (keyCode == KeyEvent.VK_SPACE) {
             spacePressed = true;
             firePlayerMissileIfReady();
         } else if (isMovementKey(keyCode)) {
@@ -523,6 +530,21 @@ public class GameController implements ActionListener {
         repaintGamePanel();
     }
 
+    private void pauseGame() {
+        session.pause();
+        clearHeldInput();
+        soundPlayer.stopBackgroundMusic();
+        updatePanelState();
+        repaintGamePanel();
+    }
+
+    private void resumeGame() {
+        session.resume();
+        soundPlayer.startBackgroundMusic();
+        updatePanelState();
+        repaintGamePanel();
+    }
+
     private void resetSession() {
         session.startOrRestart();
         spaceship.moveTo(
@@ -533,9 +555,7 @@ public class GameController implements ActionListener {
         alienMissiles.clear();
         alienExplosions.clear();
         rapidFirePowerUps.clear();
-        pressedMovementKeys.clear();
-        spacePressed = false;
-        playerFireCooldownTicks = 0;
+        clearHeldInput();
         generateSpaceObjects();
         updatePanelState();
     }
@@ -550,9 +570,14 @@ public class GameController implements ActionListener {
     }
 
     private void clearInputAndStopMusic() {
+        clearHeldInput();
+        soundPlayer.stopBackgroundMusic();
+    }
+
+    private void clearHeldInput() {
         pressedMovementKeys.clear();
         spacePressed = false;
-        soundPlayer.stopBackgroundMusic();
+        playerFireCooldownTicks = 0;
     }
 
     private void updateHitFeedback() {

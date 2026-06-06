@@ -146,6 +146,7 @@ public class GamePanel extends JPanel {
         drawHud(g);
         drawWaveMessage(g);
         drawHitFeedback(g);
+        drawPausedOverlay(g);
         drawStartMenu(g);
         drawGameOver(g);
         Toolkit.getDefaultToolkit().sync();
@@ -211,6 +212,26 @@ public class GamePanel extends JPanel {
 
     static boolean isWaveMessageVisible(GameState gameState, boolean active, int ticks) {
         return gameState == GameState.PLAYING && active && ticks > 0;
+    }
+
+    static boolean isPausedOverlayVisible(GameState gameState) {
+        return gameState == GameState.PAUSED;
+    }
+
+    private void drawPausedOverlay(Graphics graphics) {
+        if (!isPausedOverlayVisible(gameState)) {
+            return;
+        }
+
+        graphics.setColor(new Color(0, 0, 0, 150));
+        graphics.fillRect(0, 0, GameConstants.PANEL_WIDTH, GameConstants.PANEL_HEIGHT);
+
+        graphics.setColor(Color.WHITE);
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
+        drawCenteredString(graphics, "PAUSED", GameConstants.PANEL_HEIGHT / 2 - 30);
+
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
+        drawCenteredString(graphics, "Press P to Resume", GameConstants.PANEL_HEIGHT / 2 + 20);
     }
 
     private void drawWaveMessage(Graphics graphics) {
