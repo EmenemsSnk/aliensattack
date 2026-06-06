@@ -13,6 +13,10 @@ import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import com.emenems.games.aliens.gui.GamePanel;
+import com.emenems.games.aliens.profiles.PlayerProfile;
+import com.emenems.games.aliens.profiles.ProfileMenuState;
+import com.emenems.games.aliens.profiles.ProfileNameValidator;
+import com.emenems.games.aliens.profiles.ProfileStore;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,6 +25,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Set;
 import javax.swing.Timer;
@@ -47,11 +52,20 @@ public class GameController implements ActionListener {
     private final GamePanel gamePanel;
     private final Random random;
     private final ArcadeSoundPlayer soundPlayer;
+    private final ProfileStore profileStore;
     private final GameSession session = new GameSession();
     private final Set<Integer> pressedMovementKeys = new HashSet<>();
+    private List<PlayerProfile> profiles = new ArrayList<>();
     private Timer timer;
     private int playerFireCooldownTicks;
     private boolean spacePressed;
+    private int selectedProfileIndex = -1;
+    private boolean profileInputMode;
+    private String profileDraftName = "";
+    private String profileStatusMessage = "Create a profile with N";
+    private boolean profileSaveFailed;
+    private boolean newBestScore;
+    private boolean gameOverScoreHandled;
 
     public GameController(
         Spaceship spaceship,
@@ -80,7 +94,8 @@ public class GameController implements ActionListener {
             rapidFirePowerUps,
             gamePanel,
             new Random(),
-            new ArcadeSoundPlayer()
+            new ArcadeSoundPlayer(),
+            new ProfileStore()
         );
     }
 
@@ -102,7 +117,8 @@ public class GameController implements ActionListener {
             rapidFirePowerUps,
             gamePanel,
             new Random(),
-            new ArcadeSoundPlayer()
+            new ArcadeSoundPlayer(),
+            new ProfileStore()
         );
     }
 
@@ -124,7 +140,8 @@ public class GameController implements ActionListener {
             new ArrayList<>(),
             gamePanel,
             random,
-            soundPlayer
+            soundPlayer,
+            new ProfileStore()
         );
     }
 
@@ -147,7 +164,8 @@ public class GameController implements ActionListener {
             rapidFirePowerUps,
             gamePanel,
             random,
-            soundPlayer
+            soundPlayer,
+            new ProfileStore()
         );
     }
 
@@ -162,6 +180,32 @@ public class GameController implements ActionListener {
         Random random,
         ArcadeSoundPlayer soundPlayer
     ) {
+        this(
+            spaceship,
+            missiles,
+            alienMissiles,
+            aliens,
+            alienExplosions,
+            rapidFirePowerUps,
+            gamePanel,
+            random,
+            soundPlayer,
+            new ProfileStore()
+        );
+    }
+
+    GameController(
+        Spaceship spaceship,
+        List<Missile> missiles,
+        List<AlienMissile> alienMissiles,
+        List<Alien> aliens,
+        List<AlienExplosion> alienExplosions,
+        List<RapidFirePowerUp> rapidFirePowerUps,
+        GamePanel gamePanel,
+        Random random,
+        ArcadeSoundPlayer soundPlayer,
+        ProfileStore profileStore
+    ) {
         this.spaceship = spaceship;
         this.missiles = missiles;
         this.alienMissiles = alienMissiles;
@@ -171,15 +215,17 @@ public class GameController implements ActionListener {
         this.gamePanel = gamePanel;
         this.random = random;
         this.soundPlayer = soundPlayer;
+        this.profileStore = profileStore;
     }
 
     public void initialize() {
+        loadProfiles();
         generateSpaceObjects();
         updatePanelState();
         gamePanel.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                handleKeyPressed(e.getKeyCode());
+                handleKeyPressed(e.getKeyCode(), e.getKeyChar());
             }
 
             @Override
@@ -207,12 +253,12 @@ public class GameController implements ActionListener {
     }
 
     void handleKeyPressed(int keyCode) {
+        handleKeyPressed(keyCode, KeyEvent.CHAR_UNDEFINED);
+    }
+
+    void handleKeyPressed(int keyCode, char keyChar) {
         switch (session.getGameState()) {
-            case START_MENU -> {
-                if (keyCode == KeyEvent.VK_ENTER) {
-                    startGame();
-                }
-            }
+            case START_MENU -> handleStartMenuKeyPressed(keyCode, keyChar);
             case GAME_OVER -> {
                 if (keyCode == KeyEvent.VK_ENTER) {
                     restartGame();
@@ -225,6 +271,46 @@ public class GameController implements ActionListener {
             }
             case PLAYING -> handlePlayingKeyPressed(keyCode);
         }
+    }
+
+    private void handleStartMenuKeyPressed(int keyCode, char keyChar) {
+        newBestScore = false;
+        if (profileInputMode) {
+            handleProfileInputKeyPressed(keyCode, keyChar);
+            return;
+        }
+
+        if (keyCode == KeyEvent.VK_ENTER) {
+            startGame();
+        } else if (keyCode == KeyEvent.VK_N) {
+            beginProfileInput();
+        } else if (keyCode == KeyEvent.VK_LEFT) {
+            selectPreviousProfile();
+        } else if (keyCode == KeyEvent.VK_RIGHT) {
+            selectNextProfile();
+        }
+    }
+
+    private void handleProfileInputKeyPressed(int keyCode, char keyChar) {
+        if (keyCode == KeyEvent.VK_ENTER) {
+            createProfileFromDraft();
+        } else if (keyCode == KeyEvent.VK_ESCAPE) {
+            cancelProfileInput();
+        } else if (keyCode == KeyEvent.VK_BACK_SPACE) {
+            if (!profileDraftName.isEmpty()) {
+                profileDraftName = profileDraftName.substring(0, profileDraftName.length() - 1);
+            }
+            profileStatusMessage = "Type a profile name";
+        } else if (keyChar != KeyEvent.CHAR_UNDEFINED && ProfileNameValidator.isAllowedCharacter(keyChar)) {
+            if (profileDraftName.length() < ProfileNameValidator.MAX_NAME_LENGTH) {
+                profileDraftName += keyChar;
+                profileStatusMessage = "Press ENTER to save";
+            } else {
+                profileStatusMessage = ProfileNameValidator.TOO_LONG_MESSAGE;
+            }
+        }
+        updatePanelState();
+        repaintGamePanel();
     }
 
     private void handlePlayingKeyPressed(int keyCode) {
@@ -439,6 +525,33 @@ public class GameController implements ActionListener {
         return session.isHitFeedbackActive();
     }
 
+    ProfileMenuState getProfileMenuState() {
+        PlayerProfile selectedProfile = selectedProfile();
+        return new ProfileMenuState(
+            selectedProfile == null ? "" : selectedProfile.name(),
+            selectedProfile == null ? 0 : selectedProfile.bestScore(),
+            profiles.size(),
+            selectedProfileIndex,
+            profileInputMode,
+            profileDraftName,
+            profileStatusMessage,
+            profileSaveFailed,
+            newBestScore
+        );
+    }
+
+    void replaceProfilesForTesting(List<PlayerProfile> testProfiles) {
+        profiles = new ArrayList<>(testProfiles);
+        selectedProfileIndex = profiles.isEmpty() ? -1 : 0;
+        profileInputMode = false;
+        profileDraftName = "";
+        profileStatusMessage = profiles.isEmpty()
+            ? "Create a profile with N"
+            : "Selected profile: " + profiles.get(selectedProfileIndex).name();
+        profileSaveFailed = false;
+        newBestScore = false;
+    }
+
     String getGameOverTitle() {
         return session.getGameOverTitle();
     }
@@ -507,7 +620,8 @@ public class GameController implements ActionListener {
                 session.isRapidFireActive(),
                 session.getRapidFireTicks(),
                 session.getComboMultiplier(),
-                session.getComboTicks()
+                session.getComboTicks(),
+                getProfileMenuState()
             );
         }
     }
@@ -519,6 +633,12 @@ public class GameController implements ActionListener {
     }
 
     private void startGame() {
+        if (!hasSelectedProfile()) {
+            profileStatusMessage = "Create or select a profile first";
+            updatePanelState();
+            repaintGamePanel();
+            return;
+        }
         resetSession();
         soundPlayer.startBackgroundMusic();
         repaintGamePanel();
@@ -547,6 +667,9 @@ public class GameController implements ActionListener {
 
     private void resetSession() {
         session.startOrRestart();
+        gameOverScoreHandled = false;
+        newBestScore = false;
+        profileSaveFailed = false;
         spaceship.moveTo(
             (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / 2,
             GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE - GameConstants.SPACESHIP_START_BOTTOM_MARGIN
@@ -566,6 +689,7 @@ public class GameController implements ActionListener {
         if (alienReachedBottom) {
             session.enterAlienInvasionGameOver();
             clearInputAndStopMusic();
+            handleGameOverScoreUpdate();
         }
     }
 
@@ -644,7 +768,115 @@ public class GameController implements ActionListener {
         session.loseLife();
         if (session.getGameState() == GameState.GAME_OVER) {
             clearInputAndStopMusic();
+            handleGameOverScoreUpdate();
         }
+    }
+
+    void loadProfiles() {
+        profiles = new ArrayList<>(profileStore.loadProfiles());
+        selectedProfileIndex = profiles.isEmpty() ? -1 : 0;
+        profileStatusMessage = profiles.isEmpty()
+            ? "Create a profile with N"
+            : "Selected profile: " + profiles.get(selectedProfileIndex).name();
+        profileSaveFailed = false;
+    }
+
+    private void beginProfileInput() {
+        profileInputMode = true;
+        profileDraftName = "";
+        profileStatusMessage = "Type a profile name";
+        updatePanelState();
+        repaintGamePanel();
+    }
+
+    private void cancelProfileInput() {
+        profileInputMode = false;
+        profileDraftName = "";
+        profileStatusMessage = hasSelectedProfile() ? "Profile creation cancelled" : "Create a profile with N";
+    }
+
+    private void createProfileFromDraft() {
+        ProfileNameValidator.ValidationResult result = ProfileNameValidator.validate(profileDraftName);
+        if (!result.valid()) {
+            profileStatusMessage = result.message();
+            return;
+        }
+        if (profileNameExists(result.normalizedName())) {
+            profileStatusMessage = "Profile already exists";
+            return;
+        }
+
+        PlayerProfile profile = new PlayerProfile(result.normalizedName(), 0);
+        profiles.add(profile);
+        selectedProfileIndex = profiles.size() - 1;
+        profileInputMode = false;
+        profileDraftName = "";
+        ProfileStore.SaveResult saveResult = profileStore.saveProfiles(profiles);
+        profileSaveFailed = !saveResult.success();
+        profileStatusMessage = saveResult.success()
+            ? "Created profile: " + profile.name()
+            : "Profile created, but save failed";
+    }
+
+    private boolean profileNameExists(String name) {
+        String key = name.toLowerCase(Locale.ROOT);
+        return profiles.stream()
+            .map(profile -> profile.name().toLowerCase(Locale.ROOT))
+            .anyMatch(key::equals);
+    }
+
+    private void selectPreviousProfile() {
+        if (profiles.isEmpty()) {
+            profileStatusMessage = "Create a profile with N";
+            return;
+        }
+        selectedProfileIndex = Math.floorMod(selectedProfileIndex - 1, profiles.size());
+        profileStatusMessage = "Selected profile: " + profiles.get(selectedProfileIndex).name();
+        updatePanelState();
+        repaintGamePanel();
+    }
+
+    private void selectNextProfile() {
+        if (profiles.isEmpty()) {
+            profileStatusMessage = "Create a profile with N";
+            return;
+        }
+        selectedProfileIndex = Math.floorMod(selectedProfileIndex + 1, profiles.size());
+        profileStatusMessage = "Selected profile: " + profiles.get(selectedProfileIndex).name();
+        updatePanelState();
+        repaintGamePanel();
+    }
+
+    private boolean hasSelectedProfile() {
+        return selectedProfile() != null;
+    }
+
+    private PlayerProfile selectedProfile() {
+        if (selectedProfileIndex < 0 || selectedProfileIndex >= profiles.size()) {
+            return null;
+        }
+        return profiles.get(selectedProfileIndex);
+    }
+
+    private void handleGameOverScoreUpdate() {
+        if (gameOverScoreHandled) {
+            return;
+        }
+        gameOverScoreHandled = true;
+        PlayerProfile selectedProfile = selectedProfile();
+        if (selectedProfile == null || session.getScore() <= selectedProfile.bestScore()) {
+            newBestScore = false;
+            return;
+        }
+
+        PlayerProfile updatedProfile = selectedProfile.withBestScore(session.getScore());
+        profiles.set(selectedProfileIndex, updatedProfile);
+        ProfileStore.SaveResult saveResult = profileStore.saveProfiles(profiles);
+        profileSaveFailed = !saveResult.success();
+        newBestScore = true;
+        profileStatusMessage = saveResult.success()
+            ? "New best score for " + updatedProfile.name()
+            : "New best score kept, but save failed";
     }
 
     private void moveAliens() {

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.profiles.ProfileMenuState;
 import org.junit.jupiter.api.Test;
 
 class GamePanelTest {
@@ -61,6 +62,33 @@ class GamePanelTest {
         assertFalse(GamePanel.isPausedOverlayVisible(GameState.PLAYING));
         assertTrue(GamePanel.isPausedOverlayVisible(GameState.PAUSED));
         assertFalse(GamePanel.isPausedOverlayVisible(GameState.GAME_OVER));
+    }
+
+    @Test
+    void profileMenuStateFormatsEmptyAndSelectedProfilePrompts() {
+        ProfileMenuState emptyState = ProfileMenuState.empty();
+        ProfileMenuState selectedState = new ProfileMenuState("Player", 120, 2, 1, false, "", "", false, false);
+
+        assertFalse(emptyState.hasSelectedProfile());
+        assertEquals("No profiles", emptyState.profileCounterText());
+        assertEquals("Best: -", emptyState.bestScoreText());
+        assertEquals("Create a profile to start", emptyState.startPromptText());
+        assertTrue(selectedState.hasSelectedProfile());
+        assertEquals("Profile 2 of 2", selectedState.profileCounterText());
+        assertEquals("Best: 120", selectedState.bestScoreText());
+        assertEquals("Press ENTER to Start", selectedState.startPromptText());
+    }
+
+    @Test
+    void profileGameOverMessagesMatchProfileResultState() {
+        ProfileMenuState neutralState = new ProfileMenuState("Player", 120, 1, 0, false, "", "", false, false);
+        ProfileMenuState newBestState = new ProfileMenuState("Player", 140, 1, 0, false, "", "", false, true);
+        ProfileMenuState saveFailedState = new ProfileMenuState("Player", 140, 1, 0, false, "", "", true, true);
+
+        assertFalse(GamePanel.isNewBestScoreVisible(neutralState));
+        assertTrue(GamePanel.isNewBestScoreVisible(newBestState));
+        assertFalse(GamePanel.isSaveWarningVisible(newBestState));
+        assertTrue(GamePanel.isSaveWarningVisible(saveFailedState));
     }
 
     @Test
