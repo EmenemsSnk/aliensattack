@@ -16,16 +16,22 @@ import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
 import com.emenems.games.aliens.gamemachines.Spaceship;
+import com.emenems.games.aliens.profiles.PlayerProfile;
+import com.emenems.games.aliens.profiles.ProfileStore;
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class GameControllerTest {
+    @TempDir
+    private Path tempDir;
 
     @Test
     void tickDoesNotMoveObjectsWhileStartMenuIsShowing() {
@@ -325,7 +331,7 @@ class GameControllerTest {
     void startingPlayActivatesWaveOneMessage() {
         GameController controller = newController(new ArrayList<>(), new ArrayList<>());
 
-        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+        startPlaying(controller);
 
         assertTrue(controller.isWaveMessageActive());
         assertEquals(GameSession.WAVE_MESSAGE_DURATION_TICKS, controller.getWaveMessageTicks());
@@ -544,6 +550,7 @@ class GameControllerTest {
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
         GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        selectTestProfile(controller);
 
         controller.handleKeyPressed(KeyEvent.VK_ENTER);
 
@@ -563,6 +570,228 @@ class GameControllerTest {
         assertEquals(GameState.PLAYING, controller.getGameState());
         assertEquals(0, missiles.size());
         assertEquals(6, aliens.size());
+    }
+
+    @Test
+    void enterDoesNotStartWithoutSelectedProfile() {
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>());
+
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.START_MENU, controller.getGameState());
+        assertEquals("Create or select a profile first", controller.getProfileMenuState().message());
+    }
+
+    @Test
+    void createsValidProfileFromStartMenuInputAndStartsAfterSecondEnter() {
+        CountingProfileStore profileStore = new CountingProfileStore(List.of(), false);
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>(), profileStore);
+
+        controller.handleKeyPressed(KeyEvent.VK_N);
+        typeProfileName(controller, "Player 1");
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.START_MENU, controller.getGameState());
+        assertEquals("Player 1", controller.getProfileMenuState().selectedProfileName());
+        assertEquals(1, profileStore.saveCalls);
+        assertEquals(List.of(new PlayerProfile("Player 1", 0)), profileStore.savedProfiles);
+
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
+    }
+
+    @Test
+    void loadedProfilesSelectFirstProfileAndAllowStart() {
+        CountingProfileStore profileStore = new CountingProfileStore(List.of(
+            new PlayerProfile("Existing", 90),
+            new PlayerProfile("Other", 20)
+        ), false);
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>(), profileStore);
+
+        controller.loadProfiles();
+
+        assertEquals("Existing", controller.getProfileMenuState().selectedProfileName());
+        assertEquals(90, controller.getProfileMenuState().selectedBestScore());
+        assertEquals(2, controller.getProfileMenuState().profileCount());
+
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
+    }
+
+    @Test
+    void createdProfilePersistsAndLoadsForNextController() {
+        ProfileStore profileStore = new ProfileStore(tempDir.resolve("profiles.tsv"));
+        GameController firstController = newController(new ArrayList<>(), new ArrayList<>(), profileStore);
+
+        firstController.handleKeyPressed(KeyEvent.VK_N);
+        typeProfileName(firstController, "Persisted");
+        firstController.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        GameController secondController = newController(new ArrayList<>(), new ArrayList<>(), profileStore);
+        secondController.loadProfiles();
+
+        assertEquals("Persisted", secondController.getProfileMenuState().selectedProfileName());
+        assertEquals(0, secondController.getProfileMenuState().selectedBestScore());
+        assertEquals(1, secondController.getProfileMenuState().profileCount());
+
+        secondController.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.PLAYING, secondController.getGameState());
+    }
+
+    @Test
+    void rejectsBlankAndDuplicateProfileNames() {
+        GameController controller = newController(new ArrayList<>(), new ArrayList<>());
+        controller.replaceProfilesForTesting(List.of(new PlayerProfile("Player", 0)));
+
+        controller.handleKeyPressed(KeyEvent.VK_N);
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.START_MENU, controller.getGameState());
+        assertTrue(controller.getProfileMenuState().inputMode());
+        assertEquals("Enter a profile name", controller.getProfileMenuState().message());
+
+        typeProfileName(controller, "player");
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.START_MENU, controller.getGameState());
+        assertTrue(controller.getProfileMenuState().inputMode());
+        assertEquals("Profile already exists", controller.getProfileMenuState().message());
+    }
+
+    @Test
+    void leftAndRightSelectProfilesOnlyOnStartMenu() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        GameController controller = new GameController(spaceship, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
+        controller.replaceProfilesForTesting(List.of(
+            new PlayerProfile("Alpha", 10),
+            new PlayerProfile("Beta", 20)
+        ));
+
+        controller.handleKeyPressed(KeyEvent.VK_RIGHT);
+
+        assertEquals("Beta", controller.getProfileMenuState().selectedProfileName());
+
+        controller.handleKeyPressed(KeyEvent.VK_LEFT);
+
+        assertEquals("Alpha", controller.getProfileMenuState().selectedProfileName());
+
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+        controller.handleKeyPressed(KeyEvent.VK_RIGHT);
+        controller.tick();
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
+        assertTrue(spaceship.getX() > startX());
+        assertEquals("Alpha", controller.getProfileMenuState().selectedProfileName());
+    }
+
+    @Test
+    void gameOverUpdatesBestScoreOnlyWhenFinalScoreIsGreaterAndOnlyOnce() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        CountingProfileStore profileStore = new CountingProfileStore(List.of(new PlayerProfile("Player", 10)), false);
+        GameController controller = new GameController(
+            spaceship,
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            null,
+            new Random(1),
+            new ArcadeSoundPlayer(),
+            profileStore
+        );
+        controller.replaceProfilesForTesting(profileStore.loadProfiles());
+        startPlaying(controller);
+        aliens.clear();
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        aliens.add(new Alien(200, 100));
+        controller.checkCollisionsWithMissile();
+        missiles.add(new Missile(200, 100));
+        controller.checkCollisionsWithMissile();
+
+        enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
+        controller.tick();
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals(1, profileStore.saveCalls);
+        assertEquals(List.of(new PlayerProfile("Player", 30)), profileStore.savedProfiles);
+        assertTrue(controller.getProfileMenuState().newBestScore());
+
+        controller.tick();
+
+        assertEquals(1, profileStore.saveCalls);
+    }
+
+    @Test
+    void gameOverDoesNotUpdateBestScoreOnEqualOrLowerScore() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Alien> aliens = new ArrayList<>();
+        CountingProfileStore profileStore = new CountingProfileStore(List.of(new PlayerProfile("Player", 10)), false);
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            null,
+            new Random(1),
+            new ArcadeSoundPlayer(),
+            profileStore
+        );
+        controller.replaceProfilesForTesting(profileStore.loadProfiles());
+        startPlaying(controller);
+
+        enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals(0, profileStore.saveCalls);
+        assertEquals(10, controller.getProfileMenuState().selectedBestScore());
+        assertFalse(controller.getProfileMenuState().newBestScore());
+    }
+
+    @Test
+    void saveFailureDoesNotPreventGameOverOrRestart() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Missile> missiles = new ArrayList<>();
+        List<Alien> aliens = new ArrayList<>();
+        CountingProfileStore profileStore = new CountingProfileStore(List.of(new PlayerProfile("Player", 0)), true);
+        GameController controller = new GameController(
+            spaceship,
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            null,
+            new Random(1),
+            new ArcadeSoundPlayer(),
+            profileStore
+        );
+        controller.replaceProfilesForTesting(profileStore.loadProfiles());
+        startPlaying(controller);
+        aliens.clear();
+        missiles.add(new Missile(100, 100));
+        aliens.add(new Alien(100, 100));
+        aliens.add(new Alien(200, 100));
+        controller.checkCollisionsWithMissile();
+        missiles.add(new Missile(200, 100));
+        controller.checkCollisionsWithMissile();
+
+        enterGameOverBySpaceshipCollisions(controller, aliens, spaceship);
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertTrue(controller.getProfileMenuState().saveFailed());
+
+        controller.handleKeyPressed(KeyEvent.VK_ENTER);
+
+        assertEquals(GameState.PLAYING, controller.getGameState());
     }
 
     @Test
@@ -1250,6 +1479,7 @@ class GameControllerTest {
         );
         startPlaying(controller);
         aliens.clear();
+        aliens.add(new Alien(50, 100, 0));
         powerUps.add(new RapidFirePowerUp(startX(), startY()));
         controller.checkCollisionsWithRapidFirePowerUp();
 
@@ -1582,8 +1812,36 @@ class GameControllerTest {
         );
     }
 
+    private GameController newController(List<Missile> missiles, List<Alien> aliens, ProfileStore profileStore) {
+        return new GameController(
+            new Spaceship(500, 680),
+            missiles,
+            new ArrayList<>(),
+            aliens,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            null,
+            new Random(1),
+            new ArcadeSoundPlayer(),
+            profileStore
+        );
+    }
+
     private void startPlaying(GameController controller) {
+        if (!controller.getProfileMenuState().hasSelectedProfile()) {
+            selectTestProfile(controller);
+        }
         controller.handleKeyPressed(KeyEvent.VK_ENTER);
+    }
+
+    private void selectTestProfile(GameController controller) {
+        controller.replaceProfilesForTesting(List.of(new PlayerProfile("Test Player", Integer.MAX_VALUE)));
+    }
+
+    private void typeProfileName(GameController controller, String name) {
+        for (int index = 0; index < name.length(); index++) {
+            controller.handleKeyPressed(KeyEvent.VK_UNDEFINED, name.charAt(index));
+        }
     }
 
     private int startX() {
@@ -1639,6 +1897,33 @@ class GameControllerTest {
         @Override
         public synchronized void stopBackgroundMusic() {
             stopBackgroundMusicCalls++;
+        }
+    }
+
+    private static class CountingProfileStore extends ProfileStore {
+        private final List<PlayerProfile> loadedProfiles;
+        private final boolean failSave;
+        private int saveCalls;
+        private List<PlayerProfile> savedProfiles = List.of();
+
+        private CountingProfileStore(List<PlayerProfile> loadedProfiles, boolean failSave) {
+            super(Path.of("test-profiles.tsv"));
+            this.loadedProfiles = loadedProfiles;
+            this.failSave = failSave;
+        }
+
+        @Override
+        public List<PlayerProfile> loadProfiles() {
+            return loadedProfiles;
+        }
+
+        @Override
+        public SaveResult saveProfiles(List<PlayerProfile> profiles) {
+            saveCalls++;
+            savedProfiles = List.copyOf(profiles);
+            return failSave
+                ? new SaveResult(false, "save failed")
+                : new SaveResult(true, "");
         }
     }
 

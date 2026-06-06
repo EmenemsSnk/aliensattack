@@ -9,6 +9,7 @@ import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
 import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
 import com.emenems.games.aliens.gamemachines.Spaceship;
+import com.emenems.games.aliens.profiles.ProfileMenuState;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -55,6 +56,7 @@ public class GamePanel extends JPanel {
     private int rapidFireTicks;
     private int comboMultiplier = 1;
     private int comboTicks;
+    private ProfileMenuState profileMenuState = ProfileMenuState.empty();
 
     public GamePanel(Spaceship spaceship, List<Missile> missiles, List<AlienMissile> alienMissiles, List<Alien> aliens) {
         this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), new ArrayList<>());
@@ -99,7 +101,8 @@ public class GamePanel extends JPanel {
         boolean rapidFireActive,
         int rapidFireTicks,
         int comboMultiplier,
-        int comboTicks
+        int comboTicks,
+        ProfileMenuState profileMenuState
     ) {
         this.score = score;
         this.wave = wave;
@@ -113,6 +116,7 @@ public class GamePanel extends JPanel {
         this.rapidFireTicks = rapidFireTicks;
         this.comboMultiplier = comboMultiplier;
         this.comboTicks = comboTicks;
+        this.profileMenuState = profileMenuState;
     }
 
     private void initBoard() {
@@ -218,6 +222,14 @@ public class GamePanel extends JPanel {
         return gameState == GameState.PAUSED;
     }
 
+    static boolean isNewBestScoreVisible(ProfileMenuState profileMenuState) {
+        return profileMenuState.newBestScore() && profileMenuState.hasSelectedProfile();
+    }
+
+    static boolean isSaveWarningVisible(ProfileMenuState profileMenuState) {
+        return profileMenuState.saveFailed();
+    }
+
     private void drawPausedOverlay(Graphics graphics) {
         if (!isPausedOverlayVisible(gameState)) {
             return;
@@ -269,7 +281,24 @@ public class GamePanel extends JPanel {
 
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
         drawCenteredString(graphics, "Final Score: " + score, GameConstants.PANEL_HEIGHT / 2);
-        drawCenteredString(graphics, "Press ENTER to Restart", GameConstants.PANEL_HEIGHT / 2 + 40);
+        if (profileMenuState.hasSelectedProfile()) {
+            drawCenteredString(
+                graphics,
+                "Profile: " + profileMenuState.selectedProfileName() + "    " + profileMenuState.bestScoreText(),
+                GameConstants.PANEL_HEIGHT / 2 + 36
+            );
+        }
+        if (isNewBestScoreVisible(profileMenuState)) {
+            graphics.setColor(new Color(255, 230, 60));
+            drawCenteredString(graphics, "New Best Score!", GameConstants.PANEL_HEIGHT / 2 + 72);
+            graphics.setColor(Color.WHITE);
+        }
+        if (isSaveWarningVisible(profileMenuState)) {
+            graphics.setColor(new Color(255, 150, 100));
+            drawCenteredString(graphics, "Profile save failed", GameConstants.PANEL_HEIGHT / 2 + 104);
+            graphics.setColor(Color.WHITE);
+        }
+        drawCenteredString(graphics, "Press ENTER to Restart", GameConstants.PANEL_HEIGHT / 2 + 136);
     }
 
     private void drawStartMenu(Graphics graphics) {
@@ -282,13 +311,44 @@ public class GamePanel extends JPanel {
 
         graphics.setColor(Color.WHITE);
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 52));
-        drawCenteredString(graphics, "ALIENS ATTACK", GameConstants.PANEL_HEIGHT / 2 - 80);
+        drawCenteredString(graphics, "ALIENS ATTACK", GameConstants.PANEL_HEIGHT / 2 - 150);
 
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 24));
-        drawCenteredString(graphics, "Press ENTER to Start", GameConstants.PANEL_HEIGHT / 2 - 25);
+        drawCenteredString(graphics, profileMenuState.startPromptText(), GameConstants.PANEL_HEIGHT / 2 - 95);
+
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
+        if (profileMenuState.hasSelectedProfile()) {
+            drawCenteredString(
+                graphics,
+                "Profile: " + profileMenuState.selectedProfileName() + "    " + profileMenuState.bestScoreText(),
+                GameConstants.PANEL_HEIGHT / 2 - 50
+            );
+            graphics.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
+            drawCenteredString(graphics, profileMenuState.profileCounterText(), GameConstants.PANEL_HEIGHT / 2 - 20);
+        } else {
+            drawCenteredString(graphics, "No profile selected", GameConstants.PANEL_HEIGHT / 2 - 50);
+        }
 
         graphics.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
-        drawCenteredString(graphics, "Arrow keys move    Hold Space to fire", GameConstants.PANEL_HEIGHT / 2 + 20);
+        if (profileMenuState.inputMode()) {
+            drawCenteredString(
+                graphics,
+                "Name: " + profileMenuState.draftName() + "_",
+                GameConstants.PANEL_HEIGHT / 2 + 18
+            );
+            drawCenteredString(graphics, "ENTER saves    ESC cancels", GameConstants.PANEL_HEIGHT / 2 + 48);
+        } else {
+            drawCenteredString(graphics, "Left/Right select    N creates profile", GameConstants.PANEL_HEIGHT / 2 + 18);
+        }
+
+        if (!profileMenuState.message().isBlank()) {
+            graphics.setColor(isSaveWarningVisible(profileMenuState) ? new Color(255, 150, 100) : new Color(255, 230, 120));
+            drawCenteredString(graphics, profileMenuState.message(), GameConstants.PANEL_HEIGHT / 2 + 86);
+            graphics.setColor(Color.WHITE);
+        }
+
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
+        drawCenteredString(graphics, "Arrow keys move    Hold Space to fire    P pauses", GameConstants.PANEL_HEIGHT / 2 + 132);
     }
 
     private void drawCenteredString(Graphics graphics, String text, int y) {

@@ -16,10 +16,14 @@ Take control of a spaceship and defend against waves of invading aliens. Move, h
 - Retro sound effects and generated background music
 
 ## How to Play
-- **Arrow Keys**: Move the spaceship (Up, Down, Left, Right)
-- **Enter**: Start or restart
+- **Start screen Left/Right**: Select an existing local profile
+- **Start screen N**: Create a new local profile
+- **Enter**: Start with the selected profile or restart after Game Over
+- **Arrow Keys during play**: Move the spaceship (Up, Down, Left, Right)
 - **Spacebar**: Hold to fire missiles
 - **P**: Pause or resume gameplay
+
+Local profiles are stored in `profiles.tsv` in the working directory. Each profile keeps its own best score.
 
 ## Requirements
 - Java 21
