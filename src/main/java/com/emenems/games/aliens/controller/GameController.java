@@ -10,7 +10,8 @@ import com.emenems.games.aliens.gamemachines.AlienExplosion;
 import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
-import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
+import com.emenems.games.aliens.gamemachines.PowerUp;
+import com.emenems.games.aliens.gamemachines.PowerUpType;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import com.emenems.games.aliens.gui.GamePanel;
 import com.emenems.games.aliens.profiles.PlayerProfile;
@@ -37,10 +38,10 @@ public class GameController implements ActionListener {
     private static final int ALIEN_START_MIN_Y = 30;
     private static final int ALIEN_START_X_JITTER = 20;
     private static final int ALIEN_START_Y_JITTER = 90;
+    private static final int BOSS_SPAWN_MARGIN_X = 96;
     static final int MAX_ALIEN_MISSILES = 5;
     private static final int PLAYER_FIRE_COOLDOWN_TICKS = 14;
     private static final int RAPID_FIRE_COOLDOWN_TICKS = 7;
-    private static final double RAPID_FIRE_DROP_CHANCE = 0.12;
     private static final int ALIEN_MISSILE_HITBOX_X_OFFSET = 9;
     private static final int ALIEN_MISSILE_HITBOX_WIDTH = 7;
 
@@ -49,7 +50,7 @@ public class GameController implements ActionListener {
     private final List<AlienMissile> alienMissiles;
     private final List<Alien> aliens;
     private final List<AlienExplosion> alienExplosions;
-    private final List<RapidFirePowerUp> rapidFirePowerUps;
+    private final List<PowerUp> powerUps;
     private final GamePanel gamePanel;
     private final Random random;
     private final ArcadeSoundPlayer soundPlayer;
@@ -83,7 +84,7 @@ public class GameController implements ActionListener {
         List<Missile> missiles,
         List<AlienMissile> alienMissiles,
         List<Alien> aliens,
-        List<RapidFirePowerUp> rapidFirePowerUps,
+        List<PowerUp> powerUps,
         GamePanel gamePanel
     ) {
         this(
@@ -92,7 +93,7 @@ public class GameController implements ActionListener {
             alienMissiles,
             aliens,
             new ArrayList<>(),
-            rapidFirePowerUps,
+            powerUps,
             gamePanel,
             new Random(),
             new ArcadeSoundPlayer(),
@@ -106,7 +107,7 @@ public class GameController implements ActionListener {
         List<AlienMissile> alienMissiles,
         List<Alien> aliens,
         List<AlienExplosion> alienExplosions,
-        List<RapidFirePowerUp> rapidFirePowerUps,
+        List<PowerUp> powerUps,
         GamePanel gamePanel
     ) {
         this(
@@ -115,7 +116,7 @@ public class GameController implements ActionListener {
             alienMissiles,
             aliens,
             alienExplosions,
-            rapidFirePowerUps,
+            powerUps,
             gamePanel,
             new Random(),
             new ArcadeSoundPlayer(),
@@ -151,7 +152,7 @@ public class GameController implements ActionListener {
         List<Missile> missiles,
         List<AlienMissile> alienMissiles,
         List<Alien> aliens,
-        List<RapidFirePowerUp> rapidFirePowerUps,
+        List<PowerUp> powerUps,
         GamePanel gamePanel,
         Random random,
         ArcadeSoundPlayer soundPlayer
@@ -162,7 +163,7 @@ public class GameController implements ActionListener {
             alienMissiles,
             aliens,
             new ArrayList<>(),
-            rapidFirePowerUps,
+            powerUps,
             gamePanel,
             random,
             soundPlayer,
@@ -176,7 +177,7 @@ public class GameController implements ActionListener {
         List<AlienMissile> alienMissiles,
         List<Alien> aliens,
         List<AlienExplosion> alienExplosions,
-        List<RapidFirePowerUp> rapidFirePowerUps,
+        List<PowerUp> powerUps,
         GamePanel gamePanel,
         Random random,
         ArcadeSoundPlayer soundPlayer
@@ -187,7 +188,7 @@ public class GameController implements ActionListener {
             alienMissiles,
             aliens,
             alienExplosions,
-            rapidFirePowerUps,
+            powerUps,
             gamePanel,
             random,
             soundPlayer,
@@ -201,7 +202,7 @@ public class GameController implements ActionListener {
         List<AlienMissile> alienMissiles,
         List<Alien> aliens,
         List<AlienExplosion> alienExplosions,
-        List<RapidFirePowerUp> rapidFirePowerUps,
+        List<PowerUp> powerUps,
         GamePanel gamePanel,
         Random random,
         ArcadeSoundPlayer soundPlayer,
@@ -212,7 +213,7 @@ public class GameController implements ActionListener {
         this.alienMissiles = alienMissiles;
         this.aliens = aliens;
         this.alienExplosions = alienExplosions;
-        this.rapidFirePowerUps = rapidFirePowerUps;
+        this.powerUps = powerUps;
         this.gamePanel = gamePanel;
         this.random = random;
         this.soundPlayer = soundPlayer;
@@ -240,6 +241,11 @@ public class GameController implements ActionListener {
 
     private void generateSpaceObjects() {
         aliens.clear();
+        if (GameRules.isBossWave(session.getWave())) {
+            spawnBossWave();
+            return;
+        }
+
         double alienSpeed = GameRules.alienSpeedForWave(session.getWave());
         int laneSpacing = (GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE) / ALIEN_COUNT;
         int specialIndex = GameRules.hasSpecialAlien(session.getWave()) ? random.nextInt(ALIEN_COUNT) : -1;
@@ -251,6 +257,13 @@ public class GameController implements ActionListener {
                 ? Alien.special(x, y, alienSpeed)
                 : new Alien(x, y, alienSpeed));
         }
+    }
+
+    private void spawnBossWave() {
+        int minBossX = BOSS_SPAWN_MARGIN_X;
+        int maxBossX = GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE - BOSS_SPAWN_MARGIN_X;
+        int spawnX = minBossX + random.nextInt(maxBossX - minBossX + 1);
+        aliens.add(Alien.boss(spawnX, GameRules.bossTopLaneY()));
     }
 
     void handleKeyPressed(int keyCode) {
@@ -342,17 +355,20 @@ public class GameController implements ActionListener {
     }
 
     private void moveSpaceshipFromPressedKeys() {
+        int moveStep = session.isSpeedBoostActive()
+            ? GameRules.speedBoostMoveStep()
+            : Spaceship.defaultMoveStep();
         if (pressedMovementKeys.contains(KeyEvent.VK_LEFT)) {
-            spaceship.moveLeft();
+            spaceship.moveLeft(moveStep);
         }
         if (pressedMovementKeys.contains(KeyEvent.VK_RIGHT)) {
-            spaceship.moveRight();
+            spaceship.moveRight(moveStep);
         }
         if (pressedMovementKeys.contains(KeyEvent.VK_UP)) {
-            spaceship.moveUp();
+            spaceship.moveUp(moveStep);
         }
         if (pressedMovementKeys.contains(KeyEvent.VK_DOWN)) {
-            spaceship.moveDown();
+            spaceship.moveDown(moveStep);
         }
         spaceship.clampToBounds(
             0,
@@ -377,6 +393,7 @@ public class GameController implements ActionListener {
         updateHitFeedback();
         session.tickWaveMessage();
         session.tickRapidFire();
+        session.tickSpeedBoost();
         session.tickCombo();
         updatePlayerFireCooldown();
         fireHeldPlayerMissileIfReady();
@@ -385,7 +402,7 @@ public class GameController implements ActionListener {
         moveAliens();
         missiles.forEach(Missile::move);
         alienMissiles.forEach(AlienMissile::move);
-        rapidFirePowerUps.forEach(RapidFirePowerUp::move);
+        powerUps.forEach(PowerUp::move);
         fireAlienMissileIfReady();
         checkCollisions();
         if (session.getGameState() == GameState.GAME_OVER) {
@@ -406,7 +423,7 @@ public class GameController implements ActionListener {
         checkCollisionsWithMissile();
         checkCollisionsWithAlienMissile();
         checkCollisionsWithSpaceShip();
-        checkCollisionsWithRapidFirePowerUp();
+        checkCollisionsWithPowerUp();
     }
 
     void checkCollisionsWithSpaceShip() {
@@ -426,13 +443,20 @@ public class GameController implements ActionListener {
             return;
         }
 
+        if (collidingAlien.isBoss()) {
+            return;
+        }
+
         aliens.remove(collidingAlien);
-        loseLife();
+        if (!session.consumeShield()) {
+            loseLife();
+        }
     }
 
     void checkCollisionsWithMissile() {
         Set<Missile> missilesToRemove = new HashSet<>();
         Set<Alien> aliensToRemove = new HashSet<>();
+        int bossKills = 0;
 
         for (Missile missile : missiles) {
             Rectangle missileArea = objectArea(missile.getX(), missile.getY());
@@ -446,6 +470,9 @@ public class GameController implements ActionListener {
                     missilesToRemove.add(missile);
                     if (alien.takeHit()) {
                         aliensToRemove.add(alien);
+                        if (alien.isBoss()) {
+                            bossKills++;
+                        }
                     }
                     break;
                 }
@@ -454,9 +481,14 @@ public class GameController implements ActionListener {
 
         missiles.removeAll(missilesToRemove);
         spawnAlienExplosions(aliensToRemove);
-        spawnRapidFirePowerUps(aliensToRemove);
+        spawnBossRewards(aliensToRemove);
+        spawnSupportPowerUps(aliensToRemove);
         aliens.removeAll(aliensToRemove);
-        session.addAlienKills(aliensToRemove.size());
+        session.addAlienKills(aliensToRemove.size() - bossKills);
+        if (bossKills > 0) {
+            session.addAlienKills(bossKills);
+            session.addBossBonus();
+        }
         if (!aliensToRemove.isEmpty()) {
             soundPlayer.playExplosion();
         }
@@ -478,12 +510,14 @@ public class GameController implements ActionListener {
         }
 
         alienMissiles.remove(collidingMissile);
-        loseLife();
+        if (!session.consumeShield()) {
+            loseLife();
+        }
     }
 
-    void checkCollisionsWithRapidFirePowerUp() {
+    void checkCollisionsWithPowerUp() {
         Rectangle spaceshipArea = objectArea(spaceship.getX(), spaceship.getY());
-        RapidFirePowerUp collectedPowerUp = rapidFirePowerUps.stream()
+        PowerUp collectedPowerUp = powerUps.stream()
             .filter(powerUp -> spaceshipArea.intersects(objectArea(powerUp.getX(), powerUp.getY())))
             .findFirst()
             .orElse(null);
@@ -492,14 +526,14 @@ public class GameController implements ActionListener {
             return;
         }
 
-        rapidFirePowerUps.remove(collectedPowerUp);
-        session.activateRapidFire();
+        powerUps.remove(collectedPowerUp);
+        applyPowerUpEffect(collectedPowerUp.getType());
     }
 
     void cleanupOffscreenObjects() {
         missiles.removeIf(missile -> missile.getY() + GameConstants.COMPONENT_SIZE < 0);
         alienMissiles.removeIf(missile -> missile.getY() > GameConstants.PANEL_HEIGHT);
-        rapidFirePowerUps.removeIf(powerUp -> powerUp.getY() > GameConstants.PANEL_HEIGHT);
+        powerUps.removeIf(powerUp -> powerUp.getY() > GameConstants.PANEL_HEIGHT);
         aliens.removeIf(alien ->
             alien.getY() > GameConstants.PANEL_HEIGHT
                 || alien.getX() + GameConstants.COMPONENT_SIZE < 0
@@ -574,6 +608,18 @@ public class GameController implements ActionListener {
         return session.getRapidFireTicks();
     }
 
+    boolean isShieldActive() {
+        return session.isShieldActive();
+    }
+
+    boolean isSpeedBoostActive() {
+        return session.isSpeedBoostActive();
+    }
+
+    int getSpeedBoostTicks() {
+        return session.getSpeedBoostTicks();
+    }
+
     int getComboMultiplier() {
         return session.getComboMultiplier();
     }
@@ -621,6 +667,9 @@ public class GameController implements ActionListener {
                 session.getWaveMessageTicks(),
                 session.isRapidFireActive(),
                 session.getRapidFireTicks(),
+                session.isShieldActive(),
+                session.isSpeedBoostActive(),
+                session.getSpeedBoostTicks(),
                 session.getComboMultiplier(),
                 session.getComboTicks(),
                 getProfileMenuState()
@@ -679,7 +728,7 @@ public class GameController implements ActionListener {
         missiles.clear();
         alienMissiles.clear();
         alienExplosions.clear();
-        rapidFirePowerUps.clear();
+        powerUps.clear();
         clearHeldInput();
         generateSpaceObjects();
         updatePanelState();
@@ -687,6 +736,7 @@ public class GameController implements ActionListener {
 
     private void checkAlienInvasion() {
         boolean alienReachedBottom = aliens.stream()
+            .filter(alien -> !alien.isBoss())
             .anyMatch(alien -> alien.getY() + GameConstants.COMPONENT_SIZE >= GameConstants.PANEL_HEIGHT);
         if (alienReachedBottom) {
             session.enterAlienInvasionGameOver();
@@ -739,21 +789,59 @@ public class GameController implements ActionListener {
         if (aliens.isEmpty() || alienMissiles.size() >= MAX_ALIEN_MISSILES) {
             return;
         }
-        if (random.nextDouble() > GameRules.alienFireChanceForWave(session.getWave(), aliens.size())) {
+        Alien alien = selectAlienShooter();
+        double fireChance = alien.isBoss()
+            ? GameRules.bossFireChance()
+            : GameRules.alienFireChanceForWave(session.getWave(), aliens.size());
+        if (random.nextDouble() > fireChance) {
             return;
         }
 
-        Alien alien = selectAlienShooter();
+        if (alien.isBoss()) {
+            fireBossBurst(alien);
+            return;
+        }
+
         int missileX = alien.getX();
         int missileY = alien.getY() + GameConstants.COMPONENT_SIZE;
         alienMissiles.add(new AlienMissile(missileX, missileY));
     }
 
-    private void spawnRapidFirePowerUps(Set<Alien> destroyedAliens) {
+    private void fireBossBurst(Alien boss) {
+        int availableSlots = MAX_ALIEN_MISSILES - alienMissiles.size();
+        int burstCount = Math.min(GameRules.bossBurstCount(), availableSlots);
+        int centerIndex = burstCount / 2;
+        for (int index = 0; index < burstCount; index++) {
+            int offsetIndex = index - centerIndex;
+            int missileX = boss.getX() + offsetIndex * GameRules.bossBurstSpacing();
+            missileX = Math.clamp(missileX, 0, GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE);
+            int missileY = boss.getY() + GameConstants.COMPONENT_SIZE;
+            alienMissiles.add(new AlienMissile(missileX, missileY));
+        }
+    }
+
+    private void spawnSupportPowerUps(Set<Alien> destroyedAliens) {
         for (Alien alien : destroyedAliens) {
-            if (random.nextDouble() < RAPID_FIRE_DROP_CHANCE) {
-                rapidFirePowerUps.add(new RapidFirePowerUp(alien.getX(), alien.getY()));
+            if (alien.isBoss()) {
+                continue;
             }
+            if (random.nextDouble() < GameRules.supportDropChance()) {
+                int typeRoll = random.nextInt(GameRules.totalSupportDropWeight());
+                PowerUpType type = GameRules.supportDropTypeForRoll(typeRoll);
+                powerUps.add(new PowerUp(type, alien.getX(), alien.getY()));
+            }
+        }
+    }
+
+    private void spawnBossRewards(Set<Alien> destroyedAliens) {
+        for (Alien alien : destroyedAliens) {
+            if (!alien.isBoss()) {
+                continue;
+            }
+
+            int rewardRoll = random.nextInt(GameRules.totalBossRewardWeight());
+            PowerUpType rewardType = GameRules.bossRewardTypeForRoll(rewardRoll);
+            powerUps.add(new PowerUp(rewardType, alien.getX(), alien.getY()));
         }
     }
 
@@ -931,5 +1019,14 @@ public class GameController implements ActionListener {
             .filter(otherAlien -> alienArea.intersects(objectArea(otherAlien.getX(), otherAlien.getY())))
             .findFirst()
             .orElse(null);
+    }
+
+    private void applyPowerUpEffect(PowerUpType type) {
+        switch (type) {
+            case RAPID_FIRE -> session.activateRapidFire();
+            case EXTRA_LIFE -> session.addExtraLife();
+            case SHIELD -> session.activateShield();
+            case SPEED_BOOST -> session.activateSpeedBoost();
+        }
     }
 }

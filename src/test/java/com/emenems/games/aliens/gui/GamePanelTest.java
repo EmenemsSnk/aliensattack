@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
+import com.emenems.games.aliens.gamemachines.PowerUpType;
 import com.emenems.games.aliens.profiles.ProfileMenuState;
+import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +34,13 @@ class GamePanelTest {
     }
 
     @Test
+    void speedBoostSecondsUseCeilingAndNeverShowZeroWhileActive() {
+        assertEquals(3, GamePanel.speedBoostSecondsRemaining(180));
+        assertEquals(3, GamePanel.speedBoostSecondsRemaining(179));
+        assertEquals(1, GamePanel.speedBoostSecondsRemaining(1));
+    }
+
+    @Test
     void comboIsVisibleOnlyForActiveMultiplierAboveOne() {
         assertFalse(GamePanel.isComboVisible(1, 90));
         assertFalse(GamePanel.isComboVisible(2, 0));
@@ -40,11 +50,12 @@ class GamePanelTest {
 
     @Test
     void hudCardHeightGrowsOnlyForVisibleEffectRows() {
-        int baseHeight = GamePanel.hudCardHeight(false, 1, 0);
+        int baseHeight = GamePanel.hudCardHeight(false, false, 1, 0);
 
-        assertEquals(baseHeight + 24, GamePanel.hudCardHeight(true, 1, 0));
-        assertEquals(baseHeight + 24, GamePanel.hudCardHeight(false, 2, 60));
-        assertEquals(baseHeight + 48, GamePanel.hudCardHeight(true, 2, 60));
+        assertEquals(baseHeight + 24, GamePanel.hudCardHeight(true, false, 1, 0));
+        assertEquals(baseHeight + 24, GamePanel.hudCardHeight(false, true, 1, 0));
+        assertEquals(baseHeight + 24, GamePanel.hudCardHeight(false, false, 2, 60));
+        assertEquals(baseHeight + 72, GamePanel.hudCardHeight(true, true, 2, 60));
     }
 
     @Test
@@ -126,5 +137,42 @@ class GamePanelTest {
         assertFalse(GamePanel.isShieldedSpecialAlien(standardAlien));
         assertTrue(GamePanel.isShieldedSpecialAlien(shieldedSpecialAlien));
         assertFalse(GamePanel.isShieldedSpecialAlien(damagedSpecialAlien));
+    }
+
+    @Test
+    void powerUpHelpersExposeDistinctLabelsAndColors() {
+        assertEquals("R", GamePanel.powerUpLabel(PowerUpType.RAPID_FIRE));
+        assertEquals("+", GamePanel.powerUpLabel(PowerUpType.EXTRA_LIFE));
+        assertEquals("S", GamePanel.powerUpLabel(PowerUpType.SHIELD));
+        assertEquals(">", GamePanel.powerUpLabel(PowerUpType.SPEED_BOOST));
+        assertEquals(new Color(255, 220, 35, 220), GamePanel.powerUpColor(PowerUpType.RAPID_FIRE));
+        assertEquals(new Color(255, 120, 120, 220), GamePanel.powerUpColor(PowerUpType.EXTRA_LIFE));
+        assertEquals(new Color(120, 240, 255, 220), GamePanel.powerUpColor(PowerUpType.SHIELD));
+        assertEquals(new Color(120, 255, 150, 220), GamePanel.powerUpColor(PowerUpType.SPEED_BOOST));
+    }
+
+    @Test
+    void bossHealthBarHelpersReflectBossPresenceAndHealth() {
+        List<Alien> aliens = new ArrayList<>();
+        Alien boss = Alien.boss(200, 72);
+        aliens.add(new Alien(100, 100));
+        aliens.add(boss);
+
+        assertEquals(boss, GamePanel.currentBoss(aliens));
+        assertTrue(GamePanel.isBossHealthBarVisible(GameState.PLAYING, boss));
+        assertFalse(GamePanel.isBossHealthBarVisible(GameState.GAME_OVER, boss));
+        assertEquals(220, GamePanel.bossHealthBarFillWidth(20, 20, 220));
+        assertEquals(110, GamePanel.bossHealthBarFillWidth(10, 20, 220));
+        assertEquals(0, GamePanel.bossHealthBarFillWidth(0, 20, 220));
+    }
+
+    @Test
+    void spaceshipShieldAndBossSizingHelpersReflectPresentationRules() {
+        assertTrue(GamePanel.isSpaceshipShieldVisible(GameState.PLAYING, true));
+        assertTrue(GamePanel.isSpaceshipShieldVisible(GameState.PAUSED, true));
+        assertFalse(GamePanel.isSpaceshipShieldVisible(GameState.GAME_OVER, true));
+        assertFalse(GamePanel.isSpaceshipShieldVisible(GameState.PLAYING, false));
+        assertTrue(GamePanel.bossRenderWidth() > 42);
+        assertTrue(GamePanel.bossRenderHeight() > 42);
     }
 }

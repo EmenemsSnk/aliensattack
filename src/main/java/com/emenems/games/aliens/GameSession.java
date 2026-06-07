@@ -16,6 +16,8 @@ public final class GameSession {
     private int hitFeedbackTicks;
     private int waveMessageTicks;
     private int rapidFireTicks;
+    private boolean shieldActive;
+    private int speedBoostTicks;
     private int comboMultiplier = 1;
     private int comboTicks;
     private String gameOverTitle = DEFAULT_GAME_OVER_TITLE;
@@ -60,6 +62,18 @@ public final class GameSession {
         return rapidFireTicks;
     }
 
+    public boolean isShieldActive() {
+        return shieldActive;
+    }
+
+    public boolean isSpeedBoostActive() {
+        return speedBoostTicks > 0;
+    }
+
+    public int getSpeedBoostTicks() {
+        return speedBoostTicks;
+    }
+
     public int getComboMultiplier() {
         return comboMultiplier;
     }
@@ -80,6 +94,8 @@ public final class GameSession {
         hitFeedbackTicks = 0;
         waveMessageTicks = WAVE_MESSAGE_DURATION_TICKS;
         rapidFireTicks = 0;
+        shieldActive = false;
+        speedBoostTicks = 0;
         resetCombo();
         gameOverTitle = DEFAULT_GAME_OVER_TITLE;
     }
@@ -110,6 +126,10 @@ public final class GameSession {
         score += GameRules.alienKillBatchScore(count, wave, comboMultiplier);
     }
 
+    public void addBossBonus() {
+        score += GameRules.bossScoreBonus();
+    }
+
     public void advanceWave() {
         wave++;
         resetCombo();
@@ -119,6 +139,8 @@ public final class GameSession {
     public void loseLife() {
         hitFeedbackTicks = HIT_FEEDBACK_TICKS;
         rapidFireTicks = 0;
+        shieldActive = false;
+        speedBoostTicks = 0;
         resetCombo();
         lives--;
         if (lives <= 0) {
@@ -141,6 +163,27 @@ public final class GameSession {
         rapidFireTicks = RAPID_FIRE_DURATION_TICKS;
     }
 
+    public void addExtraLife() {
+        lives = Math.min(lives + 1, GameRules.maxLives());
+    }
+
+    public void activateShield() {
+        shieldActive = true;
+    }
+
+    public boolean consumeShield() {
+        if (!shieldActive) {
+            return false;
+        }
+
+        shieldActive = false;
+        return true;
+    }
+
+    public void activateSpeedBoost() {
+        speedBoostTicks = GameRules.speedBoostDurationTicks();
+    }
+
     public void tickWaveMessage() {
         if (waveMessageTicks > 0) {
             waveMessageTicks--;
@@ -150,6 +193,12 @@ public final class GameSession {
     public void tickRapidFire() {
         if (rapidFireTicks > 0) {
             rapidFireTicks--;
+        }
+    }
+
+    public void tickSpeedBoost() {
+        if (speedBoostTicks > 0) {
+            speedBoostTicks--;
         }
     }
 

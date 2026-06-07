@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.emenems.games.aliens.GameConstants;
+import com.emenems.games.aliens.GameRules;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 
@@ -46,6 +47,36 @@ class AlienTest {
         assertTrue(alien.getX() >= 0);
     }
 
+    @Test
+    void bossNeedsTwentyHitsAndMovesHorizontallyWithoutDescending() {
+        Alien boss = Alien.boss(200, GameRules.bossTopLaneY());
+        int originalX = boss.getX();
+
+        boss.move(new SequenceRandom(new double[] { 1.0, 0.5 }), 0, GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE);
+
+        assertEquals(GameRules.bossTopLaneY(), boss.getY());
+        assertTrue(boss.getX() > originalX);
+        assertEquals(AlienType.BOSS, boss.getType());
+        assertTrue(boss.isBoss());
+
+        for (int hit = 0; hit < GameRules.bossHealth() - 1; hit++) {
+            assertFalse(boss.takeHit());
+        }
+
+        assertTrue(boss.isDamaged());
+        assertTrue(boss.takeHit());
+    }
+
+    @Test
+    void bossCanRandomlyChangeDirectionInsteadOfSimplePingPong() {
+        Alien boss = Alien.boss(200, GameRules.bossTopLaneY());
+
+        boss.move(new SequenceRandom(new double[] { 0.0, 0.5 }), 0, GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE);
+
+        assertTrue(boss.getX() < 200);
+        assertEquals(GameRules.bossTopLaneY(), boss.getY());
+    }
+
     private static final class FixedRandom extends Random {
         private final double nextDouble;
 
@@ -56,6 +87,22 @@ class AlienTest {
         @Override
         public double nextDouble() {
             return nextDouble;
+        }
+    }
+
+    private static final class SequenceRandom extends Random {
+        private final double[] values;
+        private int index;
+
+        private SequenceRandom(double[] values) {
+            this.values = values;
+        }
+
+        @Override
+        public double nextDouble() {
+            double value = values[Math.min(index, values.length - 1)];
+            index++;
+            return value;
         }
     }
 }

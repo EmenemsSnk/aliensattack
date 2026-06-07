@@ -6,6 +6,8 @@ import java.util.Random;
 
 public final class Alien implements GameObject {
     private static final int SPECIAL_HORIZONTAL_STEP = GameConstants.COMPONENT_SIZE / 6;
+    private static final double BOSS_SPEED_VARIANCE_FLOOR = 0.65;
+    private static final double BOSS_SPEED_VARIANCE_RANGE = 0.7;
 
     private int x;
     private double y;
@@ -27,10 +29,16 @@ public final class Alien implements GameObject {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.speed = type == AlienType.SPECIAL
-            ? speed * GameRules.specialAlienSpeedMultiplier()
-            : speed;
-        this.health = type == AlienType.SPECIAL ? 2 : 1;
+        this.speed = switch (type) {
+            case SPECIAL -> speed * GameRules.specialAlienSpeedMultiplier();
+            case BOSS -> GameRules.bossHorizontalSpeed();
+            case STANDARD -> speed;
+        };
+        this.health = switch (type) {
+            case SPECIAL -> 2;
+            case BOSS -> GameRules.bossHealth();
+            case STANDARD -> 1;
+        };
         this.horizontalDirection = 1;
     }
 
@@ -39,6 +47,11 @@ public final class Alien implements GameObject {
     }
 
     public void move(Random random, int minX, int maxX) {
+        if (type == AlienType.BOSS) {
+            moveBoss(random, minX, maxX);
+            return;
+        }
+
         move();
         if (type != AlienType.SPECIAL) {
             return;
@@ -55,6 +68,10 @@ public final class Alien implements GameObject {
         return new Alien(x, y, speed, AlienType.SPECIAL);
     }
 
+    public static Alien boss(int x, int y) {
+        return new Alien(x, y, 0, AlienType.BOSS);
+    }
+
     public AlienType getType() {
         return type;
     }
@@ -64,7 +81,11 @@ public final class Alien implements GameObject {
     }
 
     public boolean isDamaged() {
-        return type == AlienType.SPECIAL && health == 1;
+        return switch (type) {
+            case SPECIAL -> health == 1;
+            case BOSS -> health < GameRules.bossHealth();
+            case STANDARD -> false;
+        };
     }
 
     public boolean takeHit() {
@@ -74,6 +95,10 @@ public final class Alien implements GameObject {
 
     public boolean isSpecial() {
         return type == AlienType.SPECIAL;
+    }
+
+    public boolean isBoss() {
+        return type == AlienType.BOSS;
     }
 
     public void reverseHorizontalDirection() {
@@ -110,6 +135,27 @@ public final class Alien implements GameObject {
 
     private void moveHorizontallyWithinBounds(int minX, int maxX) {
         lastHorizontalDelta = horizontalDirection * SPECIAL_HORIZONTAL_STEP;
+        x += lastHorizontalDelta;
+        if (x < minX) {
+            x = minX;
+            horizontalDirection = 1;
+        } else if (x > maxX) {
+            x = maxX;
+            horizontalDirection = -1;
+        }
+    }
+
+    private void moveBoss(Random random, int minX, int maxX) {
+        if (random.nextDouble() < GameRules.bossDirectionChangeChance()) {
+            horizontalDirection *= -1;
+        }
+
+        double speedVariance = BOSS_SPEED_VARIANCE_FLOOR + random.nextDouble() * BOSS_SPEED_VARIANCE_RANGE;
+        lastHorizontalDelta = (int) Math.round(horizontalDirection * speed * speedVariance);
+        if (lastHorizontalDelta == 0) {
+            lastHorizontalDelta = horizontalDirection;
+        }
+
         x += lastHorizontalDelta;
         if (x < minX) {
             x = minX;
