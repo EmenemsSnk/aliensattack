@@ -3,7 +3,7 @@ project: "Aliens Attack"
 version: 1
 status: draft
 created: 2026-06-04
-updated: 2026-06-06
+updated: 2026-06-07
 prd_version: 1
 main_goal: quality
 top_blocker: decisions
@@ -40,7 +40,7 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | S-07 | life-loss-sound | usłyszeć osobny dźwięk utraty życia | S-05 | FR-009, FR-010 | proposed |
 | S-08 | local-player-profiles | utworzyć lub wybrać lokalny profil bez blokowania startu gry | — | US-01, FR-001, FR-010 | done |
 | S-09 | persistent-profile-best-score | zobaczyć zapisany najlepszy wynik wybranego profilu po Game Over | S-08 | US-01, FR-002, FR-010 | done |
-| S-10 | support-drops-and-boss-wave | zebrać rzadki drop życia, tarczę lub przyspieszenie i zmierzyć się z bossem co 5 fal | S-01, S-05 | US-01, FR-010 | proposed |
+| S-10 | support-drops-and-boss-wave | zebrać rzadki drop życia, tarczę lub przyspieszenie i zmierzyć się z bossem co 5 fal | S-01, S-05 | US-01, FR-010 | done |
 
 ## Strumienie
 
@@ -103,6 +103,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **S-06: Gracz może wstrzymać rozgrywkę i wznowić ją bez zmiany stanu obiektów podczas pauzy.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-05-pause-and-resume/`. Lekcja: —.
 - **S-08: Gracz może utworzyć lub wybrać niezabezpieczony lokalny profil na ekranie startowym, a błędne dane nie blokują uruchomienia gry.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-06-local-player-profiles/`. Lekcja: —.
 - **S-09: Gracz może zobaczyć najlepszy wynik wybranego profilu po Game Over i po ponownym uruchomieniu gry.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-06-persistent-profile-best-score/`. Lekcja: —.
+- **S-10: Gracz może rzadko zdobyć dodatkowe życie, tarczę chroniącą przed pociskami albo przyspieszenie statku, a co piątą falę zmierzyć się z bossem mającym pasek życia.** — Zarchiwizowano 2026-06-07 → `context/archive/2026-06-06-support-drops-and-boss-wave/`. Lekcja: —.
 
 ### S-03: Wyraźnie odmienny nowy obcy
 
@@ -163,7 +164,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** Dodatkowy feedback nie może naruszyć kontraktu bezpiecznej, cichej pracy bez audio.
-- **Status:** proposed
+- **Status:** done
 
 ### S-08: Lokalne profile graczy
 

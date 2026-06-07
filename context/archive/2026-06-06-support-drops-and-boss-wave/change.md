@@ -1,10 +1,10 @@
 ---
 change_id: support-drops-and-boss-wave
 title: Support drops and boss wave
-status: implemented
+status: archived
 created: 2026-06-06
 updated: 2026-06-07
-archived_at: null
+archived_at: 2026-06-07T13:39:15Z
 ---
 
 ## Notes
