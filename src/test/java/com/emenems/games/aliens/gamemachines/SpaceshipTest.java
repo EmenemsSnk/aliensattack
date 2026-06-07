@@ -51,6 +51,17 @@ class SpaceshipTest {
     }
 
     @Test
+    void overloadedMovementMethodsUseProvidedStep() {
+        Spaceship ship = new Spaceship(100, 200);
+
+        ship.moveRight(8);
+        ship.moveDown(8);
+
+        assertEquals(108, ship.getX());
+        assertEquals(208, ship.getY());
+    }
+
+    @Test
     void clampToBoundsMovesShipInsideLowerBounds() {
         Spaceship ship = new Spaceship(-10, -20);
 

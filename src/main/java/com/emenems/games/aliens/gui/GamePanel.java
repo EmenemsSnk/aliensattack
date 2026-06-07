@@ -1,13 +1,15 @@
 package com.emenems.games.aliens.gui;
 
 import com.emenems.games.aliens.GameConstants;
+import com.emenems.games.aliens.GameRules;
 import com.emenems.games.aliens.GameState;
 import com.emenems.games.aliens.gamemachines.Alien;
 import com.emenems.games.aliens.gamemachines.AlienExplosion;
 import com.emenems.games.aliens.gamemachines.AlienType;
 import com.emenems.games.aliens.gamemachines.AlienMissile;
 import com.emenems.games.aliens.gamemachines.Missile;
-import com.emenems.games.aliens.gamemachines.RapidFirePowerUp;
+import com.emenems.games.aliens.gamemachines.PowerUp;
+import com.emenems.games.aliens.gamemachines.PowerUpType;
 import com.emenems.games.aliens.gamemachines.Spaceship;
 import com.emenems.games.aliens.profiles.ProfileMenuState;
 import java.awt.Color;
@@ -30,6 +32,10 @@ public class GamePanel extends JPanel {
     private static final int HUD_PADDING = 14;
     private static final int HUD_ARC = 18;
     private static final int WAVE_BANNER_Y = 78;
+    private static final int BOSS_HEALTH_BAR_WIDTH = 220;
+    private static final int BOSS_HEALTH_BAR_HEIGHT = 14;
+    private static final int BOSS_RENDER_WIDTH = 66;
+    private static final int BOSS_RENDER_HEIGHT = 44;
 
     private Image space;
     private Image alienImage;
@@ -43,7 +49,7 @@ public class GamePanel extends JPanel {
     private List<AlienMissile> alienMissiles;
     private List<Alien> aliens;
     private List<AlienExplosion> alienExplosions;
-    private List<RapidFirePowerUp> rapidFirePowerUps;
+    private List<PowerUp> powerUps;
     private int score;
     private int wave = 1;
     private int lives = 3;
@@ -54,6 +60,9 @@ public class GamePanel extends JPanel {
     private int waveMessageTicks;
     private boolean rapidFireActive;
     private int rapidFireTicks;
+    private boolean shieldActive;
+    private boolean speedBoostActive;
+    private int speedBoostTicks;
     private int comboMultiplier = 1;
     private int comboTicks;
     private ProfileMenuState profileMenuState = ProfileMenuState.empty();
@@ -68,14 +77,14 @@ public class GamePanel extends JPanel {
         List<AlienMissile> alienMissiles,
         List<Alien> aliens,
         List<AlienExplosion> alienExplosions,
-        List<RapidFirePowerUp> rapidFirePowerUps
+        List<PowerUp> powerUps
     ) {
         this.spaceship = spaceship;
         this.missiles = missiles;
         this.alienMissiles = alienMissiles;
         this.aliens = aliens;
         this.alienExplosions = alienExplosions;
-        this.rapidFirePowerUps = rapidFirePowerUps;
+        this.powerUps = powerUps;
         initBoard();
     }
 
@@ -84,9 +93,9 @@ public class GamePanel extends JPanel {
         List<Missile> missiles,
         List<AlienMissile> alienMissiles,
         List<Alien> aliens,
-        List<RapidFirePowerUp> rapidFirePowerUps
+        List<PowerUp> powerUps
     ) {
-        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), rapidFirePowerUps);
+        this(spaceship, missiles, alienMissiles, aliens, new ArrayList<>(), powerUps);
     }
 
     public void updateGameState(
@@ -100,6 +109,9 @@ public class GamePanel extends JPanel {
         int waveMessageTicks,
         boolean rapidFireActive,
         int rapidFireTicks,
+        boolean shieldActive,
+        boolean speedBoostActive,
+        int speedBoostTicks,
         int comboMultiplier,
         int comboTicks,
         ProfileMenuState profileMenuState
@@ -114,6 +126,9 @@ public class GamePanel extends JPanel {
         this.waveMessageTicks = waveMessageTicks;
         this.rapidFireActive = rapidFireActive;
         this.rapidFireTicks = rapidFireTicks;
+        this.shieldActive = shieldActive;
+        this.speedBoostActive = speedBoostActive;
+        this.speedBoostTicks = speedBoostTicks;
         this.comboMultiplier = comboMultiplier;
         this.comboTicks = comboTicks;
         this.profileMenuState = profileMenuState;
@@ -146,7 +161,8 @@ public class GamePanel extends JPanel {
         drawMissiles(g);
         drawAlienMissiles(g);
         drawAlienExplosions(g);
-        drawRapidFirePowerUps(g);
+        drawPowerUps(g);
+        drawBossHealthBar(g);
         drawHud(g);
         drawWaveMessage(g);
         drawHitFeedback(g);
@@ -157,7 +173,7 @@ public class GamePanel extends JPanel {
     }
 
     private void drawHud(Graphics graphics) {
-        int hudHeight = hudCardHeight(rapidFireActive, comboMultiplier, comboTicks);
+        int hudHeight = hudCardHeight(rapidFireActive, speedBoostActive, comboMultiplier, comboTicks);
         graphics.setColor(new Color(7, 14, 32, 118));
         graphics.fillRoundRect(HUD_X, HUD_Y, HUD_WIDTH, hudHeight, HUD_ARC, HUD_ARC);
         graphics.setColor(new Color(120, 210, 255, 72));
@@ -180,6 +196,11 @@ public class GamePanel extends JPanel {
             graphics.setColor(new Color(255, 230, 60));
             graphics.drawString("RAPID FIRE: " + rapidFireSecondsRemaining(rapidFireTicks) + "s", textX, currentY);
         }
+        if (speedBoostActive) {
+            currentY += HUD_ROW_HEIGHT;
+            graphics.setColor(new Color(120, 255, 150));
+            graphics.drawString("SPEED: " + speedBoostSecondsRemaining(speedBoostTicks) + "s", textX, currentY);
+        }
         if (isComboVisible(comboMultiplier, comboTicks)) {
             currentY += HUD_ROW_HEIGHT;
             graphics.setColor(new Color(80, 220, 255));
@@ -191,9 +212,17 @@ public class GamePanel extends JPanel {
         }
     }
 
-    static int hudCardHeight(boolean rapidFireActive, int comboMultiplier, int comboTicks) {
+    static int hudCardHeight(
+        boolean rapidFireActive,
+        boolean speedBoostActive,
+        int comboMultiplier,
+        int comboTicks
+    ) {
         int visibleRows = 3;
         if (rapidFireActive) {
+            visibleRows++;
+        }
+        if (speedBoostActive) {
             visibleRows++;
         }
         if (isComboVisible(comboMultiplier, comboTicks)) {
@@ -207,6 +236,10 @@ public class GamePanel extends JPanel {
     }
 
     static int comboSecondsRemaining(int ticks) {
+        return Math.ceilDiv(ticks, TICKS_PER_SECOND);
+    }
+
+    static int speedBoostSecondsRemaining(int ticks) {
         return Math.ceilDiv(ticks, TICKS_PER_SECOND);
     }
 
@@ -402,16 +435,8 @@ public class GamePanel extends JPanel {
             ));
     }
 
-    private void drawRapidFirePowerUps(Graphics graphics) {
-        rapidFirePowerUps.forEach(powerUp -> {
-            int inset = 5;
-            int diameter = GameConstants.COMPONENT_SIZE - inset * 2;
-            graphics.setColor(new Color(255, 220, 35, 220));
-            graphics.fillOval(powerUp.getX() + inset, powerUp.getY() + inset, diameter, diameter);
-            graphics.setColor(new Color(255, 80, 20));
-            graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
-            graphics.drawString("R", powerUp.getX() + 14, powerUp.getY() + 28);
-        });
+    private void drawPowerUps(Graphics graphics) {
+        powerUps.forEach(powerUp -> drawPowerUp(graphics, powerUp));
     }
 
     private void drawAlienExplosions(Graphics graphics) {
@@ -440,10 +465,15 @@ public class GamePanel extends JPanel {
 
     private void drawAliens(Graphics graphics) {
         aliens.forEach(alien -> {
-            graphics.drawImage(alienImageFor(alien), alien.getX(),
-                alien.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE, this);
-            if (isShieldedSpecialAlien(alien)) {
+            if (alien.isBoss()) {
+                drawBoss(graphics, alien);
+            } else if (isShieldedSpecialAlien(alien)) {
+                graphics.drawImage(alienImageFor(alien), alien.getX(),
+                    alien.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE, this);
                 drawSpecialAlienShield(graphics, alien);
+            } else {
+                graphics.drawImage(alienImageFor(alien), alien.getX(),
+                    alien.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE, this);
             }
         });
     }
@@ -454,6 +484,52 @@ public class GamePanel extends JPanel {
 
     Image alienImageFor(Alien alien) {
         return alien.getType() == AlienType.SPECIAL ? specialAlienImage : alienImage;
+    }
+
+    static Alien currentBoss(List<Alien> aliens) {
+        return aliens.stream().filter(Alien::isBoss).findFirst().orElse(null);
+    }
+
+    static boolean isBossHealthBarVisible(GameState gameState, Alien boss) {
+        return gameState == GameState.PLAYING && boss != null;
+    }
+
+    static int bossHealthBarFillWidth(int currentHealth, int maxHealth, int totalWidth) {
+        if (maxHealth <= 0) {
+            return 0;
+        }
+        int clampedHealth = Math.max(0, Math.min(currentHealth, maxHealth));
+        return (int) Math.round((clampedHealth / (double) maxHealth) * totalWidth);
+    }
+
+    static boolean isSpaceshipShieldVisible(GameState gameState, boolean shieldActive) {
+        return shieldActive && (gameState == GameState.PLAYING || gameState == GameState.PAUSED);
+    }
+
+    static int bossRenderWidth() {
+        return BOSS_RENDER_WIDTH;
+    }
+
+    static int bossRenderHeight() {
+        return BOSS_RENDER_HEIGHT;
+    }
+
+    static Color powerUpColor(PowerUpType type) {
+        return switch (type) {
+            case RAPID_FIRE -> new Color(255, 220, 35, 220);
+            case EXTRA_LIFE -> new Color(255, 120, 120, 220);
+            case SHIELD -> new Color(120, 240, 255, 220);
+            case SPEED_BOOST -> new Color(120, 255, 150, 220);
+        };
+    }
+
+    static String powerUpLabel(PowerUpType type) {
+        return switch (type) {
+            case RAPID_FIRE -> "R";
+            case EXTRA_LIFE -> "+";
+            case SHIELD -> "S";
+            case SPEED_BOOST -> ">";
+        };
     }
 
     static boolean hasExplosionSprite() {
@@ -473,6 +549,78 @@ public class GamePanel extends JPanel {
 
     private void drawSpaceship(Graphics graphics) {
         graphics.drawImage(spaceshipImage, spaceship.getX(), spaceship.getY(), GameConstants.COMPONENT_SIZE, GameConstants.COMPONENT_SIZE, this);
+        if (isSpaceshipShieldVisible(gameState, shieldActive)) {
+            drawSpaceshipShield(graphics);
+        }
+    }
+
+    private void drawSpaceshipShield(Graphics graphics) {
+        int x = spaceship.getX();
+        int y = spaceship.getY();
+        graphics.setColor(new Color(90, 240, 255, 60));
+        graphics.fillOval(x - 7, y - 7, GameConstants.COMPONENT_SIZE + 14, GameConstants.COMPONENT_SIZE + 14);
+        graphics.setColor(new Color(160, 250, 255, 180));
+        graphics.drawOval(x - 5, y - 5, GameConstants.COMPONENT_SIZE + 10, GameConstants.COMPONENT_SIZE + 10);
+        graphics.setColor(new Color(255, 255, 255, 170));
+        graphics.drawArc(x - 2, y - 7, GameConstants.COMPONENT_SIZE + 4, GameConstants.COMPONENT_SIZE + 4, 18, 132);
+    }
+
+    private void drawBoss(Graphics graphics, Alien boss) {
+        int x = boss.getX() - (BOSS_RENDER_WIDTH - GameConstants.COMPONENT_SIZE) / 2;
+        int y = boss.getY() - 6;
+        graphics.setColor(new Color(95, 18, 22, 220));
+        graphics.fillRoundRect(x + 8, y + 8, BOSS_RENDER_WIDTH - 16, BOSS_RENDER_HEIGHT - 12, 18, 18);
+        graphics.setColor(new Color(196, 46, 58, 235));
+        graphics.fillRoundRect(x + 2, y + 4, BOSS_RENDER_WIDTH - 4, BOSS_RENDER_HEIGHT - 18, 20, 20);
+        graphics.setColor(new Color(255, 202, 112, 235));
+        graphics.fillRect(x + 10, y + 10, BOSS_RENDER_WIDTH - 20, 6);
+        graphics.setColor(new Color(32, 10, 14, 220));
+        graphics.fillOval(x + 12, y + 18, 14, 14);
+        graphics.fillOval(x + BOSS_RENDER_WIDTH - 26, y + 18, 14, 14);
+        graphics.setColor(new Color(255, 240, 180));
+        graphics.fillOval(x + 16, y + 22, 6, 6);
+        graphics.fillOval(x + BOSS_RENDER_WIDTH - 22, y + 22, 6, 6);
+        graphics.setColor(new Color(255, 150, 120));
+        graphics.fillRoundRect(x + 18, y + 30, BOSS_RENDER_WIDTH - 36, 6, 6, 6);
+        graphics.setColor(new Color(255, 220, 160));
+        graphics.drawRoundRect(x + 2, y + 4, BOSS_RENDER_WIDTH - 4, BOSS_RENDER_HEIGHT - 18, 20, 20);
+        graphics.drawLine(x + 4, y + BOSS_RENDER_HEIGHT - 10, x + 14, y + BOSS_RENDER_HEIGHT);
+        graphics.drawLine(x + BOSS_RENDER_WIDTH - 4, y + BOSS_RENDER_HEIGHT - 10, x + BOSS_RENDER_WIDTH - 14, y + BOSS_RENDER_HEIGHT);
+    }
+
+    private void drawPowerUp(Graphics graphics, PowerUp powerUp) {
+        int inset = 5;
+        int diameter = GameConstants.COMPONENT_SIZE - inset * 2;
+        graphics.setColor(powerUpColor(powerUp.getType()));
+        graphics.fillOval(powerUp.getX() + inset, powerUp.getY() + inset, diameter, diameter);
+        graphics.setColor(new Color(16, 24, 40));
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 18));
+        graphics.drawString(powerUpLabel(powerUp.getType()), powerUp.getX() + 14, powerUp.getY() + 28);
+    }
+
+    private void drawBossHealthBar(Graphics graphics) {
+        Alien boss = currentBoss(aliens);
+        if (!isBossHealthBarVisible(gameState, boss)) {
+            return;
+        }
+
+        int barX = (GameConstants.PANEL_WIDTH - BOSS_HEALTH_BAR_WIDTH) / 2;
+        int barY = 18;
+        graphics.setColor(new Color(25, 16, 16, 180));
+        graphics.fillRoundRect(barX, barY, BOSS_HEALTH_BAR_WIDTH, BOSS_HEALTH_BAR_HEIGHT, 12, 12);
+        graphics.setColor(new Color(255, 110, 110));
+        graphics.fillRoundRect(
+            barX,
+            barY,
+            bossHealthBarFillWidth(boss.getHealth(), GameRules.bossHealth(), BOSS_HEALTH_BAR_WIDTH),
+            BOSS_HEALTH_BAR_HEIGHT,
+            12,
+            12
+        );
+        graphics.setColor(new Color(255, 220, 220));
+        graphics.drawRoundRect(barX, barY, BOSS_HEALTH_BAR_WIDTH, BOSS_HEALTH_BAR_HEIGHT, 12, 12);
+        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+        graphics.drawString("BOSS", barX, barY - 4);
     }
 
 }

@@ -12,19 +12,39 @@ public final class Spaceship implements GameObject {
     }
 
     public void moveLeft() {
-        x -= MOVE_STEP;
+        moveLeft(MOVE_STEP);
     }
 
     public void moveRight() {
-        x += MOVE_STEP;
+        moveRight(MOVE_STEP);
     }
 
     public void moveUp() {
-        y -= MOVE_STEP;
+        moveUp(MOVE_STEP);
     }
 
     public void moveDown() {
-        y += MOVE_STEP;
+        moveDown(MOVE_STEP);
+    }
+
+    public void moveLeft(int step) {
+        x -= step;
+    }
+
+    public void moveRight(int step) {
+        x += step;
+    }
+
+    public void moveUp(int step) {
+        y -= step;
+    }
+
+    public void moveDown(int step) {
+        y += step;
+    }
+
+    public static int defaultMoveStep() {
+        return MOVE_STEP;
     }
 
     public void clampToBounds(int minX, int minY, int maxX, int maxY) {

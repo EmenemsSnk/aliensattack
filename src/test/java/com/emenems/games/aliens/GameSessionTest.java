@@ -43,6 +43,9 @@ class GameSessionTest {
         assertTrue(session.isWaveMessageActive());
         assertEquals(GameSession.WAVE_MESSAGE_DURATION_TICKS, session.getWaveMessageTicks());
         assertEquals("GAME OVER", session.getGameOverTitle());
+        assertFalse(session.isShieldActive());
+        assertFalse(session.isSpeedBoostActive());
+        assertEquals(0, session.getSpeedBoostTicks());
         assertEquals(1, session.getComboMultiplier());
         assertEquals(0, session.getComboTicks());
     }
@@ -57,6 +60,19 @@ class GameSessionTest {
         session.addAlienKills(1);
 
         assertEquals(40, session.getScore());
+    }
+
+    @Test
+    void bossBonusAddsConfiguredPointsWithoutChangingWaveOrLives() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+        session.addAlienKills(1);
+
+        session.addBossBonus();
+
+        assertEquals(10 + GameRules.bossScoreBonus(), session.getScore());
+        assertEquals(1, session.getWave());
+        assertEquals(3, session.getLives());
     }
 
     @Test
@@ -97,6 +113,8 @@ class GameSessionTest {
         session.addAlienKills(1);
         session.advanceWave();
         session.activateRapidFire();
+        session.activateShield();
+        session.activateSpeedBoost();
         session.loseLife();
         session.tickHitFeedback();
         session.tickWaveMessage();
@@ -109,6 +127,8 @@ class GameSessionTest {
         boolean hitFeedbackActive = session.isHitFeedbackActive();
         int waveMessageTicks = session.getWaveMessageTicks();
         int rapidFireTicks = session.getRapidFireTicks();
+        boolean shieldActive = session.isShieldActive();
+        int speedBoostTicks = session.getSpeedBoostTicks();
         int comboMultiplier = session.getComboMultiplier();
         int comboTicks = session.getComboTicks();
         String gameOverTitle = session.getGameOverTitle();
@@ -123,9 +143,81 @@ class GameSessionTest {
         assertEquals(hitFeedbackActive, session.isHitFeedbackActive());
         assertEquals(waveMessageTicks, session.getWaveMessageTicks());
         assertEquals(rapidFireTicks, session.getRapidFireTicks());
+        assertEquals(shieldActive, session.isShieldActive());
+        assertEquals(speedBoostTicks, session.getSpeedBoostTicks());
         assertEquals(comboMultiplier, session.getComboMultiplier());
         assertEquals(comboTicks, session.getComboTicks());
         assertEquals(gameOverTitle, session.getGameOverTitle());
+    }
+
+    @Test
+    void extraLifeRespectsFiveLifeCap() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+
+        session.addExtraLife();
+        session.addExtraLife();
+        session.addExtraLife();
+
+        assertEquals(5, session.getLives());
+    }
+
+    @Test
+    void shieldActivatesConsumesAndResetsOnRestart() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+
+        session.activateShield();
+
+        assertTrue(session.isShieldActive());
+        assertTrue(session.consumeShield());
+        assertFalse(session.isShieldActive());
+        assertFalse(session.consumeShield());
+
+        session.activateShield();
+        session.startOrRestart();
+
+        assertFalse(session.isShieldActive());
+    }
+
+    @Test
+    void shieldDoesNotStackBeyondOneCharge() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+
+        session.activateShield();
+        session.activateShield();
+
+        assertTrue(session.consumeShield());
+        assertFalse(session.consumeShield());
+    }
+
+    @Test
+    void speedBoostRefreshesExpiresAndResetsOnLifeLossAndRestart() {
+        GameSession session = new GameSession();
+        session.startOrRestart();
+
+        session.activateSpeedBoost();
+        session.tickSpeedBoost();
+        session.activateSpeedBoost();
+
+        assertTrue(session.isSpeedBoostActive());
+        assertEquals(GameRules.speedBoostDurationTicks(), session.getSpeedBoostTicks());
+
+        for (int tick = 0; tick < GameRules.speedBoostDurationTicks(); tick++) {
+            session.tickSpeedBoost();
+        }
+
+        assertFalse(session.isSpeedBoostActive());
+        assertEquals(0, session.getSpeedBoostTicks());
+
+        session.activateSpeedBoost();
+        session.loseLife();
+        assertFalse(session.isSpeedBoostActive());
+
+        session.activateSpeedBoost();
+        session.startOrRestart();
+        assertFalse(session.isSpeedBoostActive());
     }
 
     @Test
