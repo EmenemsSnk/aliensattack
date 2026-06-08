@@ -1584,13 +1584,16 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(startX(), startY());
         List<AlienMissile> alienMissiles = new ArrayList<>();
         List<PowerUp> powerUps = new ArrayList<>();
+        CountingSoundPlayer soundPlayer = new CountingSoundPlayer();
         GameController controller = new GameController(
             spaceship,
             new ArrayList<>(),
             alienMissiles,
             new ArrayList<>(),
             powerUps,
-            null
+            null,
+            new Random(1),
+            soundPlayer
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.SHIELD, spaceship.getX(), spaceship.getY()));
@@ -1602,11 +1605,13 @@ class GameControllerTest {
         assertTrue(alienMissiles.isEmpty());
         assertFalse(controller.isShieldActive());
         assertEquals(3, controller.getLives());
+        assertEquals(0, soundPlayer.playLifeLossCalls);
 
         alienMissiles.add(new AlienMissile(spaceship.getX(), spaceship.getY()));
         controller.checkCollisionsWithAlienMissile();
 
         assertEquals(2, controller.getLives());
+        assertEquals(1, soundPlayer.playLifeLossCalls);
     }
 
     @Test
@@ -1614,13 +1619,16 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(startX(), startY());
         List<Alien> aliens = new ArrayList<>();
         List<PowerUp> powerUps = new ArrayList<>();
+        CountingSoundPlayer soundPlayer = new CountingSoundPlayer();
         GameController controller = new GameController(
             spaceship,
             new ArrayList<>(),
             new ArrayList<>(),
             aliens,
             powerUps,
-            null
+            null,
+            new Random(1),
+            soundPlayer
         );
         startPlaying(controller);
         aliens.clear();
@@ -1633,6 +1641,7 @@ class GameControllerTest {
         assertEquals(3, controller.getLives());
         assertFalse(controller.isShieldActive());
         assertTrue(aliens.isEmpty());
+        assertEquals(0, soundPlayer.playLifeLossCalls);
 
         powerUps.add(new PowerUp(PowerUpType.SHIELD, spaceship.getX(), spaceship.getY()));
         controller.checkCollisionsWithPowerUp();
@@ -1641,6 +1650,54 @@ class GameControllerTest {
         controller.tick();
 
         assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals(0, soundPlayer.playLifeLossCalls);
+    }
+
+    @Test
+    void alienMissileHitPlaysLifeLossSound() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<AlienMissile> alienMissiles = new ArrayList<>();
+        CountingSoundPlayer soundPlayer = new CountingSoundPlayer();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            alienMissiles,
+            new ArrayList<>(),
+            null,
+            new Random(1),
+            soundPlayer
+        );
+        startPlaying(controller);
+
+        alienMissiles.add(new AlienMissile(spaceship.getX(), spaceship.getY()));
+        controller.checkCollisionsWithAlienMissile();
+
+        assertEquals(2, controller.getLives());
+        assertEquals(1, soundPlayer.playLifeLossCalls);
+    }
+
+    @Test
+    void shipAlienCollisionPlaysLifeLossSound() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<Alien> aliens = new ArrayList<>();
+        CountingSoundPlayer soundPlayer = new CountingSoundPlayer();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            aliens,
+            null,
+            new Random(1),
+            soundPlayer
+        );
+        startPlaying(controller);
+        aliens.clear();
+        aliens.add(new Alien(spaceship.getX(), spaceship.getY()));
+
+        controller.checkCollisionsWithSpaceShip();
+
+        assertEquals(2, controller.getLives());
+        assertEquals(1, soundPlayer.playLifeLossCalls);
     }
 
     @Test
@@ -2013,6 +2070,39 @@ class GameControllerTest {
         controller.tick();
 
         assertEquals(1, profileStore.saveCalls);
+    }
+
+    @Test
+    void lastLifeHitStillPlaysLifeLossSoundBeforeGameOver() {
+        Spaceship spaceship = new Spaceship(startX(), startY());
+        List<AlienMissile> alienMissiles = new ArrayList<>();
+        CountingProfileStore profileStore = new CountingProfileStore(List.of(new PlayerProfile("Player", 0)), false);
+        CountingSoundPlayer soundPlayer = new CountingSoundPlayer();
+        GameController controller = new GameController(
+            spaceship,
+            new ArrayList<>(),
+            alienMissiles,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            null,
+            new Random(1),
+            soundPlayer,
+            profileStore
+        );
+        controller.replaceProfilesForTesting(profileStore.loadProfiles());
+        startPlaying(controller);
+
+        alienMissiles.add(new AlienMissile(spaceship.getX(), spaceship.getY()));
+        controller.checkCollisionsWithAlienMissile();
+        alienMissiles.add(new AlienMissile(spaceship.getX(), spaceship.getY()));
+        controller.checkCollisionsWithAlienMissile();
+        alienMissiles.add(new AlienMissile(spaceship.getX(), spaceship.getY()));
+        controller.checkCollisionsWithAlienMissile();
+
+        assertEquals(GameState.GAME_OVER, controller.getGameState());
+        assertEquals(0, controller.getLives());
+        assertEquals(3, soundPlayer.playLifeLossCalls);
     }
 
     @Test
@@ -2481,6 +2571,7 @@ class GameControllerTest {
     private static class CountingSoundPlayer extends ArcadeSoundPlayer {
         private int startBackgroundMusicCalls;
         private int stopBackgroundMusicCalls;
+        private int playLifeLossCalls;
 
         @Override
         public synchronized void startBackgroundMusic() {
@@ -2490,6 +2581,11 @@ class GameControllerTest {
         @Override
         public synchronized void stopBackgroundMusic() {
             stopBackgroundMusicCalls++;
+        }
+
+        @Override
+        public void playLifeLoss() {
+            playLifeLossCalls++;
         }
     }
 

@@ -18,6 +18,14 @@ public class ArcadeSoundPlayer {
         playTone(155, 95, 0.22);
     }
 
+    public void playLifeLoss() {
+        try {
+            playSamples(createLifeLossSamples());
+        } catch (Exception ignored) {
+            // Audio devices are not guaranteed in CI/headless environments; gameplay must continue silently.
+        }
+    }
+
     public synchronized void startBackgroundMusic() {
         if (backgroundClip != null && backgroundClip.isRunning()) {
             return;
@@ -41,15 +49,7 @@ public class ArcadeSoundPlayer {
     private void playTone(int frequencyHz, int durationMs, double volume) {
         try {
             byte[] samples = createSamples(frequencyHz, durationMs, volume);
-            AudioFormat format = new AudioFormat(SAMPLE_RATE, 8, 1, true, false);
-            Clip clip = AudioSystem.getClip();
-            clip.addLineListener(event -> {
-                if (event.getType() == LineEvent.Type.STOP) {
-                    event.getLine().close();
-                }
-            });
-            clip.open(format, samples, 0, samples.length);
-            clip.start();
+            playSamples(samples);
         } catch (Exception ignored) {
             // Audio devices are not guaranteed in CI/headless environments; gameplay must continue silently.
         }
@@ -80,6 +80,44 @@ public class ArcadeSoundPlayer {
             offset += noteSamples;
         }
         return samples;
+    }
+
+    private byte[] createLifeLossSamples() {
+        int firstDurationMs = 70;
+        int secondDurationMs = 110;
+        int firstSamples = Math.round(SAMPLE_RATE * firstDurationMs / 1000f);
+        int secondSamples = Math.round(SAMPLE_RATE * secondDurationMs / 1000f);
+        byte[] samples = new byte[firstSamples + secondSamples];
+
+        for (int index = 0; index < firstSamples; index++) {
+            double progress = (double) index / Math.max(1, firstSamples - 1);
+            double fade = 1.0 - progress * 0.35;
+            double primary = Math.sin(2.0 * Math.PI * 220 * index / SAMPLE_RATE);
+            double overtone = Math.sin(2.0 * Math.PI * 330 * index / SAMPLE_RATE) * 0.18;
+            samples[index] = (byte) ((primary + overtone) * Byte.MAX_VALUE * 0.13 * fade);
+        }
+
+        for (int index = 0; index < secondSamples; index++) {
+            double progress = (double) index / Math.max(1, secondSamples - 1);
+            double fade = 1.0 - progress;
+            double primary = Math.sin(2.0 * Math.PI * 165 * index / SAMPLE_RATE);
+            double overtone = Math.sin(2.0 * Math.PI * 247 * index / SAMPLE_RATE) * 0.14;
+            samples[firstSamples + index] = (byte) ((primary + overtone) * Byte.MAX_VALUE * 0.11 * fade);
+        }
+
+        return samples;
+    }
+
+    private void playSamples(byte[] samples) throws Exception {
+        AudioFormat format = new AudioFormat(SAMPLE_RATE, 8, 1, true, false);
+        Clip clip = AudioSystem.getClip();
+        clip.addLineListener(event -> {
+            if (event.getType() == LineEvent.Type.STOP) {
+                event.getLine().close();
+            }
+        });
+        clip.open(format, samples, 0, samples.length);
+        clip.start();
     }
 
     private void closeBackgroundClip() {
