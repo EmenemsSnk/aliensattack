@@ -3,7 +3,7 @@ project: "Aliens Attack"
 version: 1
 status: draft
 created: 2026-06-04
-updated: 2026-06-07
+updated: 2026-06-08
 prd_version: 1
 main_goal: quality
 top_blocker: decisions
@@ -37,7 +37,7 @@ Kolejność jest podporządkowana jakości: każdy wycinek musi zachować sterow
 | S-04 | visible-alien-explosion | zobaczyć eksplozję po zniszczeniu obcego | — | US-01, FR-006, FR-010 | done |
 | S-05 | clear-hud-and-wave-message | odczytać czytelniejszy HUD i komunikat rozpoczęcia fali | S-04 | US-01, FR-007, FR-010 | done |
 | S-06 | pause-and-resume | wstrzymać i wznowić rozgrywkę | S-05 | FR-008, FR-010 | done |
-| S-07 | life-loss-sound | usłyszeć osobny dźwięk utraty życia | S-05 | FR-009, FR-010 | proposed |
+| S-07 | life-loss-sound | usłyszeć osobny dźwięk utraty życia | S-05 | FR-009, FR-010 | done |
 | S-08 | local-player-profiles | utworzyć lub wybrać lokalny profil bez blokowania startu gry | — | US-01, FR-001, FR-010 | done |
 | S-09 | persistent-profile-best-score | zobaczyć zapisany najlepszy wynik wybranego profilu po Game Over | S-08 | US-01, FR-002, FR-010 | done |
 | S-10 | support-drops-and-boss-wave | zebrać rzadki drop życia, tarczę lub przyspieszenie i zmierzyć się z bossem co 5 fal | S-01, S-05 | US-01, FR-010 | done |
@@ -101,6 +101,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **S-04: Gracz może zobaczyć krótką eksplozję po zniszczeniu obcego bez utraty czytelności rozgrywki.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-visible-alien-explosion/`. Lekcja: —.
 - **S-05: Gracz może łatwo odczytać stan sesji i zobaczyć komunikat rozpoczęcia nowej fali.** — Zarchiwizowano 2026-06-05 → `context/archive/2026-06-05-clear-hud-and-wave-message/`. Lekcja: —.
 - **S-06: Gracz może wstrzymać rozgrywkę i wznowić ją bez zmiany stanu obiektów podczas pauzy.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-05-pause-and-resume/`. Lekcja: —.
+- **S-07: Gracz może usłyszeć osobny dźwięk utraty życia, a brak urządzenia audio nadal nie przerywa gry.** — Zarchiwizowano 2026-06-08 → `context/archive/2026-06-08-life-loss-sound/`. Lekcja: —.
 - **S-08: Gracz może utworzyć lub wybrać niezabezpieczony lokalny profil na ekranie startowym, a błędne dane nie blokują uruchomienia gry.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-06-local-player-profiles/`. Lekcja: —.
 - **S-09: Gracz może zobaczyć najlepszy wynik wybranego profilu po Game Over i po ponownym uruchomieniu gry.** — Zarchiwizowano 2026-06-06 → `context/archive/2026-06-06-persistent-profile-best-score/`. Lekcja: —.
 - **S-10: Gracz może rzadko zdobyć dodatkowe życie, tarczę chroniącą przed pociskami albo przyspieszenie statku, a co piątą falę zmierzyć się z bossem mającym pasek życia.** — Zarchiwizowano 2026-06-07 → `context/archive/2026-06-06-support-drops-and-boss-wave/`. Lekcja: —.
