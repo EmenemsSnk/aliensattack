@@ -856,6 +856,7 @@ public class GameController implements ActionListener {
 
     private void loseLife() {
         session.loseLife();
+        soundPlayer.playLifeLoss();
         if (session.getGameState() == GameState.GAME_OVER) {
             clearInputAndStopMusic();
             handleGameOverScoreUpdate();
