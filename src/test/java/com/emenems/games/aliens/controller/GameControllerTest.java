@@ -45,7 +45,7 @@ class GameControllerTest {
         List<Alien> aliens = new ArrayList<>();
         Alien alien = new Alien(100, 100);
         aliens.add(alien);
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
 
         controller.tick();
 
@@ -142,7 +142,7 @@ class GameControllerTest {
             powerUps,
             null,
             random,
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.checkCollisionsWithMissile();
@@ -176,7 +176,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             random,
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.checkCollisionsWithMissile();
@@ -208,7 +208,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             random,
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.checkCollisionsWithMissile();
@@ -246,7 +246,7 @@ class GameControllerTest {
             new ArrayList<>(),
             explosions,
             new ArrayList<>(),
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         explosions.add(new AlienExplosion(100, 100));
@@ -285,7 +285,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(500, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE - GameConstants.SPACESHIP_START_BOTTOM_MARGIN);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
 
         controller.handleKeyPressed(KeyEvent.VK_RIGHT);
@@ -303,7 +303,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(0, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         spaceship.moveTo(0, GameConstants.PANEL_HEIGHT - GameConstants.COMPONENT_SIZE);
         aliens.clear();
@@ -529,7 +529,7 @@ class GameControllerTest {
         List<Alien> aliens = new ArrayList<>();
         Alien stationaryAlien = new Alien(100, 100);
         aliens.add(stationaryAlien);
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         aliens.clear();
         aliens.add(stationaryAlien);
@@ -552,7 +552,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         selectTestProfile(controller);
 
         controller.handleKeyPressed(KeyEvent.VK_ENTER);
@@ -667,7 +667,7 @@ class GameControllerTest {
     @Test
     void leftAndRightSelectProfilesOnlyOnStartMenu() {
         Spaceship spaceship = new Spaceship(startX(), startY());
-        GameController controller = new GameController(spaceship, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
+        GameController controller = new GameController(spaceship, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null, new Random(), new SilentSoundPlayer());
         controller.replaceProfilesForTesting(List.of(
             new PlayerProfile("Alpha", 10),
             new PlayerProfile("Beta", 20)
@@ -739,7 +739,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             new Random(1),
-            new ArcadeSoundPlayer(),
+            new SilentSoundPlayer(),
             profileStore
         );
         controller.replaceProfilesForTesting(profileStore.loadProfiles());
@@ -787,7 +787,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             new Random(1),
-            new ArcadeSoundPlayer(),
+            new SilentSoundPlayer(),
             profileStore
         );
         controller.replaceProfilesForTesting(profileStore.loadProfiles());
@@ -833,7 +833,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             new Random(1),
-            new ArcadeSoundPlayer(),
+            new SilentSoundPlayer(),
             profileStore
         );
         controller.replaceProfilesForTesting(profileStore.loadProfiles());
@@ -862,7 +862,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             new Random(1),
-            new ArcadeSoundPlayer(),
+            new SilentSoundPlayer(),
             profileStore
         );
         controller.replaceProfilesForTesting(profileStore.loadProfiles());
@@ -928,7 +928,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(startX(), startY());
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         aliens.clear();
         controller.handleKeyPressed(KeyEvent.VK_RIGHT);
@@ -965,7 +965,7 @@ class GameControllerTest {
             aliens,
             explosions,
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1017,7 +1017,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         aliens.clear();
 
@@ -1041,7 +1041,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         aliens.clear();
         missiles.add(new Missile(100, 100));
@@ -1067,7 +1067,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
 
         controller.handleKeyPressed(KeyEvent.VK_SPACE);
@@ -1091,7 +1091,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
 
         controller.handleKeyPressed(KeyEvent.VK_RIGHT);
@@ -1125,7 +1125,7 @@ class GameControllerTest {
             aliens,
             explosions,
             new ArrayList<>(),
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         missiles.add(new Missile(100, 100));
@@ -1147,7 +1147,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(500, 680);
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         aliens.clear();
         aliens.add(new Alien(startX(), startY()));
@@ -1186,7 +1186,7 @@ class GameControllerTest {
         List<Missile> missiles = new ArrayList<>();
         List<AlienMissile> alienMissiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, null);
+        GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         AlienMissile alienMissile = new AlienMissile(startX(), startY());
         alienMissiles.add(alienMissile);
@@ -1205,7 +1205,7 @@ class GameControllerTest {
         List<Missile> missiles = new ArrayList<>();
         List<AlienMissile> alienMissiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, null);
+        GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
 
         alienMissiles.add(new AlienMissile(startX(), startY()));
@@ -1233,7 +1233,7 @@ class GameControllerTest {
             missiles,
             alienMissiles,
             aliens,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
 
         controller.cleanupOffscreenObjects();
@@ -1255,7 +1255,7 @@ class GameControllerTest {
             aliens,
             null,
             new AlwaysFireRandom(),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1283,7 +1283,7 @@ class GameControllerTest {
             aliens,
             null,
             new ScriptedRandom(new double[] { 0.0 }, new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 }),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1309,7 +1309,7 @@ class GameControllerTest {
             aliens,
             null,
             new ScriptedRandom(new double[] { 0.0, 1.0 }, new int[] { 0 }),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1335,7 +1335,7 @@ class GameControllerTest {
             aliens,
             null,
             new ScriptedRandom(new double[] { 1.0, 1.0 }, new int[] { 0 }),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1363,7 +1363,7 @@ class GameControllerTest {
             aliens,
             null,
             new ScriptedRandom(new double[] { 1.0, 1.0 }, new int[] { 0 }),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1389,7 +1389,7 @@ class GameControllerTest {
             aliens,
             null,
             new AlwaysFireRandom(),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1407,7 +1407,7 @@ class GameControllerTest {
         List<Missile> missiles = new ArrayList<>();
         List<AlienMissile> alienMissiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, null);
+        GameController controller = new GameController(spaceship, missiles, alienMissiles, aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         alienMissiles.add(new AlienMissile(500, 680));
 
@@ -1431,7 +1431,7 @@ class GameControllerTest {
             aliens,
             null,
             new Random(1),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
 
@@ -1463,7 +1463,7 @@ class GameControllerTest {
             powerUps,
             null,
             new AlwaysFireRandom(),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.checkCollisionsWithMissile();
@@ -1490,7 +1490,7 @@ class GameControllerTest {
             powerUps,
             null,
             random,
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.checkCollisionsWithMissile();
@@ -1514,7 +1514,7 @@ class GameControllerTest {
             powerUps,
             null,
             new ScriptedRandom(new double[] { 0.0 }, new int[] { 4 }),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.checkCollisionsWithMissile();
@@ -1536,7 +1536,7 @@ class GameControllerTest {
             new ArrayList<>(),
             aliens,
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1565,7 +1565,7 @@ class GameControllerTest {
             new ArrayList<>(),
             new ArrayList<>(),
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
 
@@ -1710,7 +1710,7 @@ class GameControllerTest {
             new ArrayList<>(),
             new ArrayList<>(),
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.SPEED_BOOST, spaceship.getX(), spaceship.getY()));
@@ -1748,7 +1748,7 @@ class GameControllerTest {
             new ArrayList<>(),
             new ArrayList<>(),
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         spaceship.moveTo(GameConstants.PANEL_WIDTH - GameConstants.COMPONENT_SIZE - 2, startY());
@@ -1773,7 +1773,7 @@ class GameControllerTest {
             new ArrayList<>(),
             aliens,
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.SHIELD, spaceship.getX(), spaceship.getY()));
@@ -1805,7 +1805,7 @@ class GameControllerTest {
             aliens,
             null,
             new FixedIntRandom(0),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
 
@@ -1871,7 +1871,7 @@ class GameControllerTest {
             new ArrayList<>(),
             new ArrayList<>(),
             aliens,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -1896,7 +1896,7 @@ class GameControllerTest {
             powerUps,
             null,
             new FixedIntRandom(0),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
         startPlaying(controller);
 
@@ -1938,7 +1938,7 @@ class GameControllerTest {
             aliens,
             null,
             new AlwaysFireRandom(),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.fireAlienMissileIfReady();
@@ -1963,7 +1963,7 @@ class GameControllerTest {
             aliens,
             null,
             new AlwaysFireRandom(),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.fireAlienMissileIfReady();
@@ -1987,7 +1987,7 @@ class GameControllerTest {
             aliens,
             null,
             new AlwaysFireRandom(),
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
 
         controller.fireAlienMissileIfReady();
@@ -2012,7 +2012,7 @@ class GameControllerTest {
             alienMissiles,
             new ArrayList<>(),
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.SHIELD, spaceship.getX(), spaceship.getY()));
@@ -2044,7 +2044,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             new Random(1),
-            new ArcadeSoundPlayer(),
+            new SilentSoundPlayer(),
             profileStore
         );
         controller.replaceProfilesForTesting(profileStore.loadProfiles());
@@ -2115,7 +2115,7 @@ class GameControllerTest {
             new ArrayList<>(),
             new ArrayList<>(),
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.RAPID_FIRE, startX(), startY()));
@@ -2140,7 +2140,7 @@ class GameControllerTest {
             new ArrayList<>(),
             aliens,
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         aliens.clear();
@@ -2175,7 +2175,7 @@ class GameControllerTest {
             new ArrayList<>(),
             aliens,
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.RAPID_FIRE, startX(), startY()));
@@ -2212,7 +2212,7 @@ class GameControllerTest {
             new ArrayList<>(),
             new ArrayList<>(),
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         controller.handleKeyPressed(KeyEvent.VK_SPACE);
@@ -2235,7 +2235,7 @@ class GameControllerTest {
             new ArrayList<>(),
             aliens,
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.RAPID_FIRE, startX(), startY()));
@@ -2397,7 +2397,7 @@ class GameControllerTest {
             new ArrayList<>(),
             aliens,
             powerUps,
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
         startPlaying(controller);
         powerUps.add(new PowerUp(PowerUpType.RAPID_FIRE, startX(), startY()));
@@ -2423,7 +2423,7 @@ class GameControllerTest {
         Spaceship spaceship = new Spaceship(startX(), startY());
         List<Missile> missiles = new ArrayList<>();
         List<Alien> aliens = new ArrayList<>();
-        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null);
+        GameController controller = new GameController(spaceship, missiles, new ArrayList<>(), aliens, null, new Random(), new SilentSoundPlayer());
         startPlaying(controller);
         aliens.clear();
         missiles.add(new Missile(100, 100));
@@ -2461,7 +2461,7 @@ class GameControllerTest {
             aliens,
             explosions,
             new ArrayList<>(),
-            null
+            null, new Random(), new SilentSoundPlayer()
         );
     }
 
@@ -2473,7 +2473,7 @@ class GameControllerTest {
             aliens,
             null,
             random,
-            new ArcadeSoundPlayer()
+            new SilentSoundPlayer()
         );
     }
 
@@ -2487,7 +2487,7 @@ class GameControllerTest {
             new ArrayList<>(),
             null,
             new Random(1),
-            new ArcadeSoundPlayer(),
+            new SilentSoundPlayer(),
             profileStore
         );
     }
@@ -2573,6 +2573,9 @@ class GameControllerTest {
         private int stopBackgroundMusicCalls;
         private int playLifeLossCalls;
 
+        @Override public void playShoot() {}
+        @Override public void playExplosion() {}
+
         @Override
         public synchronized void startBackgroundMusic() {
             startBackgroundMusicCalls++;
@@ -2657,5 +2660,13 @@ class GameControllerTest {
             }
             return ints[intIndex++];
         }
+    }
+
+    private static class SilentSoundPlayer extends ArcadeSoundPlayer {
+        @Override public void playShoot() {}
+        @Override public void playExplosion() {}
+        @Override public void playLifeLoss() {}
+        @Override public synchronized void startBackgroundMusic() {}
+        @Override public synchronized void stopBackgroundMusic() {}
     }
 }

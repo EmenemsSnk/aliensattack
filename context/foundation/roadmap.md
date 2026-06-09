@@ -203,7 +203,7 @@ Brak osobnych fundamentów. Istniejąca baza zapewnia pętlę gry, UI, testy i C
 - **Blokady:** —
 - **Niewiadome:** —
 - **Ryzyko:** Wycinek łączy trzy nowe efekty sesyjne z nowym typem starcia okresowego; największe ryzyko to balans dropów, czytelność aktywnych efektów oraz to, by boss-wave nie łamał tempa zwykłych fal.
-- **Status:** proposed
+- **Status:** done
 
 ## Przekazanie backlogu
 
