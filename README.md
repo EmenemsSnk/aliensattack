@@ -1,18 +1,27 @@
 # Aliens Attack
 
-Version 1.0.0 MVP: a classic 2D space shooter game built in Java 21 using Swing.
+Version 2.0.0: a classic 2D space shooter game built in Java 21 using Swing.
 
 ## Description
-Take control of a spaceship and defend against waves of invading aliens. Move, hold fire, dodge alien projectiles, clear faster waves, and restart cleanly after Game Over.
+Take control of a spaceship and defend against waves of invading aliens. Build score combos, collect power-ups, face special aliens and periodic boss waves, keep your best score across sessions, and restart cleanly after Game Over.
 
 ## Features
 - Player-controlled spaceship
 - Start menu and Game Over restart flow
-- Moving alien enemies and wave progression
-- Hold-to-fire missile mechanics
-- Alien projectiles
+- Moving alien enemies with wave progression and increasing speed
+- Special two-hit alien type with shield visual
+- Boss wave every 5th wave: a high-HP horizontal-patrol boss with burst firing and a health bar
+- Hold-to-fire missile mechanics with rapid-fire power-up
+- Score combo multiplier: hit streaks increase the multiplier
+- Power-ups: Rapid Fire, Extra Life, Shield, Speed Boost (rare drops from aliens; guaranteed from boss kills)
+- Alien projectiles with weighted firing
 - Collision detection
-- Score, wave, and lives HUD
+- Score, wave, lives, and active-effect HUD
+- Wave-start banner
+- Alien explosion animations
+- Pause and resume (P key)
+- Distinct sound on life loss
+- Local player profiles with persistent best score and Top 5 leaderboard
 - Retro sound effects and generated background music
 
 ## How to Play

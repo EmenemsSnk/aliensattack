@@ -6,7 +6,7 @@
 
   <groupId>com.emenems.games.aliens</groupId>
   <artifactId>aliens-attack</artifactId>
-  <version>1.0.0</version>
+  <version>2.0.0</version>
 
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
